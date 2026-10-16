@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=DankCalc
 GenericName=Calculator
-Comment=Material 3 Expressive Calculator for Linux and DankMaterialShell
+Comment=Fast, modern Material 3 Calculator
 Exec=dcalc %u
 Icon=accessories-calculator
 Terminal=false
