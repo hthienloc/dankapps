@@ -79,12 +79,20 @@ dankvideo/
 
 ---
 
-## Build & Run
+## Installation
+
+### Arch Linux (AUR)
 
 ```bash
-# Clone the repository with submodules
-git clone --recurse-submodules https://github.com/AvengeMedia/dankvideo.git
-cd dankvideo
+yay -S dankvideo-git
+```
+
+### From Source
+
+```bash
+# Clone the repository
+git clone https://github.com/hthienloc/dankapps.git
+cd dankapps/dankvideo
 
 # Build dev binary
 make dev

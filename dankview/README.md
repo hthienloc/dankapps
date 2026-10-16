@@ -48,14 +48,22 @@ dview -list /path/to/folder      # List directory images JSON (headless)
 dview -v                         # Print version
 ```
 
-## Build & Install
+## Installation
 
-### Dependencies
+### Arch Linux (AUR)
+
+```bash
+yay -S dankview-git
+```
+
+### From Source
+
+#### Dependencies
 
 - Go 1.21+
 - [Quickshell](https://quickshell.outfoxxed.me/)
 
-### Commands
+#### Build Commands
 
 ```bash
 # Build binary

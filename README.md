@@ -12,6 +12,20 @@ A collection of Quickshell-based desktop apps for DankMaterialShell (DMS) and st
 
 ## Install an app
 
+### Arch Linux (AUR)
+
+Packages are available on the AUR for Arch-based distributions:
+
+```bash
+# Install dankview
+yay -S dankview-git
+
+# Install dankvideo
+yay -S dankvideo-git
+```
+
+### From Source
+
 Each app is self-contained. Clone the repo and install only what you need:
 
 ```bash
