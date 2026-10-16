@@ -1,326 +1,692 @@
 [
   {
+    "term": "%1 items",
+    "context": "%1 items",
+    "reference": "FileBrowser/FileFormat.qml:25",
+    "comment": "number of items in a folder"
+  },
+  {
+    "term": "%1 selected",
+    "context": "%1 selected",
+    "reference": "FileBrowser/SelectionFooter.qml:16, FileBrowser/FileColumnsView.qml:359",
+    "comment": "count of selected items | preview column header for a multiple selection"
+  },
+  {
+    "term": "1 item",
+    "context": "1 item",
+    "reference": "FileBrowser/FileFormat.qml:24",
+    "comment": "a folder holding a single item"
+  },
+  {
+    "term": "1 selected",
+    "context": "1 selected",
+    "reference": "FileBrowser/SelectionFooter.qml:16",
+    "comment": "a single selected item"
+  },
+  {
     "term": "A file with this name already exists. Do you want to overwrite it?",
     "context": "A file with this name already exists. Do you want to overwrite it?",
-    "reference": "Modals/FileBrowser/FileBrowserOverwriteDialog.qml:61",
+    "reference": "FileBrowser/FilePicker.qml:682",
     "comment": "file browser overwrite dialog message"
+  },
+  {
+    "term": "A name cannot be empty or contain a slash",
+    "context": "A name cannot be empty or contain a slash",
+    "reference": "FileBrowser/InlineRename.qml:52",
+    "comment": "inline rename validation message"
+  },
+  {
+    "term": "AM",
+    "context": "AM",
+    "reference": "Widgets/DankTimePicker.qml:352, Widgets/DankTimePicker.qml:364",
+    "comment": ""
   },
   {
     "term": "Actions",
     "context": "Actions",
-    "reference": "Widgets/DankIconPicker.qml:52",
+    "reference": "Widgets/DankIconPicker.qml:55",
     "comment": ""
-  },
-  {
-    "term": "Alt+←/Backspace: Back • F1/I: File Info • F10: Help • Esc: Close",
-    "context": "Alt+←/Backspace: Back • F1/I: File Info • F10: Help • Esc: Close",
-    "reference": "Modals/FileBrowser/KeyboardHints.qml:35",
-    "comment": "file browser keyboard shortcuts hint line"
   },
   {
     "term": "Ascending",
     "context": "Ascending",
-    "reference": "Modals/FileBrowser/FileBrowserSortMenu.qml:132",
+    "reference": "FileBrowser/FileSortButton.qml:185",
     "comment": "file browser sort order option"
+  },
+  {
+    "term": "B",
+    "context": "B",
+    "reference": "FileBrowser/FileFormat.qml:12",
+    "comment": "file size unit"
+  },
+  {
+    "term": "Back",
+    "context": "Back",
+    "reference": "FileBrowser/NavButtonPair.qml:64",
+    "comment": "tooltip on the button going to the previous location"
+  },
+  {
+    "term": "Backspace",
+    "context": "Backspace",
+    "reference": "Session/ExpressiveKeyboardKey.qml:36",
+    "comment": ""
+  },
+  {
+    "term": "Binary file",
+    "context": "Binary file",
+    "reference": "FileBrowser/FilePreviewPane.qml:171",
+    "comment": "preview column note for files without readable text"
+  },
+  {
+    "term": "Broken link",
+    "context": "Broken link",
+    "reference": "FileBrowser/FileFormat.qml:39",
+    "comment": "file type shown for a symlink with no target"
   },
   {
     "term": "Cancel",
     "context": "Cancel",
-    "reference": "Modals/FileBrowser/FileBrowserOverwriteDialog.qml:83",
+    "reference": "FileBrowser/FilePicker.qml:520, FileBrowser/FilePicker.qml:662, FileBrowser/FilePicker.qml:699, Widgets/DankTimePicker.qml:555, Widgets/DankConfirmDialogContent.qml:10",
     "comment": "file browser overwrite dialog cancel button"
   },
   {
     "term": "Choose icon",
     "context": "Choose icon",
-    "reference": "Widgets/DankIconPicker.qml:101",
+    "reference": "Widgets/DankIconPicker.qml:106",
+    "comment": ""
+  },
+  {
+    "term": "Clear",
+    "context": "Clear",
+    "reference": "Widgets/DankTextField.qml:409",
+    "comment": ""
+  },
+  {
+    "term": "Clear the selection",
+    "context": "Clear the selection",
+    "reference": "FileBrowser/SelectionFooter.qml:51",
+    "comment": "tooltip on the button clearing the file selection"
+  },
+  {
+    "term": "Close",
+    "context": "Close",
+    "reference": "Widgets/DankWindowHeader.qml:117",
+    "comment": ""
+  },
+  {
+    "term": "Color",
+    "context": "Color",
+    "reference": "Widgets/DankSaturationValuePicker.qml:23",
     "comment": ""
   },
   {
     "term": "Communication",
     "context": "Communication",
-    "reference": "Widgets/DankIconPicker.qml:36",
+    "reference": "Widgets/DankIconPicker.qml:39",
+    "comment": ""
+  },
+  {
+    "term": "Confirm",
+    "context": "Confirm",
+    "reference": "Widgets/DankConfirmDialogContent.qml:9",
     "comment": ""
   },
   {
     "term": "Copy path",
     "context": "Copy path",
-    "reference": "Modals/FileBrowser/FileBrowserItemContextMenu.qml:26",
+    "reference": "FileBrowser/FilePicker.qml:595, FileBrowser/FilePicker.qml:620",
     "comment": "file browser item context menu action"
+  },
+  {
+    "term": "Create",
+    "context": "Create",
+    "reference": "FileBrowser/FilePicker.qml:669",
+    "comment": "confirm button of the new folder dialog"
+  },
+  {
+    "term": "Created",
+    "context": "Created",
+    "reference": "FileBrowser/FileColumns.qml:69",
+    "comment": "file list column header"
+  },
+  {
+    "term": "Decrease",
+    "context": "Decrease",
+    "reference": "Widgets/DankNumberStepper.qml:55, Widgets/DankSlider.qml:293",
+    "comment": "Accessible name for a button that decreases a numeric value"
   },
   {
     "term": "Descending",
     "context": "Descending",
-    "reference": "Modals/FileBrowser/FileBrowserSortMenu.qml:170",
+    "reference": "FileBrowser/FileSortButton.qml:185",
     "comment": "file browser sort order option"
-  },
-  {
-    "term": "Desktop",
-    "context": "Desktop",
-    "reference": "Modals/FileBrowser/FileBrowserContent.qml:297",
-    "comment": "file browser quick access location"
   },
   {
     "term": "Development",
     "context": "Development",
-    "reference": "Widgets/DankIconPicker.qml:32",
+    "reference": "Widgets/DankIconPicker.qml:35",
     "comment": ""
   },
   {
-    "term": "Documents",
-    "context": "Documents",
-    "reference": "Modals/FileBrowser/FileBrowserContent.qml:272",
-    "comment": "file browser quick access location"
+    "term": "Drag to reorder",
+    "context": "Drag to reorder",
+    "reference": "Widgets/DankDragHandle.qml:22, Widgets/DankDragHandle.qml:24",
+    "comment": ""
   },
   {
-    "term": "Downloads",
-    "context": "Downloads",
-    "reference": "Modals/FileBrowser/FileBrowserContent.qml:277",
-    "comment": "file browser quick access location"
+    "term": "Edit",
+    "context": "Edit",
+    "reference": "Widgets/DankNavigationBar.qml:214",
+    "comment": ""
+  },
+  {
+    "term": "Enter",
+    "context": "Enter",
+    "reference": "Session/ExpressiveKeyboardKey.qml:38",
+    "comment": ""
   },
   {
     "term": "Enter filename...",
     "context": "Enter filename...",
-    "reference": "Modals/FileBrowser/FileBrowserSaveRow.qml:28",
+    "reference": "FileBrowser/FilePicker.qml:488",
     "comment": "file browser save filename input placeholder"
   },
   {
-    "term": "F1/I: Toggle • F10: Help",
-    "context": "F1/I: Toggle • F10: Help",
-    "reference": "Modals/FileBrowser/FileInfo.qml:199",
-    "comment": "file browser info panel keyboard shortcut hint"
+    "term": "File",
+    "context": "File",
+    "reference": "FileBrowser/FileFormat.qml:45",
+    "comment": "file type shown when nothing more precise is known"
   },
   {
     "term": "File Already Exists",
     "context": "File Already Exists",
-    "reference": "Modals/FileBrowser/FileBrowserOverwriteDialog.qml:53",
+    "reference": "FileBrowser/FilePicker.qml:681",
     "comment": "file browser overwrite dialog title"
   },
   {
-    "term": "File Information",
-    "context": "File Information",
-    "reference": "Modals/FileBrowser/FileInfo.qml:136",
-    "comment": "file browser info panel header"
+    "term": "File System",
+    "context": "File System",
+    "reference": "FileBrowser/FileBrowserSidebar.qml:29",
+    "comment": "file browser sidebar entry for the root directory"
   },
   {
     "term": "Files - %1",
     "context": "Files - %1",
-    "reference": "Modals/FileBrowser/FileBrowserModal.qml:38",
+    "reference": "FileBrowser/FileBrowserModal.qml:60",
     "comment": "file browser window title, %1 is the picker purpose"
+  },
+  {
+    "term": "Files are unavailable because the file service is not running",
+    "context": "Files are unavailable because the file service is not running",
+    "reference": "FileBrowser/FileFormat.qml:56",
+    "comment": "file browser placeholder when no backend is connected"
+  },
+  {
+    "term": "First %1 of %2",
+    "context": "First %1 of %2",
+    "reference": "FileBrowser/FilePreviewPane.qml:171",
+    "comment": "preview column note when only the start of the file is shown"
+  },
+  {
+    "term": "Folder",
+    "context": "Folder",
+    "reference": "FileBrowser/FileFormat.qml:37",
+    "comment": "file type shown for a directory"
+  },
+  {
+    "term": "Folder name",
+    "context": "Folder name",
+    "reference": "FileBrowser/FilePicker.qml:653",
+    "comment": "label of the name field in the new folder dialog"
+  },
+  {
+    "term": "Forward",
+    "context": "Forward",
+    "reference": "FileBrowser/NavButtonPair.qml:72",
+    "comment": "tooltip on the button going to the next location"
   },
   {
     "term": "Fun",
     "context": "Fun",
-    "reference": "Widgets/DankIconPicker.qml:60",
+    "reference": "Widgets/DankIconPicker.qml:63",
     "comment": ""
+  },
+  {
+    "term": "GB",
+    "context": "GB",
+    "reference": "FileBrowser/FileFormat.qml:12",
+    "comment": "file size unit"
+  },
+  {
+    "term": "Grid view",
+    "context": "Grid view",
+    "reference": "FileBrowser/FilePicker.qml:456",
+    "comment": "file browser toolbar button switching to the grid"
   },
   {
     "term": "Hibernate",
     "context": "Hibernate",
-    "reference": "Session/LockPowerMenu.qml:130",
+    "reference": "Session/LockPowerMenu.qml:138",
     "comment": ""
+  },
+  {
+    "term": "Hide keyboard",
+    "context": "Hide keyboard",
+    "reference": "Session/ExpressiveKeyboardKey.qml:34",
+    "comment": ""
+  },
+  {
+    "term": "Hide password",
+    "context": "Hide password",
+    "reference": "Widgets/DankTextField.qml:395",
+    "comment": "Accessible name for the password visibility button"
   },
   {
     "term": "Hold longer to confirm",
     "context": "Hold longer to confirm",
-    "reference": "Session/LockPowerMenu.qml:807",
+    "reference": "Session/LockPowerMenu.qml:529, Session/LockPowerMenu.qml:864",
     "comment": ""
   },
   {
     "term": "Hold to confirm (%1 ms)",
     "context": "Hold to confirm (%1 ms)",
-    "reference": "Session/LockPowerMenu.qml:810, Session/LockPowerMenu.qml:814",
+    "reference": "Session/LockPowerMenu.qml:533, Session/LockPowerMenu.qml:534, Session/LockPowerMenu.qml:867, Session/LockPowerMenu.qml:871",
     "comment": ""
   },
   {
     "term": "Hold to confirm (%1s)",
     "context": "Hold to confirm (%1s)",
-    "reference": "Session/LockPowerMenu.qml:811, Session/LockPowerMenu.qml:815",
+    "reference": "Session/LockPowerMenu.qml:533, Session/LockPowerMenu.qml:534, Session/LockPowerMenu.qml:868, Session/LockPowerMenu.qml:872",
     "comment": ""
   },
   {
     "term": "Home",
     "context": "Home",
-    "reference": "Modals/FileBrowser/FileBrowserContent.qml:267",
+    "reference": "FileBrowser/PathBar.qml:262, FileBrowser/FileBrowserSidebar.qml:27",
     "comment": "file browser quick access location"
+  },
+  {
+    "term": "Hour",
+    "context": "Hour",
+    "reference": "Widgets/DankTimePicker.qml:229",
+    "comment": ""
+  },
+  {
+    "term": "Increase",
+    "context": "Increase",
+    "reference": "Widgets/DankNumberStepper.qml:34, Widgets/DankSlider.qml:293",
+    "comment": "Accessible name for a button that increases a numeric value"
+  },
+  {
+    "term": "List view",
+    "context": "List view",
+    "reference": "FileBrowser/FilePicker.qml:456",
+    "comment": "file browser toolbar button switching to the list"
+  },
+  {
+    "term": "Location",
+    "context": "Location",
+    "reference": "FileBrowser/FileColumns.qml:71",
+    "comment": "file list column header"
   },
   {
     "term": "Log Out",
     "context": "Log Out",
-    "reference": "Session/LockPowerMenu.qml:112",
+    "reference": "Session/LockPowerMenu.qml:120",
+    "comment": ""
+  },
+  {
+    "term": "MB",
+    "context": "MB",
+    "reference": "FileBrowser/FileFormat.qml:12",
+    "comment": "file size unit"
+  },
+  {
+    "term": "Maximize",
+    "context": "Maximize",
+    "reference": "Widgets/DankWindowHeader.qml:106",
     "comment": ""
   },
   {
     "term": "Media",
     "context": "Media",
-    "reference": "Widgets/DankIconPicker.qml:40",
+    "reference": "Widgets/DankIconPicker.qml:43",
+    "comment": ""
+  },
+  {
+    "term": "Minimize",
+    "context": "Minimize",
+    "reference": "Widgets/DankWindowHeader.qml:98",
+    "comment": ""
+  },
+  {
+    "term": "Minute",
+    "context": "Minute",
+    "reference": "Widgets/DankTimePicker.qml:286",
     "comment": ""
   },
   {
     "term": "Modified",
     "context": "Modified",
-    "reference": "Modals/FileBrowser/FileBrowserSortMenu.qml:50",
+    "reference": "FileBrowser/FileColumns.qml:61, FileBrowser/FileSortButton.qml:31",
     "comment": "file browser sort criterion option"
   },
   {
     "term": "Move to Trash",
     "context": "Move to Trash",
-    "reference": "Modals/FileBrowser/FileBrowserItemContextMenu.qml:19",
+    "reference": "FileBrowser/FilePicker.qml:585",
     "comment": "file browser item context menu action"
-  },
-  {
-    "term": "Music",
-    "context": "Music",
-    "reference": "Modals/FileBrowser/FileBrowserContent.qml:287",
-    "comment": "file browser quick access location"
   },
   {
     "term": "Name",
     "context": "Name",
-    "reference": "Modals/FileBrowser/FileBrowserSortMenu.qml:42",
+    "reference": "FileBrowser/FileColumns.qml:57, FileBrowser/FileSortButton.qml:21",
     "comment": "file browser sort criterion option"
   },
   {
     "term": "Navigation",
     "context": "Navigation",
-    "reference": "Widgets/DankIconPicker.qml:48",
+    "reference": "Widgets/DankIconPicker.qml:51",
+    "comment": ""
+  },
+  {
+    "term": "New folder",
+    "context": "New folder",
+    "reference": "FileBrowser/FilePicker.qml:442, FileBrowser/FilePicker.qml:611, FileBrowser/FilePicker.qml:640",
+    "comment": "file browser toolbar button creating a folder"
+  },
+  {
+    "term": "No locations found",
+    "context": "No locations found",
+    "reference": "Widgets/DankLocationSearch.qml:299",
     "comment": ""
   },
   {
     "term": "Numbers",
     "context": "Numbers",
-    "reference": "Widgets/DankIconPicker.qml:24",
+    "reference": "Widgets/DankIconPicker.qml:27",
     "comment": ""
   },
   {
-    "term": "Order",
-    "context": "Order",
-    "reference": "Modals/FileBrowser/FileBrowserSortMenu.qml:106",
-    "comment": "file browser sort menu section header"
+    "term": "OK",
+    "context": "OK",
+    "reference": "Widgets/DankTimePicker.qml:567",
+    "comment": ""
+  },
+  {
+    "term": "Open",
+    "context": "Open",
+    "reference": "FileBrowser/FilePicker.qml:535, FileBrowser/FilePicker.qml:565",
+    "comment": "file browser open button"
   },
   {
     "term": "Overwrite",
     "context": "Overwrite",
-    "reference": "Modals/FileBrowser/FileBrowserOverwriteDialog.qml:108",
+    "reference": "FileBrowser/FilePicker.qml:705",
     "comment": "file browser overwrite dialog confirm button"
   },
   {
-    "term": "Pictures",
-    "context": "Pictures",
-    "reference": "Modals/FileBrowser/FileBrowserContent.qml:282",
-    "comment": "file browser quick access location"
+    "term": "Owner",
+    "context": "Owner",
+    "reference": "FileBrowser/FileColumns.qml:65",
+    "comment": "file list column header"
+  },
+  {
+    "term": "PM",
+    "context": "PM",
+    "reference": "Widgets/DankTimePicker.qml:393, Widgets/DankTimePicker.qml:405",
+    "comment": ""
+  },
+  {
+    "term": "Permissions",
+    "context": "Permissions",
+    "reference": "FileBrowser/FileColumns.qml:67",
+    "comment": "file list column header"
   },
   {
     "term": "Power Off",
     "context": "Power Off",
-    "reference": "Session/LockPowerMenu.qml:118",
+    "reference": "Session/LockPowerMenu.qml:126",
     "comment": ""
   },
   {
     "term": "Power Options",
     "context": "Power Options",
-    "reference": "Session/LockPowerMenu.qml:513",
+    "reference": "Session/LockPowerMenu.qml:570",
     "comment": ""
   },
   {
     "term": "Quick Access",
     "context": "Quick Access",
-    "reference": "Modals/FileBrowser/FileBrowserSidebar.qml:22",
+    "reference": "FileBrowser/FilePicker.qml:435, FileBrowser/FileBrowserSidebar.qml:44",
     "comment": "file browser sidebar section header"
   },
   {
     "term": "Reboot",
     "context": "Reboot",
-    "reference": "Session/LockPowerMenu.qml:106",
+    "reference": "Session/LockPowerMenu.qml:114",
     "comment": ""
+  },
+  {
+    "term": "Refresh",
+    "context": "Refresh",
+    "reference": "Widgets/DankRefreshButton.qml:10",
+    "comment": ""
+  },
+  {
+    "term": "Rename",
+    "context": "Rename",
+    "reference": "FileBrowser/FilePicker.qml:575",
+    "comment": "file browser item context menu action"
+  },
+  {
+    "term": "Restore",
+    "context": "Restore",
+    "reference": "Widgets/DankWindowHeader.qml:106",
+    "comment": ""
+  },
+  {
+    "term": "Review changes",
+    "context": "Review changes",
+    "reference": "Widgets/DankConfirmDialogContent.qml:90",
+    "comment": "open plugin changes before updating"
+  },
+  {
+    "term": "Saturation %1%, brightness %2%",
+    "context": "Saturation %1%, brightness %2%",
+    "reference": "Widgets/DankSaturationValuePicker.qml:24",
+    "comment": "Current values in the two-dimensional color picker"
   },
   {
     "term": "Save",
     "context": "Save",
-    "reference": "Modals/FileBrowser/FileBrowserSaveRow.qml:60",
+    "reference": "FileBrowser/FilePicker.qml:531",
     "comment": "file browser save button"
   },
   {
     "term": "Search for a location...",
     "context": "Search for a location...",
-    "reference": "Widgets/DankLocationSearch.qml:21",
+    "reference": "Widgets/DankLocationSearch.qml:17",
     "comment": ""
   },
   {
     "term": "Search...",
     "context": "Search...",
-    "reference": "Widgets/DankDropdown.qml:403",
+    "reference": "Widgets/DankDropdown.qml:585",
+    "comment": ""
+  },
+  {
+    "term": "Searching...",
+    "context": "Searching...",
+    "reference": "Widgets/DankLocationSearch.qml:299",
     "comment": ""
   },
   {
     "term": "Select File",
     "context": "Select File",
-    "reference": "Modals/FileBrowser/FileBrowserModal.qml:10",
+    "reference": "FileBrowser/FilePicker.qml:19, FileBrowser/FileBrowserModal.qml:20",
     "comment": "default file browser window title"
+  },
+  {
+    "term": "Select time",
+    "context": "Select time",
+    "reference": "Widgets/DankTimePicker.qml:11",
+    "comment": ""
+  },
+  {
+    "term": "Shift",
+    "context": "Shift",
+    "reference": "Session/ExpressiveKeyboardKey.qml:42",
+    "comment": ""
+  },
+  {
+    "term": "Show hidden files",
+    "context": "Show hidden files",
+    "reference": "FileBrowser/FilePicker.qml:450",
+    "comment": "file browser toolbar toggle"
+  },
+  {
+    "term": "Show password",
+    "context": "Show password",
+    "reference": "Widgets/DankTextField.qml:395",
+    "comment": "Accessible name for the password visibility button"
   },
   {
     "term": "Size",
     "context": "Size",
-    "reference": "Modals/FileBrowser/FileBrowserSortMenu.qml:46",
+    "reference": "FileBrowser/FileColumns.qml:59, FileBrowser/FileSortButton.qml:26",
     "comment": "file browser sort criterion option"
   },
   {
     "term": "Sort By",
     "context": "Sort By",
-    "reference": "Modals/FileBrowser/FileBrowserSortMenu.qml:33",
+    "reference": "FileBrowser/FileSortButton.qml:120, FileBrowser/FileSortButton.qml:121",
     "comment": "file browser sort menu section header"
+  },
+  {
+    "term": "Space",
+    "context": "Space",
+    "reference": "Session/ExpressiveKeyboardKey.qml:40",
+    "comment": ""
   },
   {
     "term": "Status",
     "context": "Status",
-    "reference": "Widgets/DankIconPicker.qml:56",
+    "reference": "Widgets/DankIconPicker.qml:59",
     "comment": ""
   },
   {
     "term": "Suspend",
     "context": "Suspend",
-    "reference": "Session/LockPowerMenu.qml:124",
+    "reference": "Session/LockPowerMenu.qml:132",
     "comment": ""
   },
   {
     "term": "Switch User",
     "context": "Switch User",
-    "reference": "Session/LockPowerMenu.qml:136",
+    "reference": "Session/LockPowerMenu.qml:144",
     "comment": ""
   },
   {
     "term": "System",
     "context": "System",
-    "reference": "Widgets/DankIconPicker.qml:44",
+    "reference": "Widgets/DankIconPicker.qml:47",
     "comment": ""
   },
   {
-    "term": "Tab/Shift+Tab: Nav • ←→↑↓: Grid Nav • Enter/Space: Select",
-    "context": "Tab/Shift+Tab: Nav • ←→↑↓: Grid Nav • Enter/Space: Select",
-    "reference": "Modals/FileBrowser/KeyboardHints.qml:26",
-    "comment": "file browser keyboard shortcuts hint line"
+    "term": "TB",
+    "context": "TB",
+    "reference": "FileBrowser/FileFormat.qml:12",
+    "comment": "file size unit"
+  },
+  {
+    "term": "This folder could not be opened",
+    "context": "This folder could not be opened",
+    "reference": "FileBrowser/FileFormat.qml:58",
+    "comment": "directory listing error"
+  },
+  {
+    "term": "This folder is empty",
+    "context": "This folder is empty",
+    "reference": "FileBrowser/FileBrowserView.qml:29, FileBrowser/FileViewBody.qml:26, FileBrowser/FileColumnsView.qml:220, FileBrowser/FileColumnsView.qml:314",
+    "comment": "empty directory placeholder"
+  },
+  {
+    "term": "This folder no longer exists",
+    "context": "This folder no longer exists",
+    "reference": "FileBrowser/FileFormat.qml:52",
+    "comment": "directory listing error"
+  },
+  {
+    "term": "This item already exists",
+    "context": "This item already exists",
+    "reference": "FileBrowser/FileFormat.qml:69",
+    "comment": "file conflict dialog header"
+  },
+  {
+    "term": "This item cannot be moved here directly",
+    "context": "This item cannot be moved here directly",
+    "reference": "FileBrowser/FileFormat.qml:73",
+    "comment": "file operation error"
+  },
+  {
+    "term": "This item could not be handled",
+    "context": "This item could not be handled",
+    "reference": "FileBrowser/FileFormat.qml:76, FileBrowser/FileFormat.qml:78",
+    "comment": "file operation error"
+  },
+  {
+    "term": "This item is in use",
+    "context": "This item is in use",
+    "reference": "FileBrowser/FileFormat.qml:71",
+    "comment": "file operation error"
+  },
+  {
+    "term": "This item no longer exists",
+    "context": "This item no longer exists",
+    "reference": "FileBrowser/FileFormat.qml:65",
+    "comment": "file operation error"
   },
   {
     "term": "Type",
     "context": "Type",
-    "reference": "Modals/FileBrowser/FileBrowserSortMenu.qml:54",
+    "reference": "FileBrowser/FileColumns.qml:63, FileBrowser/FileSortButton.qml:36",
     "comment": "file browser sort criterion option"
+  },
+  {
+    "term": "Unknown",
+    "context": "Unknown",
+    "reference": "Widgets/DankLocationSearch.qml:246, Widgets/DankLocationSearch.qml:286",
+    "comment": ""
   },
   {
     "term": "Use this folder",
     "context": "Use this folder",
-    "reference": "Modals/FileBrowser/FileBrowserSaveRow.qml:101",
+    "reference": "FileBrowser/FilePicker.qml:533",
     "comment": "file browser folder selection confirm button"
-  },
-  {
-    "term": "Videos",
-    "context": "Videos",
-    "reference": "Modals/FileBrowser/FileBrowserContent.qml:292",
-    "comment": "file browser quick access location"
   },
   {
     "term": "Workspace",
     "context": "Workspace",
-    "reference": "Widgets/DankIconPicker.qml:28",
+    "reference": "Widgets/DankIconPicker.qml:31",
     "comment": ""
+  },
+  {
+    "term": "You do not have permission to do this",
+    "context": "You do not have permission to do this",
+    "reference": "FileBrowser/FileFormat.qml:67",
+    "comment": "file operation error"
+  },
+  {
+    "term": "You do not have permission to view this folder",
+    "context": "You do not have permission to view this folder",
+    "reference": "FileBrowser/FileFormat.qml:54",
+    "comment": "directory listing error"
+  },
+  {
+    "term": "kB",
+    "context": "kB",
+    "reference": "FileBrowser/FileFormat.qml:12",
+    "comment": "file size unit"
   }
 ]

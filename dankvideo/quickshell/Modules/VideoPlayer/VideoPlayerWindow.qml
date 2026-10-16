@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 import "."
 
 FloatingWindow {

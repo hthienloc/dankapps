@@ -9,7 +9,7 @@ import Quickshell
 import qs.Common
 import qs.Services
 import qs.Modules.Calculator
-import qs.DankCommon.Common as DC
+import qs.DCommon.Common as DC
 
 ShellRoot {
     id: root

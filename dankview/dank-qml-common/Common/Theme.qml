@@ -2,10 +2,11 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import "../DankCommon/Common/Shape.js" as Shape
-import "../DankCommon/Common/Surface.js" as Surface
+import "../DCommon/Common/Shape.js" as Shape
+import "../DCommon/Common/Surface.js" as Surface
+import "../DCommon/Common/Accents.js" as Accents
 import Quickshell
-import qs.DankCommon.Common
+import qs.DCommon.Common
 
 Singleton {
     id: root
@@ -17,6 +18,12 @@ Singleton {
     readonly property color contrastLight: "#ffffff"
     property color primaryText: "#381E72"
     property color primaryContainer: "#4F378B"
+    readonly property real selectedContainerTint: 0.2
+    property bool themedSelectedContainer: true
+    property color selectedContainer: secondaryContainer
+    property color accentOnSelectedContainer: primary
+    property color accentOnPrimaryContainer: primary
+    readonly property var accents: Accents.derive(primary, isLightMode, null)
     property color secondary: "#CCC2DC"
     property color surface: "#141218"
     property color surfaceText: "#E6E0E9"
@@ -27,12 +34,17 @@ Singleton {
     property color surfaceContainer: "#211F26"
     property color surfaceContainerHigh: "#2B2930"
     property color error: "#F2B8B5"
+    property color errorContainer: "#8C1D18"
     property color tertiary: "#EFB8C8"
     property color surfaceContainerLowest: "#0F0D13"
     property color surfaceContainerLow: "#1D1B20"
     property color surfaceContainerHighest: "#36343B"
     property color surfaceBright: "#3B383E"
     property color surfaceDim: "#141218"
+    property color hostSurface: "#141218"
+    property color cardSurface: "#211F26"
+    property color chipSurface: "#2B2930"
+    property color chipSurfaceNested: "#36343B"
     property color outlineVariant: "#49454F"
     property color secondaryContainer: "#4A4458"
     property color tertiaryContainer: "#633B48"
@@ -45,8 +57,15 @@ Singleton {
     property color onSecondaryContainer
     property color onErrorContainer
     property color onTertiaryContainer
+    property color onSelectedContainer
     property color onSurfaceVariant_30: withAlpha(onSurfaceVariant, 0.3)
+    property color onSurfaceVariant_40
     readonly property list<QtObject> roleBindings: [
+        Binding {
+            target: root
+            property: "onSurfaceVariant_40"
+            value: root.withAlpha(root.onSurfaceVariant, 0.4)
+        },
         Binding {
             target: root
             property: "onErrorContainer"
@@ -81,6 +100,11 @@ Singleton {
             target: root
             property: "onTertiaryContainer"
             value: "#FFD8E4"
+        },
+        Binding {
+            target: root
+            property: "onSelectedContainer"
+            value: "#EADDFF"
         }
     ]
     readonly property real tonalTintAlpha: 0.16
@@ -105,8 +129,8 @@ Singleton {
     property color surfaceTextMedium: withAlpha(surfaceText, 0.7)
     property color surfaceTextSecondary: withAlpha(surfaceText, 0.6)
     property color outlineButton: withAlpha(outline, 0.5)
-    property color outlineMedium: withAlpha(outline, 0.12)
-    property color outlineStrong: withAlpha(outline, 0.18)
+    property color outlineMedium: withAlpha(outline, layerOutlineOpacity)
+    property color outlineStrong: withAlpha(outline, Math.min(1, layerOutlineOpacity * 1.5))
     property color outlineHeavy: withAlpha(outline, 0.2)
     property color shadowStrong: Qt.rgba(0, 0, 0, 0.3)
 
@@ -119,19 +143,19 @@ Singleton {
     property bool foregroundLayers: true
     property real foregroundLayerTransparency: 1.0
     readonly property real foregroundAlpha: Surface.foregroundAlpha(foregroundLayers, foregroundLayerTransparency)
-    readonly property color floatingSurface: withAlpha(surfaceContainer, popupTransparency)
-    readonly property color nestedSurface: withAlpha(surfaceContainerHigh, foregroundAlpha)
+    readonly property color floatingSurface: withAlpha(hostSurface, popupTransparency)
+    readonly property color nestedSurface: withAlpha(cardSurface, foregroundAlpha)
 
     property real floatingWindowTransparency: popupTransparency
     property bool floatingWindowForegroundLayers: foregroundLayers
     property real floatingWindowForegroundTransparency: foregroundLayerTransparency
     readonly property real floatingWindowForegroundAlpha: Surface.foregroundAlpha(floatingWindowForegroundLayers, floatingWindowForegroundTransparency)
-    property color floatingWindowSurface: withAlpha(surfaceContainer, floatingWindowTransparency)
-    property color floatingWindowNestedSurface: withAlpha(surfaceContainerHigh, floatingWindowForegroundAlpha)
-    property color floatingWindowFieldColor: floatingWindowNestedSurface
+    property color floatingWindowSurface: withAlpha(hostSurface, floatingWindowTransparency)
+    property color floatingWindowNestedSurface: withAlpha(cardSurface, floatingWindowForegroundAlpha)
+    property color floatingWindowFieldColor: withAlpha(chipSurface, floatingWindowForegroundAlpha)
     property color floatingWindowFieldBorderColor: withAlpha(outline, 0.16)
     property color floatingWindowFieldFocusedBorderColor: primary
-    property color popupFieldColor: nestedSurface
+    property color popupFieldColor: withAlpha(chipSurface, foregroundAlpha)
     property color popupFieldBorderColor: withAlpha(outline, 0.16)
     property color popupFieldFocusedBorderColor: primary
     property bool blurLayersActive: true
@@ -145,6 +169,7 @@ Singleton {
     property real spacingXS: 4
     property real spacingS: 8
     property real spacingM: 12
+    readonly property real windowInset: spacingM
     property real spacingL: 16
     property real spacingXL: 24
 
@@ -161,31 +186,33 @@ Singleton {
     property real iconSizeLarge: 32
 
     property real radiusStrength: 50
-    readonly property real shapeScale: Shape.scaleForStrength(radiusStrength)
+    property real fixedRadius: -1
+    readonly property real shapeScale: fixedRadius >= 0 ? fixedRadius / Shape.corners.m : Shape.scaleForStrength(radiusStrength)
     readonly property real cornerRadius: cornerRadiusM
-    readonly property real cornerRadiusXXS: Shape.radius("xxs", shapeScale)
-    readonly property real cornerRadiusXS: Shape.radius("xs", shapeScale)
-    readonly property real cornerRadiusS: Shape.radius("s", shapeScale)
-    readonly property real cornerRadiusM: Shape.radius("m", shapeScale)
-    readonly property real cornerRadiusL: Shape.radius("l", shapeScale)
-    readonly property real cornerRadiusLIncreased: Shape.radius("lIncreased", shapeScale)
-    readonly property real cornerRadiusXL: Shape.radius("xl", shapeScale)
-    readonly property real cornerRadiusXLIncreased: Shape.radius("xlIncreased", shapeScale)
-    readonly property real cornerRadiusXXL: Shape.radius("xxl", shapeScale)
-    readonly property real cornerRadiusFull: shapeScale > 0 ? 9999 : 0
+    readonly property real cornerRadiusXXS: Shape.radius("xxs", shapeScale, fixedRadius)
+    readonly property real cornerRadiusXS: Shape.radius("xs", shapeScale, fixedRadius)
+    readonly property real cornerRadiusS: Shape.radius("s", shapeScale, fixedRadius)
+    readonly property real cornerRadiusM: Shape.radius("m", shapeScale, fixedRadius)
+    readonly property real cornerRadiusL: Shape.radius("l", shapeScale, fixedRadius)
+    readonly property real cornerRadiusLIncreased: Shape.radius("lIncreased", shapeScale, fixedRadius)
+    readonly property real cornerRadiusXL: Shape.radius("xl", shapeScale, fixedRadius)
+    readonly property real cornerRadiusXLIncreased: Shape.radius("xlIncreased", shapeScale, fixedRadius)
+    readonly property real cornerRadiusXXL: Shape.radius("xxl", shapeScale, fixedRadius)
+    readonly property real cornerRadiusFull: fixedRadius >= 0 ? fixedRadius : (shapeScale > 0 ? 9999 : 0)
     readonly property real cornerRadiusSmall: cornerRadiusS
     readonly property real cornerRadiusLarge: cornerRadiusL
+    readonly property real windowRadius: cornerRadiusL
 
     function scaledRadius(radius, limit) {
-        return Shape.scaledRadius(radius, limit, shapeScale);
+        return Shape.scaledRadius(radius, limit, shapeScale, fixedRadius);
     }
 
     function fullRadius(width, height) {
-        return Shape.fullRadius(width, height, shapeScale);
+        return Shape.fullRadius(width, height, shapeScale, fixedRadius);
     }
 
     function buttonRadius(width, height, sizeHeight, pressed, round) {
-        return Shape.buttonRadius(width, height, sizeHeight, pressed, round, shapeScale);
+        return Shape.buttonRadius(width, height, sizeHeight, pressed, round, shapeScale, fixedRadius);
     }
 
     readonly property real groupedListGap: spacingXXS
@@ -198,15 +225,13 @@ Singleton {
     readonly property real avatarSize: 36
     readonly property real sliderTrackHeight: 16
     readonly property real sliderHandleWidth: 4
-    readonly property real sliderHandleWidthDesktop: 6
-    readonly property real sliderHandleWidthDesktopPressed: 4
-    readonly property real sliderHandleHeightDesktop: 32
-    readonly property real sliderHandleHeight: 44
+    readonly property real sliderHandleWidthPressed: 2
+    readonly property real sliderHandleHeight: 28
     readonly property real sliderHandleGap: 6
     readonly property real sliderTrackHeightS: 24
-    readonly property real sliderHandleHeightS: 44
+    readonly property real sliderHandleHeightS: 36
     readonly property real sliderTrackHeightM: 40
-    readonly property real sliderHandleHeightM: 44
+    readonly property real sliderHandleHeightM: 52
     readonly property real sliderTrackHeightL: 56
     readonly property real sliderHandleHeightL: 68
     readonly property real sliderTrackHeightXL: 96
@@ -219,9 +244,12 @@ Singleton {
     readonly property real switchThumbPressed: 28
     readonly property real sliderStopSize: 4
     readonly property real sliderTickSize: 3
+    readonly property real sliderTrackMinAlpha: 0.4
     readonly property real menuItemHeight: 40
     readonly property real outlineWidth: 1
     readonly property real outlineWidthFocused: 2
+    readonly property real layerOutlineOpacity: Math.max(0, Math.min(1, SettingsData.blurLayerOutlineOpacity))
+    readonly property int layerOutlineWidth: layerOutlineOpacity > 0 ? 1 : 0
     readonly property real dividerWidth: 1
     readonly property real focusRingWidth: 1.5
     readonly property real focusRingOffset: 3
@@ -233,19 +261,29 @@ Singleton {
     readonly property color screenOffColor: "#000000"
     readonly property real scrimAlpha: 0.55
     readonly property color scrimColor: "#000000"
+    readonly property real buttonHeightXXS: 28
     readonly property real buttonHeightXS: 32
     readonly property real buttonHeightS: 40
     readonly property real buttonHeightM: 56
     readonly property real buttonMinWidth: 58
     readonly property real pressScale: 0.98
     readonly property real iconEnterScale: 0.6
-    readonly property real osdHeight: sliderHandleHeight + spacingS * 2
+    readonly property real osdHeight: 60
     readonly property real dialogMaxWidth: 560
+    readonly property real sidebarWidth: 240
+    readonly property real bottomSheetHandleWidth: 36
+    readonly property real bottomSheetHandleHeight: 4
     readonly property real popupEnterScale: 0.92
     readonly property real pendingOpacity: 0.6
     readonly property real spinnerStrokeWidth: 2
     readonly property real tabMinWidth: 64
     readonly property real tabIndicatorHeight: 3
+    readonly property real navigationHeight: 64
+    readonly property real navigationRailWidth: 96
+    readonly property real navigationItemMinWidth: 80
+    readonly property real navigationIndicatorWidth: 56
+    readonly property real navigationIndicatorHeight: 32
+    readonly property real navigationVerticalPadding: 6
     readonly property real tabIndicatorMinWidth: 24
     readonly property real tabIndicatorInset: 2
     readonly property real launcherTileSize: 120
@@ -269,6 +307,9 @@ Singleton {
     readonly property real textEditHeight: Math.round(fontSizeMedium * 8)
     readonly property real tooltipMaxWidth: 500
     readonly property int tooltipDelay: 400
+    readonly property real scrollbarThickness: 6
+    readonly property real scrollbarGap: spacingXS
+    readonly property int scrollbarHideDelay: 1200
     readonly property real menuMaxHeight: 400
     readonly property real clockFaceSize: 256
     readonly property real clockOuterRingRatio: 101 / clockFaceSize
@@ -287,8 +328,10 @@ Singleton {
 
     readonly property string defaultFontFamily: Fonts.sans
     readonly property string defaultMonoFontFamily: Fonts.mono
+    readonly property string defaultDisplayFontFamily: Fonts.display
     property string fontFamily: defaultFontFamily
     property string monoFontFamily: defaultMonoFontFamily
+    property string displayFontFamily: defaultDisplayFontFamily
     property int fontWeight: Font.Normal
 
     property int shorterDuration: 100
@@ -309,7 +352,7 @@ Singleton {
     readonly property var springSpecs: ({
             "expressive": [560, 37],
             "fast": [220, 23],
-            "default": [100, 16]
+            "default": [300, 24]
         })
     readonly property var springDampingScales: [1.22, 1.0, 0.82]
     readonly property bool springMotionDisabled: currentAnimationBaseDuration <= 0
@@ -357,7 +400,10 @@ Singleton {
             "standardDecel": [0, 0, 0, 1, 1, 1],
             "expressiveFastSpatial": [0.42, 1.67, 0.21, 0.9, 1, 1],
             "expressiveDefaultSpatial": [0.38, 1.21, 0.22, 1, 1, 1],
-            "expressiveEffects": [0.34, 0.8, 0.34, 1, 1, 1]
+            "expressiveSlowSpatial": [0.39, 1.29, 0.35, 0.98, 1, 1],
+            "expressiveFastEffects": [0.31, 0.94, 0.34, 1, 1, 1],
+            "expressiveEffects": [0.34, 0.8, 0.34, 1, 1, 1],
+            "expressiveSlowEffects": [0.34, 0.88, 0.34, 1, 1, 1]
         })
 
     readonly property var expressiveDurations: ({
@@ -367,19 +413,18 @@ Singleton {
             "extraLarge": 1000,
             "expressiveFastSpatial": 350,
             "expressiveDefaultSpatial": 500,
-            "expressiveEffects": 200
+            "expressiveSlowSpatial": 650,
+            "expressiveFastEffects": 150,
+            "expressiveEffects": 200,
+            "expressiveSlowEffects": 300
         })
 
     function withAlpha(c, a) {
-        if (!c || c.r === undefined)
-            return Qt.rgba(0, 0, 0, 0);
-        return Qt.rgba(c.r, c.g, c.b, a);
+        return Style.withAlpha(c, a);
     }
 
     function blendAlpha(c, a) {
-        if (!c || c.r === undefined)
-            return Qt.rgba(0, 0, 0, 0);
-        return Qt.rgba(c.r, c.g, c.b, c.a * a);
+        return Style.blendAlpha(c, a);
     }
 
     function blend(c1, c2, r) {

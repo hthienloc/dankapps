@@ -121,7 +121,7 @@ def create_template_json(translations):
 
 def main():
     script_dir = Path(__file__).parent
-    root_dir = script_dir.parent / "DankCommon"
+    root_dir = script_dir.parent / "DCommon"
     translations_dir = script_dir
 
     print("Extracting I18n.tr() strings from QML files...")

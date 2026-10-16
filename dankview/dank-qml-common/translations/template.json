@@ -1,8 +1,50 @@
 [
   {
+    "term": "%1 items",
+    "translation": "",
+    "context": "number of items in a folder",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "%1 selected",
+    "translation": "",
+    "context": "count of selected items | preview column header for a multiple selection",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "1 item",
+    "translation": "",
+    "context": "a folder holding a single item",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "1 selected",
+    "translation": "",
+    "context": "a single selected item",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "A file with this name already exists. Do you want to overwrite it?",
     "translation": "",
     "context": "file browser overwrite dialog message",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "A name cannot be empty or contain a slash",
+    "translation": "",
+    "context": "inline rename validation message",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "AM",
+    "translation": "",
+    "context": "",
     "reference": "",
     "comment": ""
   },
@@ -14,16 +56,44 @@
     "comment": ""
   },
   {
-    "term": "Alt+←/Backspace: Back • F1/I: File Info • F10: Help • Esc: Close",
+    "term": "Ascending",
     "translation": "",
-    "context": "file browser keyboard shortcuts hint line",
+    "context": "file browser sort order option",
     "reference": "",
     "comment": ""
   },
   {
-    "term": "Ascending",
+    "term": "B",
     "translation": "",
-    "context": "file browser sort order option",
+    "context": "file size unit",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Back",
+    "translation": "",
+    "context": "tooltip on the button going to the previous location",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Backspace",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Binary file",
+    "translation": "",
+    "context": "preview column note for files without readable text",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Broken link",
+    "translation": "",
+    "context": "file type shown for a symlink with no target",
     "reference": "",
     "comment": ""
   },
@@ -42,7 +112,42 @@
     "comment": ""
   },
   {
+    "term": "Clear",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Clear the selection",
+    "translation": "",
+    "context": "tooltip on the button clearing the file selection",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Close",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Color",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Communication",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Confirm",
     "translation": "",
     "context": "",
     "reference": "",
@@ -56,16 +161,30 @@
     "comment": ""
   },
   {
-    "term": "Descending",
+    "term": "Create",
     "translation": "",
-    "context": "file browser sort order option",
+    "context": "confirm button of the new folder dialog",
     "reference": "",
     "comment": ""
   },
   {
-    "term": "Desktop",
+    "term": "Created",
     "translation": "",
-    "context": "file browser quick access location",
+    "context": "file list column header",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Decrease",
+    "translation": "",
+    "context": "Accessible name for a button that decreases a numeric value",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Descending",
+    "translation": "",
+    "context": "file browser sort order option",
     "reference": "",
     "comment": ""
   },
@@ -77,16 +196,23 @@
     "comment": ""
   },
   {
-    "term": "Documents",
+    "term": "Drag to reorder",
     "translation": "",
-    "context": "file browser quick access location",
+    "context": "",
     "reference": "",
     "comment": ""
   },
   {
-    "term": "Downloads",
+    "term": "Edit",
     "translation": "",
-    "context": "file browser quick access location",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Enter",
+    "translation": "",
+    "context": "",
     "reference": "",
     "comment": ""
   },
@@ -98,9 +224,9 @@
     "comment": ""
   },
   {
-    "term": "F1/I: Toggle • F10: Help",
+    "term": "File",
     "translation": "",
-    "context": "file browser info panel keyboard shortcut hint",
+    "context": "file type shown when nothing more precise is known",
     "reference": "",
     "comment": ""
   },
@@ -112,9 +238,9 @@
     "comment": ""
   },
   {
-    "term": "File Information",
+    "term": "File System",
     "translation": "",
-    "context": "file browser info panel header",
+    "context": "file browser sidebar entry for the root directory",
     "reference": "",
     "comment": ""
   },
@@ -126,6 +252,41 @@
     "comment": ""
   },
   {
+    "term": "Files are unavailable because the file service is not running",
+    "translation": "",
+    "context": "file browser placeholder when no backend is connected",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "First %1 of %2",
+    "translation": "",
+    "context": "preview column note when only the start of the file is shown",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Folder",
+    "translation": "",
+    "context": "file type shown for a directory",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Folder name",
+    "translation": "",
+    "context": "label of the name field in the new folder dialog",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Forward",
+    "translation": "",
+    "context": "tooltip on the button going to the next location",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Fun",
     "translation": "",
     "context": "",
@@ -133,9 +294,37 @@
     "comment": ""
   },
   {
+    "term": "GB",
+    "translation": "",
+    "context": "file size unit",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Grid view",
+    "translation": "",
+    "context": "file browser toolbar button switching to the grid",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Hibernate",
     "translation": "",
     "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Hide keyboard",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Hide password",
+    "translation": "",
+    "context": "Accessible name for the password visibility button",
     "reference": "",
     "comment": ""
   },
@@ -168,6 +357,34 @@
     "comment": ""
   },
   {
+    "term": "Hour",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Increase",
+    "translation": "",
+    "context": "Accessible name for a button that increases a numeric value",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "List view",
+    "translation": "",
+    "context": "file browser toolbar button switching to the list",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Location",
+    "translation": "",
+    "context": "file list column header",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Log Out",
     "translation": "",
     "context": "",
@@ -175,7 +392,35 @@
     "comment": ""
   },
   {
+    "term": "MB",
+    "translation": "",
+    "context": "file size unit",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Maximize",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Media",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Minimize",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Minute",
     "translation": "",
     "context": "",
     "reference": "",
@@ -196,13 +441,6 @@
     "comment": ""
   },
   {
-    "term": "Music",
-    "translation": "",
-    "context": "file browser quick access location",
-    "reference": "",
-    "comment": ""
-  },
-  {
     "term": "Name",
     "translation": "",
     "context": "file browser sort criterion option",
@@ -217,6 +455,20 @@
     "comment": ""
   },
   {
+    "term": "New folder",
+    "translation": "",
+    "context": "file browser toolbar button creating a folder",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "No locations found",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Numbers",
     "translation": "",
     "context": "",
@@ -224,9 +476,16 @@
     "comment": ""
   },
   {
-    "term": "Order",
+    "term": "OK",
     "translation": "",
-    "context": "file browser sort menu section header",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Open",
+    "translation": "",
+    "context": "file browser open button",
     "reference": "",
     "comment": ""
   },
@@ -238,9 +497,23 @@
     "comment": ""
   },
   {
-    "term": "Pictures",
+    "term": "Owner",
     "translation": "",
-    "context": "file browser quick access location",
+    "context": "file list column header",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "PM",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Permissions",
+    "translation": "",
+    "context": "file list column header",
     "reference": "",
     "comment": ""
   },
@@ -273,6 +546,41 @@
     "comment": ""
   },
   {
+    "term": "Refresh",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Rename",
+    "translation": "",
+    "context": "file browser item context menu action",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Restore",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Review changes",
+    "translation": "",
+    "context": "open plugin changes before updating",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Saturation %1%, brightness %2%",
+    "translation": "",
+    "context": "Current values in the two-dimensional color picker",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Save",
     "translation": "",
     "context": "file browser save button",
@@ -294,9 +602,44 @@
     "comment": ""
   },
   {
+    "term": "Searching...",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Select File",
     "translation": "",
     "context": "default file browser window title",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Select time",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Shift",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Show hidden files",
+    "translation": "",
+    "context": "file browser toolbar toggle",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Show password",
+    "translation": "",
+    "context": "Accessible name for the password visibility button",
     "reference": "",
     "comment": ""
   },
@@ -311,6 +654,13 @@
     "term": "Sort By",
     "translation": "",
     "context": "file browser sort menu section header",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "Space",
+    "translation": "",
+    "context": "",
     "reference": "",
     "comment": ""
   },
@@ -343,9 +693,65 @@
     "comment": ""
   },
   {
-    "term": "Tab/Shift+Tab: Nav • ←→↑↓: Grid Nav • Enter/Space: Select",
+    "term": "TB",
     "translation": "",
-    "context": "file browser keyboard shortcuts hint line",
+    "context": "file size unit",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "This folder could not be opened",
+    "translation": "",
+    "context": "directory listing error",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "This folder is empty",
+    "translation": "",
+    "context": "empty directory placeholder",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "This folder no longer exists",
+    "translation": "",
+    "context": "directory listing error",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "This item already exists",
+    "translation": "",
+    "context": "file conflict dialog header",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "This item cannot be moved here directly",
+    "translation": "",
+    "context": "file operation error",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "This item could not be handled",
+    "translation": "",
+    "context": "file operation error",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "This item is in use",
+    "translation": "",
+    "context": "file operation error",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "This item no longer exists",
+    "translation": "",
+    "context": "file operation error",
     "reference": "",
     "comment": ""
   },
@@ -357,6 +763,13 @@
     "comment": ""
   },
   {
+    "term": "Unknown",
+    "translation": "",
+    "context": "",
+    "reference": "",
+    "comment": ""
+  },
+  {
     "term": "Use this folder",
     "translation": "",
     "context": "file browser folder selection confirm button",
@@ -364,16 +777,30 @@
     "comment": ""
   },
   {
-    "term": "Videos",
+    "term": "Workspace",
     "translation": "",
-    "context": "file browser quick access location",
+    "context": "",
     "reference": "",
     "comment": ""
   },
   {
-    "term": "Workspace",
+    "term": "You do not have permission to do this",
     "translation": "",
-    "context": "",
+    "context": "file operation error",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "You do not have permission to view this folder",
+    "translation": "",
+    "context": "directory listing error",
+    "reference": "",
+    "comment": ""
+  },
+  {
+    "term": "kB",
+    "translation": "",
+    "context": "file size unit",
     "reference": "",
     "comment": ""
   }

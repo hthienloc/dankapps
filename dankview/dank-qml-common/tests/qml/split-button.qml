@@ -1,8 +1,8 @@
 import QtQuick
 import QtTest
 import Quickshell
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 ShellRoot {
     id: root
@@ -41,7 +41,7 @@ ShellRoot {
         implicitWidth: 800
         implicitHeight: 400
 
-        DankSplitButton {
+        DSplitButton {
             id: button
             x: 20
             y: 20

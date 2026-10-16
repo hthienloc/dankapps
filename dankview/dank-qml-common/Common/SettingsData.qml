@@ -29,7 +29,8 @@ Singleton {
 
     property int animationSpeed: SettingsData.AnimationSpeed.Short
     property bool reduceMotion: false
-    property bool blurBorderEnabled: true
+    property bool blurBorderEnabled: false
+    property real blurLayerOutlineOpacity: 0
     property real blurBorderOpacity: 0.35
     property string blurBorderColor: "outline"
     property string blurBorderCustomColor: "#ffffff"
@@ -41,6 +42,7 @@ Singleton {
     property string powerMenuDefaultAction: "logout"
     property bool powerMenuGridLayout: false
     property bool popoutElevationEnabled: true
+    property bool scrollbarsEnabled: true
     property int textRenderType: SettingsData.TextRenderType.Qt
     property int textRenderQuality: SettingsData.TextRenderQuality.Default
 }

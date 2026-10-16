@@ -1,8 +1,8 @@
 import QtQuick
 import QtTest
 import Quickshell
-import qs.DankCommon.Widgets
-import qs.DankCommon.Common
+import qs.DCommon.Widgets
+import qs.DCommon.Common
 
 ShellRoot {
     id: root
@@ -32,7 +32,7 @@ ShellRoot {
         implicitWidth: 600
         implicitHeight: 300
 
-        DankToggle {
+        DToggle {
             id: toggle
             x: 20
             y: 20

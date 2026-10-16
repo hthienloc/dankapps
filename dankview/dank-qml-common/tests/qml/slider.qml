@@ -1,6 +1,6 @@
 import QtQuick
-import qs.DankCommon.Widgets
-import qs.DankCommon.Common
+import qs.DCommon.Widgets
+import qs.DCommon.Common
 
 Item {
     id: root
@@ -16,7 +16,7 @@ Item {
     }
     Component {
         id: factory
-        DankSlider {
+        DSlider {
             width: 400
             showValue: false
         }

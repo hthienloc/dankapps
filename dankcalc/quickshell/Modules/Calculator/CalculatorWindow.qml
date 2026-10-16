@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 import "."
 import "UnitConverterLogic.js" as ConvLogic
 
@@ -228,12 +228,11 @@ FloatingWindow {
                     Layout.fillWidth: true
                     implicitHeight: header.implicitHeight
 
-                    DankWindowHeader {
+                    DWindowHeader {
                         id: header
                         anchors.fill: parent
                         controls: windowControls
                         title: CalculatorService.currentMode === "converter" ? "Unit Converter" : "Calculator"
-                        showDivider: true
                         onCloseRequested: Qt.quit()
                     }
 
@@ -243,7 +242,7 @@ FloatingWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: Style.spacingS
 
-                        DankIcon {
+                        DIcon {
                             name: CalculatorService.currentMode === "converter" ? "swap_horiz" : "calculate"
                             size: Style.iconSizeSmall
                             color: Style.primary

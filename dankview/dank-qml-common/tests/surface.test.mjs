@@ -4,7 +4,7 @@ import vm from "node:vm";
 import test from "node:test";
 
 const surface = vm.createContext({});
-vm.runInContext(readFileSync(new URL("../DankCommon/Common/Surface.js", import.meta.url), "utf8").replace(/^\.pragma.*$/gm, ""), surface);
+vm.runInContext(readFileSync(new URL("../DCommon/Common/Surface.js", import.meta.url), "utf8").replace(/^\.pragma.*$/gm, ""), surface);
 
 test("disabled foreground fills disappear at every opacity", () => {
     for (const opacity of [0, 0.25, 1, undefined, NaN])

@@ -1,8 +1,8 @@
 import QtQuick
 import QtTest
 import Quickshell
-import qs.DankCommon.Widgets
-import qs.DankCommon.Common
+import qs.DCommon.Widgets
+import qs.DCommon.Common
 
 ShellRoot {
     id: root
@@ -26,7 +26,7 @@ ShellRoot {
         implicitWidth: 640
         implicitHeight: 200
 
-        DankButtonGroup {
+        DButtonGroup {
             id: group
             x: 20
             y: 20
@@ -72,6 +72,22 @@ ShellRoot {
                     equal(root.events, [[0, true], [1, false]], "single-selection signals");
                     input.keyClick(rtl ? Qt.Key_Left : Qt.Key_Right);
                     equal(group.currentIndex, 1, "logical keyboard navigation");
+                    group.arrowKeysSelect = false;
+                    root.events = [];
+                    input.keyClick(rtl ? Qt.Key_Left : Qt.Key_Right);
+                    equal(group.currentIndex, 1, "manual arrows leave selection unchanged");
+                    equal(group.focusedIndex, 2, "manual arrows move focus");
+                    equal(root.events, [], "manual arrows emit no preference changes");
+                    const layerOf = segment => [...segment.children].find(item => item.stateOpacity !== undefined);
+                    equal(layerOf(segments[2]).stateOpacity, Style.stateLayerFocus, "keyboard focus tints the segment state layer");
+                    equal(layerOf(segments[0]).stateOpacity, 0, "mouse-focused segment stays untinted");
+                    input.keyClick(Qt.Key_Return);
+                    equal(root.events, [[2, true], [1, false]], "Enter activates once");
+                    root.events = [];
+                    input.keyClick(rtl ? Qt.Key_Right : Qt.Key_Left);
+                    input.keyClick(Qt.Key_Space);
+                    equal(root.events, [[1, true], [2, false]], "Space activates once");
+                    group.arrowKeysSelect = true;
                     group.multiSelect = true;
                     group.currentSelection = ["Balanced"];
                     root.events = [];

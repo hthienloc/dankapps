@@ -3,7 +3,8 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Rectangle {
     id: root
@@ -11,62 +12,81 @@ Rectangle {
     property var windowControls: null
     property var targetWindow: null
 
-    height: 52
+    implicitHeight: header.implicitHeight
     color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.90)
     border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
     border.width: 1
 
-    MouseArea {
+    DWindowHeader {
+        id: header
         anchors.fill: parent
-        onPressed: {
-            if (root.windowControls)
-                root.windowControls.tryStartMove();
+        controls: root.windowControls
+        title: VideoService.currentFileName || "DankVideo"
+        onCloseRequested: Qt.quit()
+
+        // Open Video Action
+        DActionButton {
+            iconName: "folder_open"
+            iconSize: Style.iconSizeSmall
+            iconColor: Theme.surfaceText
+            tooltipText: "Open Video (O)"
+            tooltipSide: "bottom"
+            onClicked: VideoService.openFileDialog()
         }
-        onDoubleClicked: {
-            if (root.windowControls)
-                root.windowControls.tryToggleMaximize();
+
+        // Media Details / Inspector Toggle
+        DActionButton {
+            visible: VideoService.currentFilePath !== ""
+            iconName: "info"
+            iconSize: Style.iconSizeSmall
+            iconColor: VideoService.inspectorOpen ? Theme.primary : Theme.surfaceText
+            backgroundColor: VideoService.inspectorOpen ? Theme.surfaceContainerHighest : "transparent"
+            tooltipText: "Media Details (I)"
+            tooltipSide: "bottom"
+            onClicked: VideoService.toggleInspector()
+        }
+
+        // Lock UI / Zen View
+        DActionButton {
+            visible: VideoService.currentFilePath !== ""
+            iconName: "lock_open"
+            iconSize: Style.iconSizeSmall
+            iconColor: Theme.surfaceText
+            tooltipText: "Lock UI / Clean View (K)"
+            tooltipSide: "bottom"
+            onClicked: VideoService.toggleLockUI()
         }
     }
 
-    RowLayout {
-        anchors.fill: parent
-        anchors.leftMargin: 14
-        anchors.rightMargin: 10
-        spacing: 10
+    // Leading item: App icon and media metadata badges
+    Row {
+        id: leadingRow
+        anchors.left: parent.left
+        anchors.leftMargin: Style.spacingM
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: Style.spacingS
 
-        DankIcon {
+        DIcon {
             name: "movie"
-            size: 22
+            size: Style.iconSizeSmall
             color: Theme.primary
-            Layout.alignment: Qt.AlignVCenter
-        }
-
-        Text {
-            Layout.fillWidth: true
-            Layout.minimumWidth: 50
-            Layout.alignment: Qt.AlignVCenter
-            text: VideoService.currentFileName || "DankVideo"
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeLarge
-            font.weight: Font.DemiBold
-            color: Theme.surfaceText
-            elide: Text.ElideMiddle
+            anchors.verticalCenter: parent.verticalCenter
         }
 
         // Counter badge e.g. "2 / 5"
         Rectangle {
             visible: VideoService.fileList.length > 0
-            Layout.preferredHeight: 28
-            Layout.preferredWidth: counterText.implicitWidth + 18
-            radius: 14
+            implicitHeight: 24
+            implicitWidth: counterText.implicitWidth + 16
+            radius: 12
             color: Theme.surfaceContainerHighest
+            anchors.verticalCenter: parent.verticalCenter
 
-            Text {
+            StyledText {
                 id: counterText
                 anchors.centerIn: parent
                 text: (VideoService.currentIndex + 1) + " / " + VideoService.fileList.length
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
+                font.pixelSize: Style.fontSizeSmall
                 font.weight: Font.Medium
                 color: Theme.surfaceVariantText
             }
@@ -75,24 +95,25 @@ Rectangle {
         // Resolution & Codec badge if available
         Rectangle {
             visible: VideoService.currentMeta && (VideoService.currentMeta.videoCodec || VideoService.currentMeta.width > 0)
-            Layout.preferredHeight: 28
-            Layout.preferredWidth: codecRow.implicitWidth + 18
-            radius: 14
+            implicitHeight: 24
+            implicitWidth: codecRow.implicitWidth + 16
+            radius: 12
             color: Theme.surfaceContainerHigh
+            anchors.verticalCenter: parent.verticalCenter
 
             RowLayout {
                 id: codecRow
                 anchors.centerIn: parent
                 spacing: 4
 
-                DankIcon {
+                DIcon {
                     name: "hd"
-                    size: 16
+                    size: 14
                     color: Theme.surfaceVariantText
                     visible: VideoService.currentMeta && VideoService.currentMeta.height >= 720
                 }
 
-                Text {
+                StyledText {
                     id: codecText
                     text: {
                         if (!VideoService.currentMeta) return "";
@@ -105,94 +126,11 @@ Rectangle {
                         }
                         return parts.join(" • ");
                     }
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeSmall
+                    font.pixelSize: Style.fontSizeSmall
                     font.weight: Font.Medium
                     color: Theme.surfaceVariantText
                 }
             }
-        }
-
-        // Open Video Action
-        DankActionButton {
-            iconName: "folder_open"
-            iconSize: 19
-            iconColor: Theme.surfaceText
-            tooltipText: "Open Video (O)"
-            tooltipSide: "bottom"
-            Layout.alignment: Qt.AlignVCenter
-            onClicked: VideoService.openFileDialog()
-        }
-
-        // Inspector Toggle
-        DankActionButton {
-            visible: VideoService.currentFilePath !== ""
-            iconName: "info"
-            iconSize: 19
-            iconColor: VideoService.inspectorOpen ? Theme.primary : Theme.surfaceText
-            backgroundColor: VideoService.inspectorOpen ? Theme.surfaceContainerHighest : "transparent"
-            tooltipText: "Media Details (I)"
-            tooltipSide: "bottom"
-            Layout.alignment: Qt.AlignVCenter
-            onClicked: VideoService.toggleInspector()
-        }
-
-        // Lock UI / Zen View
-        DankActionButton {
-            visible: VideoService.currentFilePath !== ""
-            iconName: "lock_open"
-            iconSize: 19
-            iconColor: Theme.surfaceText
-            tooltipText: "Lock UI / Clean View (K)"
-            tooltipSide: "bottom"
-            Layout.alignment: Qt.AlignVCenter
-            onClicked: VideoService.toggleLockUI()
-        }
-
-        Rectangle {
-            Layout.preferredWidth: 1
-            Layout.preferredHeight: 20
-            Layout.alignment: Qt.AlignVCenter
-            color: Theme.outlineVariant
-            opacity: 0.4
-        }
-
-        DankActionButton {
-            visible: root.windowControls && root.windowControls.canMinimize
-            iconName: "minimize"
-            iconSize: 18
-            iconColor: Theme.surfaceText
-            tooltipText: "Minimize"
-            tooltipSide: "bottom"
-            Layout.alignment: Qt.AlignVCenter
-            onClicked: {
-                if (root.windowControls)
-                    root.windowControls.tryMinimize();
-            }
-        }
-
-        DankActionButton {
-            visible: root.windowControls && root.windowControls.supported
-            iconName: (root.targetWindow && root.targetWindow.maximized) ? "fullscreen_exit" : "fullscreen"
-            iconSize: 19
-            iconColor: Theme.surfaceText
-            tooltipText: (root.targetWindow && root.targetWindow.maximized) ? "Restore (F)" : "Maximize (F)"
-            tooltipSide: "bottom"
-            Layout.alignment: Qt.AlignVCenter
-            onClicked: {
-                if (root.windowControls)
-                    root.windowControls.tryToggleMaximize();
-            }
-        }
-
-        DankActionButton {
-            iconName: "close"
-            iconSize: 19
-            iconColor: Theme.surfaceText
-            tooltipText: "Close (Esc)"
-            tooltipSide: "bottom"
-            Layout.alignment: Qt.AlignVCenter
-            onClicked: Qt.quit()
         }
     }
 }

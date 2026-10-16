@@ -11,11 +11,11 @@ repos:
         name: common shape, surface and widget tests
         entry: node tests/run.mjs
         language: system
-        files: ^(DankCommon/|Common/|Services/|tests/|\.pre-commit-config\.yaml$|\.github/workflows/prek\.yml$)
+        files: ^(DCommon/|Common/|Services/|tests/|\.pre-commit-config\.yaml$|\.github/workflows/prek\.yml$)
         pass_filenames: false
         require_serial: true
       - id: no-console-in-qml
         name: no console.* in QML (use Log service)
         entry: bash -c 'if grep -nE "console\.(log|error|info|warn|debug)" "$@"; then echo "Use the Log service (log.info/warn/error/debug) instead of console.*" >&2; exit 1; fi' --
         language: system
-        files: ^DankCommon/.*\.qml$
+        files: ^DCommon/.*\.qml$

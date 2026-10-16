@@ -1,14 +1,14 @@
 # dankapps
 
-A collection of Quickshell-based media viewer apps for DankMaterialShell (DMS) and standalone use.
+A collection of Quickshell-based desktop apps for DankMaterialShell (DMS) and standalone use.
 
 ## Apps
 
-| App | Description | Binary |
-|-----|-------------|--------|
-| [dankview](./dankview/) | Image viewer with EXIF inspector, crop, zoom, and Quick Capture annotation | `dview` |
-| [dankvideo](./dankvideo/) | Video player with media inspector | `dplay` |
-| [dankcalc](./dankcalc/) | Material 3 expressive calculator with scientific drawer and history | `dcalc` |
+| App | Description | Status | Binary |
+|-----|-------------|--------|--------|
+| [dankview](./dankview/) | Image viewer with EXIF inspector, crop, zoom, and Quick Capture annotation | Active development | `dview` |
+| [dankvideo](./dankvideo/) | Video player with media inspector | On hold | `dplay` |
+| [dankcalc](./dankcalc/) | Calculator with scientific mode, unit converter, and history | Active development | `dcalc` |
 
 ## Install an app
 

@@ -1,8 +1,8 @@
 import QtQuick
 import QtTest
 import Quickshell
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 ShellRoot {
     id: root
@@ -33,7 +33,7 @@ ShellRoot {
         implicitWidth: 600
         implicitHeight: 640
 
-        DankDialog {
+        DDialog {
             id: dialog
             anchors.fill: parent
             title: "Dialog title"
@@ -45,7 +45,7 @@ ShellRoot {
                 width: parent.width
                 height: 800
             }
-            DankTextField {
+            DTextField {
                 id: field
                 width: parent.width
                 outlined: true
@@ -53,14 +53,14 @@ ShellRoot {
             }
 
             actions: [
-                DankButton {
+                DButton {
                     id: cancel
                     text: "Cancel"
                     maximumWidth: dialog.actionWidth
                     wrapText: true
                     onClicked: root.rejects++
                 },
-                DankButton {
+                DButton {
                     id: confirm
                     text: "Confirm"
                     maximumWidth: dialog.actionWidth
@@ -99,7 +99,6 @@ ShellRoot {
             input.wait(30);
             const header = dialog.contentItem.parent.parent.parent.parent.children.find(item => item.closeTooltipText !== undefined);
             check(header.mapToItem(dialog, 0, 0).y === 0 && header.width === dialog.width, "native header spans the top edge");
-            check(header.showDivider && header.horizontalPadding < 0, "native header uses standard chrome");
             const scroll = dialog.contentItem.parent.parent.parent;
             check(scroll.contentHeight > scroll.height, "long content scrolls");
             field.forceActiveFocus();

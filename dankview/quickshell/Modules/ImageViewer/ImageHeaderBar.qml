@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -13,12 +13,11 @@ Item {
 
     signal closeRequested
 
-    DankWindowHeader {
+    DWindowHeader {
         id: header
         anchors.fill: parent
         controls: root.windowControls
         title: ImageService.galleryMode ? "Gallery" : (ImageService.currentFileName || "DankView")
-        showDivider: true
         onCloseRequested: root.closeRequested()
     }
 
@@ -30,7 +29,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: Style.spacingS
 
-        DankIconButton {
+        DIconButton {
             visible: !ImageService.galleryMode
             iconName: "arrow_back"
             size: "s"
@@ -40,7 +39,7 @@ Item {
             onClicked: ImageService.backToGallery()
         }
 
-        DankIcon {
+        DIcon {
             visible: ImageService.galleryMode
             name: "image"
             size: Style.iconSizeSmall
