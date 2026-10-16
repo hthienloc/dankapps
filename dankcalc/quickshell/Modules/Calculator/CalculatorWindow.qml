@@ -235,19 +235,6 @@ FloatingWindow {
                         title: CalculatorService.currentMode === "converter" ? "Unit Converter" : "Calculator"
                         onCloseRequested: Qt.quit()
                     }
-
-                    Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: Style.spacingM
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: Style.spacingS
-
-                        DIcon {
-                            name: CalculatorService.currentMode === "converter" ? "swap_horiz" : "calculate"
-                            size: Style.iconSizeSmall
-                            color: Style.primary
-                        }
-                    }
                 }
 
                 // Mode & Action Row

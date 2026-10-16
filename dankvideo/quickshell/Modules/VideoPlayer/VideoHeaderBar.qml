@@ -58,20 +58,13 @@ Rectangle {
         }
     }
 
-    // Leading item: App icon and media metadata badges
+    // Leading item: Media metadata badges
     Row {
         id: leadingRow
         anchors.left: parent.left
         anchors.leftMargin: Style.spacingM
         anchors.verticalCenter: parent.verticalCenter
         spacing: Style.spacingS
-
-        DIcon {
-            name: "movie"
-            size: Style.iconSizeSmall
-            color: Theme.primary
-            anchors.verticalCenter: parent.verticalCenter
-        }
 
         // Counter badge e.g. "2 / 5"
         Rectangle {

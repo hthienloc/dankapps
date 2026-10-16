@@ -38,13 +38,5 @@ Item {
             Accessible.name: "Back to Gallery"
             onClicked: ImageService.backToGallery()
         }
-
-        DIcon {
-            visible: ImageService.galleryMode
-            name: "image"
-            size: Style.iconSizeSmall
-            color: Style.primary
-            anchors.verticalCenter: parent.verticalCenter
-        }
     }
 }
