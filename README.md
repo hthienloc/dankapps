@@ -50,3 +50,8 @@ Special thanks to the community members who helped shape the design and concepti
 
 - **Zurvan** (Discord) — Core design inspiration and UI concepts.
 - **Stumbling** (Discord) & **bbedward** — Invaluable feedback, critique, and quality insights.
+
+## License
+
+[MIT](./LICENSE)
+
