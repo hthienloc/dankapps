@@ -14,6 +14,13 @@ import qs.DCommon.Common as DC
 ShellRoot {
     id: root
 
+    Connections {
+        target: Quickshell
+        function onLastWindowClosed() {
+            Qt.quit()
+        }
+    }
+
     Component.onCompleted: {
         DC.Style.theme = Theme;
         DC.Style.settings = SettingsData;
