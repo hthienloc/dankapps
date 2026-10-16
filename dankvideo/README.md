@@ -102,6 +102,12 @@ make dev
 
 # Run test suite
 make test
+
+# Install to ~/.local/bin
+make install-user
+
+# Or install system-wide
+sudo make install
 ```
 
 ---

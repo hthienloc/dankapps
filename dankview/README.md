@@ -75,8 +75,11 @@ make run <image>
 # Run tests
 make test
 
-# Install
-sudo make install PREFIX=/usr/local
+# Install to ~/.local/bin
+make install-user
+
+# Or install system-wide
+sudo make install
 ```
 
 ## Credits & Acknowledgements
