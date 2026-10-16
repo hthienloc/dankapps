@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -16,14 +16,14 @@ Item {
 
     Behavior on implicitWidth {
         enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
-        DankAnim {
+        DAnim {
             duration: Style.expressiveDurations.expressiveDefaultSpatial
             easing.bezierCurve: Style.expressiveCurves.expressiveDefaultSpatial
         }
     }
 
     // === Navigation (no selection) - M3E Connected Button Group ===
-    DankButtonGroup {
+    DButtonGroup {
         id: navGroup
         anchors.centerIn: parent
         model: [
@@ -40,13 +40,13 @@ Item {
         scale: root.isSelectionMode ? 0.92 : 1.0
 
         Behavior on opacity {
-            DankAnim {
+            DAnim {
                 duration: Style.expressiveDurations.expressiveEffects
                 easing.bezierCurve: Style.expressiveCurves.expressiveEffects
             }
         }
         Behavior on scale {
-            DankAnim {
+            DAnim {
                 duration: Style.expressiveDurations.expressiveFastSpatial
                 easing.bezierCurve: Style.expressiveCurves.expressiveFastSpatial
             }
@@ -69,19 +69,19 @@ Item {
         scale: root.isSelectionMode ? 1.0 : 0.94
 
         Behavior on opacity {
-            DankAnim {
+            DAnim {
                 duration: Style.expressiveDurations.expressiveEffects
                 easing.bezierCurve: Style.expressiveCurves.expressiveEffects
             }
         }
         Behavior on scale {
-            DankAnim {
+            DAnim {
                 duration: Style.expressiveDurations.expressiveFastSpatial
                 easing.bezierCurve: Style.expressiveCurves.expressiveFastSpatial
             }
         }
         Behavior on border.color {
-            DankColorAnim {
+            DColorAnim {
                 duration: Style.expressiveDurations.expressiveEffects
                 easing.bezierCurve: Style.expressiveCurves.expressiveEffects
             }
@@ -114,7 +114,7 @@ Item {
                     anchors.centerIn: parent
                     spacing: Style.spacingXS
 
-                    DankIcon {
+                    DIcon {
                         name: "check_circle"
                         size: 18
                         color: Style.onPrimaryContainer
@@ -125,7 +125,7 @@ Item {
                         font.weight: Style.fontWeightMedium
                         color: Style.onPrimaryContainer
                     }
-                    DankIcon {
+                    DIcon {
                         name: "close"
                         size: 14
                         color: Style.onPrimaryContainer
@@ -149,7 +149,7 @@ Item {
             }
 
             // Action group 1
-            DankIconButton {
+            DIconButton {
                 iconName: ImageService.isAllSelected ? "deselect" : "select_all"
                 size: "s"
                 variant: ImageService.isAllSelected ? "tonal" : "standard"
@@ -158,7 +158,7 @@ Item {
                 onClicked: ImageService.selectAll()
             }
 
-            DankIconButton {
+            DIconButton {
                 iconName: "favorite"
                 size: "s"
                 variant: "standard"
@@ -175,7 +175,7 @@ Item {
             }
 
             // Action group 2
-            DankIconButton {
+            DIconButton {
                 iconName: "content_copy"
                 size: "s"
                 variant: "standard"
@@ -183,7 +183,7 @@ Item {
                 onClicked: ImageService.copySelectedFiles()
             }
 
-            DankIconButton {
+            DIconButton {
                 iconName: "open_in_new"
                 size: "s"
                 variant: "standard"
@@ -192,7 +192,7 @@ Item {
             }
 
             // Destructive — M3E tonal errorContainer
-            DankIconButton {
+            DIconButton {
                 iconName: "delete"
                 size: "s"
                 variant: "tonal"

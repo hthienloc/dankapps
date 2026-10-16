@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.Common
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -46,11 +46,11 @@ Item {
         scale: 1.0
 
         Behavior on color {
-            DankColorAnim { duration: Theme.shortDuration }
+            DColorAnim { duration: Theme.shortDuration }
         }
 
         Behavior on radius {
-            DankAnim {
+            DAnim {
                 duration: Theme.shortDuration
                 easing.bezierCurve: Theme.expressiveCurves.standard
             }
@@ -85,7 +85,7 @@ Item {
             anchors.centerIn: parent
             spacing: 0
 
-            DankIcon {
+            DIcon {
                 visible: root.iconName !== ""
                 name: root.iconName
                 size: root.effectiveIconSize

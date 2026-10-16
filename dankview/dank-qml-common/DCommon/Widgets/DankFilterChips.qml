@@ -1,1 +1,0 @@
-DFilterChips.qml

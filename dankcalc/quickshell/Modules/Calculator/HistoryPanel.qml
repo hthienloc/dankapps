@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Rectangle {
     id: root
@@ -41,7 +41,7 @@ Rectangle {
         transform: Translate {
             x: root.open ? 0 : panel.width
             Behavior on x {
-                DankAnim {
+                DAnim {
                     duration: Theme.mediumDuration
                     easing.bezierCurve: Theme.expressiveCurves.emphasizedDecel
                 }
@@ -71,7 +71,7 @@ Rectangle {
                     color: Theme.surfaceText
                 }
 
-                DankIconButton {
+                DIconButton {
                     iconName: "delete"
                     size: "s"
                     variant: "standard"
@@ -80,7 +80,7 @@ Rectangle {
                     onClicked: CalculatorService.clearHistory()
                 }
 
-                DankIconButton {
+                DIconButton {
                     iconName: "close"
                     size: "s"
                     variant: "standard"
@@ -108,7 +108,7 @@ Rectangle {
                     color: Theme.surfaceVariantText
                 }
 
-                DankListView {
+                DListView {
                     anchors.fill: parent
                     visible: CalculatorService.history.length > 0
                     model: CalculatorService.history
@@ -122,7 +122,7 @@ Rectangle {
                         radius: Theme.cornerRadiusSmall
                         color: itemMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
 
-                        Behavior on color { DankColorAnim { duration: Theme.shortDuration } }
+                        Behavior on color { DColorAnim { duration: Theme.shortDuration } }
 
                         ColumnLayout {
                             id: itemCol

@@ -1,1 +1,0 @@
-DConfirmDialogContent.qml

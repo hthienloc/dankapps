@@ -1,1 +1,0 @@
-DSVGIcon.qml

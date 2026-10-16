@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -107,7 +107,7 @@ Item {
             ColumnLayout {
                 anchors.centerIn: parent
                 spacing: 12
-                DankIcon {
+                DIcon {
                     Layout.alignment: Qt.AlignHCenter
                     name: root.query !== "" ? "search_off" : (ImageService.selectedCategory === "Favorites" ? "favorite_border" : "image_not_supported")
                     size: 40
@@ -138,7 +138,7 @@ Item {
         ColumnLayout {
             anchors.centerIn: parent
             spacing: 12
-            DankIcon { Layout.alignment: Qt.AlignHCenter; name: "sync"; size: 32; color: Theme.primary }
+            DIcon { Layout.alignment: Qt.AlignHCenter; name: "sync"; size: 32; color: Theme.primary }
             StyledText { Layout.alignment: Qt.AlignHCenter; text: "Scanning pictures..."; font.pixelSize: Theme.fontSizeMedium; color: Theme.surfaceVariantText }
         }
     }

@@ -1,1 +1,0 @@
-DNFIcon.qml

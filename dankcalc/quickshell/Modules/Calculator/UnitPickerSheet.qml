@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 import "UnitConverterLogic.js" as ConvLogic
 
 Rectangle {
@@ -44,7 +44,7 @@ Rectangle {
 
         scale: root.isOpen ? 1.0 : 0.95
         Behavior on scale {
-            DankAnim {
+            DAnim {
                 duration: Theme.shortDuration
                 easing.bezierCurve: Theme.expressiveCurves.standardDecel
             }
@@ -71,7 +71,7 @@ Rectangle {
                     color: Theme.surfaceText
                 }
 
-                DankIconButton {
+                DIconButton {
                     iconName: "close"
                     size: "s"
                     variant: "standard"
@@ -128,7 +128,7 @@ Rectangle {
                             elide: Text.ElideRight
                         }
 
-                        DankIcon {
+                        DIcon {
                             visible: modelData.id === root.selectedUnitId
                             name: "check"
                             size: 16

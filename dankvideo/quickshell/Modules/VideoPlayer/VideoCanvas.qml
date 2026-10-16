@@ -4,7 +4,7 @@ import QtMultimedia
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -134,7 +134,7 @@ Item {
                 border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
                 border.width: 1
 
-                DankIcon {
+                DIcon {
                     anchors.centerIn: parent
                     name: "video_library"
                     size: 44
@@ -178,7 +178,7 @@ Item {
                     anchors.centerIn: parent
                     spacing: 8
 
-                    DankIcon {
+                    DIcon {
                         name: "folder_open"
                         size: 20
                         color: Theme.primaryText
@@ -229,7 +229,7 @@ Item {
                 NumberAnimation { duration: 150 }
             }
 
-            DankIcon {
+            DIcon {
                 anchors.centerIn: parent
                 name: "chevron_left"
                 size: 28
@@ -262,7 +262,7 @@ Item {
                 NumberAnimation { duration: 150 }
             }
 
-            DankIcon {
+            DIcon {
                 anchors.centerIn: parent
                 name: "chevron_right"
                 size: 28

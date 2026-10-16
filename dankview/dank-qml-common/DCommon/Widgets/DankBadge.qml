@@ -1,1 +1,0 @@
-DBadge.qml

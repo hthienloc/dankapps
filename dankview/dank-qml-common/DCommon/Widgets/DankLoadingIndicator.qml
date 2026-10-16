@@ -1,1 +1,0 @@
-DLoadingIndicator.qml

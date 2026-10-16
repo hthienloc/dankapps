@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Rectangle {
     id: root
@@ -40,7 +40,7 @@ Rectangle {
 
         scale: root.open ? 1.0 : 0.95
         Behavior on scale {
-            DankAnim {
+            DAnim {
                 duration: Theme.shortDuration
                 easing.bezierCurve: Theme.expressiveCurves.standardDecel
             }
@@ -78,7 +78,7 @@ Rectangle {
                     anchors.margins: Theme.spacingS
                     spacing: Theme.spacingS
 
-                    DankIcon {
+                    DIcon {
                         name: "calculate"
                         size: 18
                         color: CalculatorService.currentMode === "calculator" ? Theme.onSecondaryContainer : Theme.surfaceText
@@ -92,7 +92,7 @@ Rectangle {
                         color: CalculatorService.currentMode === "calculator" ? Theme.onSecondaryContainer : Theme.surfaceText
                     }
 
-                    DankIcon {
+                    DIcon {
                         visible: CalculatorService.currentMode === "calculator"
                         name: "check"
                         size: 16
@@ -125,7 +125,7 @@ Rectangle {
                     anchors.margins: Theme.spacingS
                     spacing: Theme.spacingS
 
-                    DankIcon {
+                    DIcon {
                         name: "swap_horiz"
                         size: 18
                         color: CalculatorService.currentMode === "converter" ? Theme.onSecondaryContainer : Theme.surfaceText
@@ -139,7 +139,7 @@ Rectangle {
                         color: CalculatorService.currentMode === "converter" ? Theme.onSecondaryContainer : Theme.surfaceText
                     }
 
-                    DankIcon {
+                    DIcon {
                         visible: CalculatorService.currentMode === "converter"
                         name: "check"
                         size: 16
@@ -185,7 +185,7 @@ Rectangle {
                     anchors.margins: Theme.spacingS
                     spacing: Theme.spacingS
 
-                    DankIcon {
+                    DIcon {
                         name: "change_circle"
                         size: 18
                         color: Theme.surfaceText

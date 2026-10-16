@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -50,7 +50,7 @@ Item {
                             anchors.centerIn: parent
                             spacing: 5
 
-                            DankIcon {
+                            DIcon {
                                 visible: isFavChip
                                 name: "favorite"
                                 size: 14

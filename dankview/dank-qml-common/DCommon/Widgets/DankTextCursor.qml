@@ -1,1 +1,0 @@
-DTextCursor.qml

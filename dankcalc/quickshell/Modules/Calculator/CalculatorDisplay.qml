@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -25,7 +25,7 @@ Item {
         color: displayMouse.containsMouse ? Theme.withAlpha(Theme.surfaceText, 0.05) : "transparent"
 
         Behavior on color {
-            DankColorAnim { duration: Theme.shortDuration }
+            DColorAnim { duration: Theme.shortDuration }
         }
     }
 
@@ -59,7 +59,7 @@ Item {
             wrapMode: Text.NoWrap
 
             Behavior on font.pixelSize {
-                DankAnim {
+                DAnim {
                     duration: Theme.shortDuration
                     easing.bezierCurve: Theme.expressiveCurves.standard
                 }

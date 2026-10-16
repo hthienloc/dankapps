@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -28,7 +28,7 @@ Item {
         return list
     }
 
-    DankFlickable {
+    DFlickable {
         anchors.fill: parent
         anchors.leftMargin: 12
         anchors.rightMargin: 12
@@ -53,7 +53,7 @@ Item {
                 RowLayout {
                     anchors.centerIn: parent
                     spacing: 8
-                    DankIcon { name: "search_off"; size: 18; color: Theme.surfaceVariantText }
+                    DIcon { name: "search_off"; size: 18; color: Theme.surfaceVariantText }
                     StyledText {
                         text: 'No results for "' + ImageService.searchQuery + '"'
                         font.pixelSize: Theme.fontSizeSmall
@@ -129,7 +129,7 @@ Item {
                 ColumnLayout {
                     anchors.centerIn: parent
                     spacing: 12
-                    DankIcon {
+                    DIcon {
                         Layout.alignment: Qt.AlignHCenter
                         name: "folder_open"
                         size: 40

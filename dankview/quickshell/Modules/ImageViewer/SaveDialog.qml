@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 // Modal "Save As / Export" sheet.
 // Emits saved(destPath) on success, cancelled() on dismiss.
@@ -61,7 +61,7 @@ Rectangle {
             RowLayout {
                 Layout.fillWidth: true
 
-                DankIcon { name: root.cropRegion ? "crop" : "save"; size: 20; color: Theme.primary }
+                DIcon { name: root.cropRegion ? "crop" : "save"; size: 20; color: Theme.primary }
 
                 StyledText {
                     Layout.fillWidth: true
@@ -72,7 +72,7 @@ Rectangle {
                     color: Theme.surfaceText
                 }
 
-                DankActionButton {
+                DActionButton {
                     iconName: "close"; iconSize: 18; buttonSize: 32
                     iconColor: Theme.surfaceText
                     onClicked: root.cancelled()
@@ -108,7 +108,7 @@ Rectangle {
                         elide: Text.ElideMiddle
                     }
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: "folder_open"
                         iconSize: 18
                         buttonSize: 28
@@ -189,7 +189,7 @@ Rectangle {
                     }
                 }
 
-                DankSlider {
+                DSlider {
                     id: qualitySlider
                     Layout.fillWidth: true
                     height: 36

@@ -1,1 +1,0 @@
-DAnalogClock.qml

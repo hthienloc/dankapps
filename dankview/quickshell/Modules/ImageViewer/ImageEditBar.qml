@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -46,13 +46,13 @@ Item {
         transformOrigin: Item.BottomRight
 
         Behavior on opacity {
-            DankAnim {
+            DAnim {
                 duration: Style.shortDuration
                 easing.bezierCurve: Style.expressiveCurves.standard
             }
         }
         Behavior on scale {
-            DankAnim {
+            DAnim {
                 duration: Style.shortDuration
                 easing.bezierCurve: Style.expressiveCurves.standard
             }
@@ -86,7 +86,7 @@ Item {
                     anchors.centerIn: parent
                     spacing: 4
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: "rotate_left"
                         iconSize: Style.iconSizeMedium
                         buttonSize: 38
@@ -102,7 +102,7 @@ Item {
                         opacity: 0.35
                     }
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: "rotate_right"
                         iconSize: Style.iconSizeMedium
                         buttonSize: 38
@@ -128,7 +128,7 @@ Item {
                     anchors.centerIn: parent
                     spacing: 4
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: "flip"
                         iconSize: Style.iconSizeMedium
                         buttonSize: 38
@@ -144,7 +144,7 @@ Item {
                         opacity: 0.35
                     }
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: "flip"
                         iconSize: Style.iconSizeMedium
                         buttonSize: 38
@@ -171,7 +171,7 @@ Item {
                     anchors.centerIn: parent
                     spacing: 4
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: "crop"
                         iconSize: Style.iconSizeMedium
                         buttonSize: 38
@@ -190,7 +190,7 @@ Item {
                         opacity: 0.35
                     }
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: "draw"
                         iconSize: Style.iconSizeMedium
                         buttonSize: 38
@@ -216,7 +216,7 @@ Item {
                     id: animRow
                     anchors.centerIn: parent
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: ImageService.isPlaying ? "pause" : "play_arrow"
                         iconSize: Style.iconSizeMedium
                         buttonSize: 38
@@ -246,13 +246,13 @@ Item {
         scale: opacity > 0 ? 1.0 : 0.92
 
         Behavior on opacity {
-            DankAnim {
+            DAnim {
                 duration: Style.shortDuration
                 easing.bezierCurve: Style.expressiveCurves.standard
             }
         }
         Behavior on scale {
-            DankAnim {
+            DAnim {
                 duration: Style.shortDuration
                 easing.bezierCurve: Style.expressiveCurves.standard
             }
@@ -285,13 +285,13 @@ Item {
         visible: opacity > 0
 
         Behavior on opacity {
-            DankAnim {
+            DAnim {
                 duration: Style.shortDuration
                 easing.bezierCurve: Style.expressiveCurves.standard
             }
         }
 
-        DankButtonGroup {
+        DButtonGroup {
             id: aspectGroup
             model: root.aspectModel.map(m => m.label)
             currentIndex: root.aspectIndex
@@ -305,7 +305,7 @@ Item {
 
         BarSeparator {}
 
-        DankActionButton {
+        DActionButton {
             iconName: "restart_alt"
             iconSize: Style.iconSizeMedium
             buttonSize: 34
@@ -324,7 +324,7 @@ Item {
 
         BarSeparator {}
 
-        DankButton {
+        DButton {
             text: "Cancel"
             iconName: "close"
             buttonHeight: Style.buttonHeightXS
@@ -338,7 +338,7 @@ Item {
             }
         }
 
-        DankButton {
+        DButton {
             text: "Done"
             iconName: "check"
             buttonHeight: Style.buttonHeightXS

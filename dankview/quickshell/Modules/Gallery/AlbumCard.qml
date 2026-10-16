@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -71,7 +71,7 @@ Item {
                             sourceSize.height: 180
                         }
 
-                        DankIcon {
+                        DIcon {
                             anchors.centerIn: parent
                             visible: parent.imgPath === ""
                             name: (root.album && root.album.isFavorites) ? "favorite" : "image"
@@ -106,7 +106,7 @@ Item {
                 Layout.fillWidth: true
                 spacing: 6
 
-                DankIcon {
+                DIcon {
                     visible: Boolean(root.album && root.album.isFavorites)
                     name: "favorite"
                     size: 16

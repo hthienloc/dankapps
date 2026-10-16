@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 Rectangle {
     id: root
@@ -60,7 +60,7 @@ Rectangle {
         Layout.fillWidth: true
         spacing: 8
 
-        DankIcon {
+        DIcon {
             name: iconName
             size: 18
             color: Theme.primary
@@ -125,7 +125,7 @@ Rectangle {
             anchors.centerIn: parent
             spacing: 6
 
-            DankIcon {
+            DIcon {
                 name: chip.iconName
                 size: 16
                 color: chip.iconColor
@@ -228,7 +228,7 @@ Rectangle {
             Layout.rightMargin: 16
             spacing: 10
 
-            DankIcon {
+            DIcon {
                 name: "info"
                 size: 20
                 color: Theme.primary
@@ -242,7 +242,7 @@ Rectangle {
                 color: Theme.surfaceText
             }
 
-            DankActionButton {
+            DActionButton {
                 iconName: "delete"
                 iconSize: 18
                 buttonSize: 32
@@ -263,7 +263,7 @@ Rectangle {
             opacity: 0.22
         }
 
-        DankFlickable {
+        DFlickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
             contentHeight: contentCol.implicitHeight + 28
@@ -297,7 +297,7 @@ Rectangle {
                                 radius: 10
                                 color: Theme.primaryContainer
 
-                                DankIcon {
+                                DIcon {
                                     anchors.centerIn: parent
                                     name: "image"
                                     size: 22

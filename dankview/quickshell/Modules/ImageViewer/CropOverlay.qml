@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 // Crop overlay drawn over the image viewport.
 // Caller must provide imageX/imageY/imageW/imageH — the screen-space rect of the
@@ -557,7 +557,7 @@ Item {
                         anchors.rightMargin: 12
                         spacing: 12
 
-                        DankIcon {
+                        DIcon {
                             name: actionItem.iconName
                             size: 20
                             color: actionItem.isRecommended ? Theme.primary : Theme.surfaceText

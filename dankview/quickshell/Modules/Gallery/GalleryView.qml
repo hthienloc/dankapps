@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -60,7 +60,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             spacing: Style.spacingXS
 
-            DankIconButton {
+            DIconButton {
                 iconName: "folder_open"
                 size: "s"
                 variant: "standard"
@@ -70,7 +70,7 @@ Item {
                 onClicked: ImageService.openFileDialog()
             }
 
-            DankIconButton {
+            DIconButton {
                 id: searchIconBtn
                 iconName: ImageService.searchActive ? "close" : "search"
                 size: "s"
@@ -105,20 +105,20 @@ Item {
 
         Behavior on height {
             enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
-            DankAnim {
+            DAnim {
                 duration: Style.shortDuration
                 easing.bezierCurve: Style.expressiveCurves.emphasized
             }
         }
         Behavior on opacity {
-            DankAnim {
+            DAnim {
                 duration: Style.shortDuration
                 easing.bezierCurve: Style.expressiveCurves.standard
             }
         }
 
         // Inner search field morphs from icon scale
-        DankSearchField {
+        DSearchField {
             id: searchField
             anchors.left: parent.left
             anchors.right: parent.right
@@ -130,13 +130,13 @@ Item {
 
             Behavior on scale {
                 enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
-                DankAnim {
+                DAnim {
                     duration: Style.shortDuration
                     easing.bezierCurve: Style.expressiveCurves.emphasized
                 }
             }
             Behavior on opacity {
-                DankAnim {
+                DAnim {
                     duration: Style.shortDuration
                     easing.bezierCurve: Style.expressiveCurves.standard
                 }
@@ -160,7 +160,7 @@ Item {
         anchors.right: parent.right
 
         Behavior on anchors.topMargin {
-            DankAnim {
+            DAnim {
                 duration: Style.shortDuration
                 easing.bezierCurve: Style.expressiveCurves.standard
             }

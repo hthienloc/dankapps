@@ -231,7 +231,7 @@ FloatingWindow {
                     }
                 }
 
-                DankIcon {
+                DIcon {
                     anchors.centerIn: parent
                     name: "lock_open"
                     size: 20

@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
-import qs.DankCommon.Common
-import qs.DankCommon.Widgets
+import qs.DCommon.Common
+import qs.DCommon.Widgets
 import "UnitConverterLogic.js" as ConvLogic
 
 Item {
@@ -55,7 +55,7 @@ Item {
                                 Layout.maximumWidth: 120
                             }
 
-                            DankIcon {
+                            DIcon {
                                 name: "arrow_drop_down"
                                 size: 16
                                 color: Theme.primary
@@ -134,7 +134,7 @@ Item {
                                 Layout.maximumWidth: 120
                             }
 
-                            DankIcon {
+                            DIcon {
                                 name: "arrow_drop_down"
                                 size: 16
                                 color: Theme.primary

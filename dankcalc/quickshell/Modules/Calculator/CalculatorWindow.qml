@@ -260,7 +260,7 @@ FloatingWindow {
                         anchors.leftMargin: Theme.spacingM
                         anchors.rightMargin: Theme.spacingM
 
-                        DankIconButton {
+                        DIconButton {
                             iconName: "menu"
                             size: "s"
                             variant: "standard"
@@ -271,7 +271,7 @@ FloatingWindow {
                         Item { Layout.fillWidth: true }
 
                         // Calculator Mode: History Button
-                        DankIconButton {
+                        DIconButton {
                             visible: CalculatorService.currentMode === "calculator"
                             iconName: "history"
                             size: "s"
@@ -297,7 +297,7 @@ FloatingWindow {
                                 anchors.centerIn: parent
                                 spacing: 4
 
-                                DankIcon {
+                                DIcon {
                                     name: ConvLogic.getCategory(CalculatorService.converterCategory).icon
                                     size: 15
                                     color: Theme.primary
@@ -310,7 +310,7 @@ FloatingWindow {
                                     color: Theme.surfaceText
                                 }
 
-                                DankIcon {
+                                DIcon {
                                     name: "arrow_drop_down"
                                     size: 16
                                     color: Theme.surfaceVariantText
@@ -353,7 +353,7 @@ FloatingWindow {
                             radius: 10
                             color: sciMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
 
-                            DankIcon {
+                            DIcon {
                                 id: sciIcon
                                 anchors.centerIn: parent
                                 name: "expand_more"
@@ -362,7 +362,7 @@ FloatingWindow {
                                 rotation: window.scientificOpen ? 180 : 0
 
                                 Behavior on rotation {
-                                    DankAnim {
+                                    DAnim {
                                         duration: Theme.mediumDuration
                                         easing.bezierCurve: Theme.expressiveCurves.emphasizedDecel
                                     }
@@ -448,7 +448,7 @@ FloatingWindow {
                 anchors.centerIn: parent
                 spacing: Theme.spacingS
 
-                DankIcon {
+                DIcon {
                     name: "check"
                     size: 16
                     color: Theme.inverseOnSurface

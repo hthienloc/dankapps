@@ -1,7 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 Item {
     id: root
@@ -85,7 +85,7 @@ Item {
             border.color: root.isSelected ? Theme.primary : Qt.rgba(1, 1, 1, 0.8)
             border.width: root.isSelected ? 0 : 1.5
 
-            DankIcon {
+            DIcon {
                 anchors.centerIn: parent
                 visible: root.isSelected
                 name: "check"
@@ -114,7 +114,7 @@ Item {
             visible: thumbMouse.containsMouse || root.isFav
             color: Qt.rgba(0, 0, 0, 0.35)
 
-            DankIcon {
+            DIcon {
                 anchors.centerIn: parent
                 name: "favorite"
                 filled: root.isFav

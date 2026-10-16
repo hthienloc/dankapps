@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 Rectangle {
     id: root
@@ -112,7 +112,7 @@ Rectangle {
                 spacing: 4
                 Layout.alignment: Qt.AlignVCenter
 
-                DankActionButton {
+                DActionButton {
                     iconName: VideoService.isMuted || VideoService.volume === 0 ? "volume_off" : (VideoService.volume < 0.5 ? "volume_down" : "volume_up")
                     iconSize: 20
                     iconColor: Theme.surfaceText
@@ -170,7 +170,7 @@ Rectangle {
                 Layout.alignment: Qt.AlignVCenter
 
                 // Step Back 10s
-                DankActionButton {
+                DActionButton {
                     iconName: "replay_10"
                     iconSize: 20
                     iconColor: Theme.surfaceText
@@ -181,7 +181,7 @@ Rectangle {
                 }
 
                 // Prev Video
-                DankActionButton {
+                DActionButton {
                     iconName: "skip_previous"
                     iconSize: 22
                     iconColor: Theme.surfaceText
@@ -200,7 +200,7 @@ Rectangle {
                     color: Theme.primary
                     Layout.alignment: Qt.AlignVCenter
 
-                    DankIcon {
+                    DIcon {
                         anchors.centerIn: parent
                         name: VideoService.isPlaying ? "pause" : "play_arrow"
                         size: 22
@@ -215,7 +215,7 @@ Rectangle {
                 }
 
                 // Next Video
-                DankActionButton {
+                DActionButton {
                     iconName: "skip_next"
                     iconSize: 22
                     iconColor: Theme.surfaceText
@@ -227,7 +227,7 @@ Rectangle {
                 }
 
                 // Forward 10s
-                DankActionButton {
+                DActionButton {
                     iconName: "forward_10"
                     iconSize: 20
                     iconColor: Theme.surfaceText

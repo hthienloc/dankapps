@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 import "."
 import "../Gallery"
 
@@ -380,7 +380,7 @@ FloatingWindow {
                         }
                     }
 
-                    DankIcon {
+                    DIcon {
                         anchors.centerIn: parent
                         name: "lock_open"
                         size: 20
@@ -449,7 +449,7 @@ FloatingWindow {
                 Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
                 Behavior on color { ColorAnimation { duration: Theme.shorterDuration } }
 
-                DankIcon {
+                DIcon {
                     anchors.centerIn: parent
                     name: ImageService.editMode ? "close" : "edit"
                     size: 24
@@ -508,7 +508,7 @@ FloatingWindow {
                     anchors.centerIn: parent
                     spacing: 8
 
-                    DankActionButton {
+                    DActionButton {
                         readonly property bool isFav: ImageService.isFavorite(ImageService.currentFilePath)
                         iconName: isFav ? "favorite" : "favorite_border"
                         iconSize: 22
@@ -526,7 +526,7 @@ FloatingWindow {
                         opacity: 0.35
                     }
 
-                    DankActionButton {
+                    DActionButton {
                         iconName: "info"
                         iconSize: 22
                         buttonSize: 40
@@ -578,7 +578,7 @@ FloatingWindow {
                     anchors.centerIn: parent
                     spacing: 8
 
-                    DankIcon {
+                    DIcon {
                         name: "zoom_in"
                         size: 22
                         color: Theme.surfaceText

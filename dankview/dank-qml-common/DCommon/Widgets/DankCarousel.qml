@@ -1,1 +1,0 @@
-DCarousel.qml

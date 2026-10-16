@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
-import qs.DankCommon.Widgets
+import qs.DCommon.Widgets
 
 Rectangle {
     id: root
@@ -45,7 +45,7 @@ Rectangle {
             anchors.centerIn: parent
             spacing: 6
 
-            DankIcon {
+            DIcon {
                 name: iconName
                 size: 16
                 color: Theme.primary
@@ -76,7 +76,7 @@ Rectangle {
         Layout.fillWidth: true
         spacing: 8
 
-        DankIcon {
+        DIcon {
             name: iconName
             size: 18
             color: Theme.primary
@@ -138,7 +138,7 @@ Rectangle {
                 anchors.rightMargin: 10
                 spacing: 10
 
-                DankIcon {
+                DIcon {
                     name: "info"
                     size: 20
                     color: Theme.primary
@@ -153,7 +153,7 @@ Rectangle {
                     color: Theme.surfaceText
                 }
 
-                DankActionButton {
+                DActionButton {
                     iconName: "close"
                     iconSize: 18
                     iconColor: Theme.surfaceText

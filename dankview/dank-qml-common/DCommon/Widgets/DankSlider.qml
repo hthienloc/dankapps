@@ -1,1 +1,0 @@
-DSlider.qml
