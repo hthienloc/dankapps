@@ -190,7 +190,9 @@ FloatingWindow {
                 event.accepted = true;
                 break;
             case Qt.Key_Escape:
-                if (CalculatorService.categoryMenuOpen) {
+                if (CalculatorService.converterPickerTarget !== "") {
+                    CalculatorService.converterPickerTarget = "";
+                } else if (CalculatorService.categoryMenuOpen) {
                     CalculatorService.categoryMenuOpen = false;
                 } else if (CalculatorService.menuOpen) {
                     CalculatorService.menuOpen = false;
@@ -404,10 +406,6 @@ FloatingWindow {
 
         HistoryPanel {
             id: historyPanel
-        }
-
-        UnitPickerSheet {
-            id: unitPickerSheet
         }
 
         // In-window toast notification pill

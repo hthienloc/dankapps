@@ -240,12 +240,14 @@ Singleton {
     }
 
     function setConverterFromUnit(unitId) {
+        if (unitId === converterToUnit) return;
         converterFromUnit = unitId;
         converterPickerTarget = "";
         updateConverterConversion();
     }
 
     function setConverterToUnit(unitId) {
+        if (unitId === converterFromUnit) return;
         converterToUnit = unitId;
         converterPickerTarget = "";
         updateConverterConversion();

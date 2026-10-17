@@ -6,16 +6,21 @@ import qs.DCommon.Common
 import qs.DCommon.Widgets
 import "UnitConverterLogic.js" as ConvLogic
 
-Rectangle {
+Item {
     id: root
+
+    property Item fromButton: null
+    property Item toButton: null
 
     readonly property bool isOpen: CalculatorService.converterPickerTarget !== ""
     readonly property bool isFrom: CalculatorService.converterPickerTarget === "from"
     readonly property var currentUnits: ConvLogic.getUnitsForCategory(CalculatorService.converterCategory)
     readonly property string selectedUnitId: isFrom ? CalculatorService.converterFromUnit : CalculatorService.converterToUnit
+    readonly property string otherUnitId: isFrom ? CalculatorService.converterToUnit : CalculatorService.converterFromUnit
+
+    readonly property Item targetButton: isFrom ? fromButton : toButton
 
     anchors.fill: parent
-    color: Qt.rgba(0, 0, 0, 0.45)
     visible: opacity > 0
     opacity: isOpen ? 1.0 : 0.0
     z: 100
@@ -27,22 +32,30 @@ Rectangle {
         }
     }
 
+    // Transparent backdrop to dismiss on click outside
     MouseArea {
         anchors.fill: parent
         onClicked: CalculatorService.converterPickerTarget = ""
     }
 
     Rectangle {
-        id: pickerCard
-        anchors.centerIn: parent
-        width: Math.min(parent.width - Theme.spacingL * 2, 280)
-        height: Math.min(parent.height - Theme.spacingL * 2, 360)
-        radius: Theme.cornerRadius
+        id: dropdownCard
+
+        readonly property point targetPos: root.targetButton
+            ? root.targetButton.mapToItem(root, 0, root.targetButton.height + 4)
+            : Qt.point(Theme.spacingM, 80)
+
+        x: Math.max(Theme.spacingM, Math.min(targetPos.x, root.width - width - Theme.spacingM))
+        y: Math.max(Theme.spacingS, Math.min(targetPos.y, root.height - height - Theme.spacingS))
+        width: Math.min(root.width - Theme.spacingM * 2, 240)
+        height: Math.min(unitList.contentHeight + Theme.spacingS * 2, 260)
+        radius: Theme.cornerRadiusSmall
         color: Theme.surfaceContainer
         border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
         border.width: 1
 
         scale: root.isOpen ? 1.0 : 0.95
+        transformOrigin: Item.TopLeft
         Behavior on scale {
             DAnim {
                 duration: Theme.shortDuration
@@ -55,98 +68,70 @@ Rectangle {
             onClicked: {}
         }
 
-        ColumnLayout {
+        ListView {
+            id: unitList
             anchors.fill: parent
-            anchors.margins: Theme.spacingM
-            spacing: Theme.spacingS
+            anchors.margins: Theme.spacingS
+            clip: true
+            model: root.currentUnits
+            spacing: 2
 
-            RowLayout {
-                Layout.fillWidth: true
+            delegate: Rectangle {
+                id: unitDelegate
+                required property var modelData
+                readonly property bool isSelected: modelData.id === root.selectedUnitId
+                readonly property bool isOtherSelected: modelData.id === root.otherUnitId
 
-                StyledText {
-                    Layout.fillWidth: true
-                    text: root.isFrom ? "Convert From" : "Convert To"
-                    font.pixelSize: Theme.fontSizeMedium
-                    font.weight: Font.Medium
-                    color: Theme.surfaceText
-                }
+                width: unitList.width
+                height: 36
+                radius: Theme.cornerRadiusSmall
+                opacity: isOtherSelected ? 0.45 : 1.0
+                color: isSelected
+                       ? Theme.secondaryContainer
+                       : (!isOtherSelected && delegateMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent")
 
-                DIconButton {
-                    iconName: "close"
-                    size: "s"
-                    variant: "standard"
-                    tooltipText: "Close"
-                    onClicked: CalculatorService.converterPickerTarget = ""
-                }
-            }
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Theme.spacingS
+                    anchors.rightMargin: Theme.spacingS
+                    spacing: Theme.spacingS
 
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: 1
-                color: Theme.outlineVariant
-                opacity: 0.3
-            }
-
-            ListView {
-                id: unitList
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                clip: true
-                model: root.currentUnits
-                spacing: 4
-
-                delegate: Rectangle {
-                    id: unitDelegate
-                    required property var modelData
-                    width: unitList.width
-                    height: 38
-                    radius: Theme.cornerRadiusSmall
-                    color: modelData.id === root.selectedUnitId
-                           ? Theme.secondaryContainer
-                           : delegateMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: Theme.spacingM
-                        anchors.rightMargin: Theme.spacingM
-                        spacing: Theme.spacingS
-
-                        StyledText {
-                            Layout.preferredWidth: 52
-                            text: modelData.name
-                            font.pixelSize: Theme.fontSizeMedium
-                            font.weight: modelData.id === root.selectedUnitId ? Font.Bold : Font.Medium
-                            color: modelData.id === root.selectedUnitId ? Theme.onSecondaryContainer : Theme.surfaceText
-                        }
-
-                        StyledText {
-                            visible: modelData.desc !== undefined && modelData.desc !== ""
-                            Layout.fillWidth: true
-                            text: modelData.desc || ""
-                            font.pixelSize: Theme.fontSizeSmall
-                            color: modelData.id === root.selectedUnitId ? Theme.onSecondaryContainer : Theme.surfaceVariantText
-                            elide: Text.ElideRight
-                        }
-
-                        DIcon {
-                            visible: modelData.id === root.selectedUnitId
-                            name: "check"
-                            size: 16
-                            color: Theme.onSecondaryContainer
-                        }
+                    StyledText {
+                        Layout.preferredWidth: 44
+                        text: modelData.name
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.weight: unitDelegate.isSelected ? Font.Bold : Font.Medium
+                        color: unitDelegate.isSelected ? Theme.onSecondaryContainer : Theme.surfaceText
                     }
 
-                    MouseArea {
-                        id: delegateMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (root.isFrom) {
-                                CalculatorService.setConverterFromUnit(modelData.id);
-                            } else {
-                                CalculatorService.setConverterToUnit(modelData.id);
-                            }
+                    StyledText {
+                        visible: modelData.desc !== undefined && modelData.desc !== ""
+                        Layout.fillWidth: true
+                        text: modelData.desc || ""
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: unitDelegate.isSelected ? Theme.onSecondaryContainer : Theme.surfaceVariantText
+                        elide: Text.ElideRight
+                    }
+
+                    DIcon {
+                        visible: unitDelegate.isSelected
+                        name: "check"
+                        size: 14
+                        color: Theme.onSecondaryContainer
+                    }
+                }
+
+                MouseArea {
+                    id: delegateMouse
+                    anchors.fill: parent
+                    enabled: !unitDelegate.isOtherSelected
+                    hoverEnabled: enabled
+                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    onClicked: {
+                        if (root.isFrom) {
+                            CalculatorService.setConverterFromUnit(modelData.id);
+                        } else {
+                            CalculatorService.setConverterToUnit(modelData.id);
                         }
                     }
                 }

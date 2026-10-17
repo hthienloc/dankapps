@@ -36,6 +36,7 @@ Item {
 
                     // Unit Picker Button
                     Rectangle {
+                        id: fromUnitButton
                         implicitHeight: 32
                         implicitWidth: fromUnitRow.implicitWidth + Theme.spacingM * 1.5
                         radius: 16
@@ -59,6 +60,8 @@ Item {
                                 name: "arrow_drop_down"
                                 size: 16
                                 color: Theme.primary
+                                rotation: CalculatorService.converterPickerTarget === "from" ? 180 : 0
+                                Behavior on rotation { NumberAnimation { duration: Theme.shortDuration } }
                             }
                         }
 
@@ -67,7 +70,7 @@ Item {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: CalculatorService.converterPickerTarget = "from"
+                            onClicked: CalculatorService.converterPickerTarget = CalculatorService.converterPickerTarget === "from" ? "" : "from"
                         }
                     }
 
@@ -138,6 +141,8 @@ Item {
                                 name: "arrow_drop_down"
                                 size: 16
                                 color: Theme.primary
+                                rotation: CalculatorService.converterPickerTarget === "to" ? 180 : 0
+                                Behavior on rotation { NumberAnimation { duration: Theme.shortDuration } }
                             }
                         }
 
@@ -146,7 +151,7 @@ Item {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: CalculatorService.converterPickerTarget = "to"
+                            onClicked: CalculatorService.converterPickerTarget = CalculatorService.converterPickerTarget === "to" ? "" : "to"
                         }
                     }
 
@@ -257,5 +262,11 @@ Item {
                 }
             }
         }
+    }
+
+    UnitPickerSheet {
+        id: unitPicker
+        fromButton: fromUnitButton
+        toButton: toUnitButton
     }
 }
