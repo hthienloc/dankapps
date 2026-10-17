@@ -215,26 +215,10 @@ Rectangle {
                     color: Theme.surfaceText
                 }
 
-                Rectangle {
+                DToggle {
                     id: stripToggle
-                    property bool checked: false
-                    width: Style.buttonHeightS; height: Style.iconSize; radius: height / 2
-                    color: checked ? Theme.primary : Theme.surfaceContainerHighest
-                    Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
-
-                    Rectangle {
-                        width: Style.chipIconSize; height: Style.chipIconSize; radius: height / 2
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: stripToggle.checked ? parent.width - width - 3 : 3
-                        color: "white"
-                        Behavior on x { NumberAnimation { duration: Theme.shortDuration } }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: stripToggle.checked = !stripToggle.checked
-                    }
+                    checked: false
+                    onToggled: (val) => checked = val
                 }
             }
 
@@ -245,48 +229,20 @@ Rectangle {
 
                 Item { Layout.fillWidth: true }
 
-                // Cancel
-                Rectangle {
-                    implicitWidth: 80; implicitHeight: Style.buttonHeightXS; radius: height / 2
-                    color: cancelMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.4)
-                    border.width: 1
-                    StyledText {
-                        anchors.centerIn: parent
-                        text: "Cancel"
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Theme.fontWeightMedium
-                        color: Theme.surfaceText
-                    }
-                    MouseArea {
-                        id: cancelMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.cancelled()
-                    }
+                DButton {
+                    text: "Cancel"
+                    buttonHeight: Style.buttonHeightXS
+                    backgroundColor: Theme.surfaceContainerLow
+                    textColor: Theme.surfaceText
+                    onClicked: root.cancelled()
                 }
 
-                // Save
-                Rectangle {
-                    implicitWidth: 90; implicitHeight: Style.buttonHeightXS; radius: height / 2
-                    color: saveMouse.containsMouse
-                        ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.85)
-                        : Theme.primary
-                    StyledText {
-                        anchors.centerIn: parent
-                        text: "Save"
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Theme.fontWeightBold
-                        color: Theme.primaryText
-                    }
-                    MouseArea {
-                        id: saveMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root._doSave()
-                    }
+                DButton {
+                    text: "Save"
+                    buttonHeight: Style.buttonHeightXS
+                    backgroundColor: Theme.primary
+                    textColor: Theme.onPrimary
+                    onClicked: root._doSave()
                 }
             }
 
