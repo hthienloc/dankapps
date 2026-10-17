@@ -13,7 +13,18 @@ Item {
     property Item toButton: null
 
     readonly property bool isOpen: CalculatorService.converterPickerTarget !== ""
-    readonly property bool isFrom: CalculatorService.converterPickerTarget === "from"
+    property string activeTarget: "from"
+
+    Connections {
+        target: CalculatorService
+        function onConverterPickerTargetChanged() {
+            if (CalculatorService.converterPickerTarget !== "") {
+                root.activeTarget = CalculatorService.converterPickerTarget;
+            }
+        }
+    }
+
+    readonly property bool isFrom: activeTarget === "from"
     readonly property var currentUnits: ConvLogic.getUnitsForCategory(CalculatorService.converterCategory)
     readonly property string selectedUnitId: isFrom ? CalculatorService.converterFromUnit : CalculatorService.converterToUnit
     readonly property string otherUnitId: isFrom ? CalculatorService.converterToUnit : CalculatorService.converterFromUnit

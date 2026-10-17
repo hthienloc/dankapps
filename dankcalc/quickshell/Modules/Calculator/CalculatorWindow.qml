@@ -12,9 +12,9 @@ FloatingWindow {
     id: window
 
     title: CalculatorService.currentMode === "converter" ? "Unit Converter — DankCalc" : "Calculator — DankCalc"
-    minimumSize: Qt.size(280, 400)
-    implicitWidth: 340
-    implicitHeight: CalculatorService.currentMode === "converter" ? 520 : (scientificOpen ? 600 : 480)
+    minimumSize: Qt.size(300, 420)
+    implicitWidth: 380
+    implicitHeight: CalculatorService.currentMode === "converter" ? 560 : (scientificOpen ? 640 : 520)
     color: Theme.surfaceContainerLowest
     visible: true
 
