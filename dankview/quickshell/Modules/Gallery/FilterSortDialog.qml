@@ -106,26 +106,10 @@ Item {
                     color: Theme.surfaceText
                 }
 
-                Rectangle {
-                    width: 32
-                    height: 32
-                    radius: 16
-                    color: closeMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
-
-                    DIcon {
-                        anchors.centerIn: parent
-                        name: "close"
-                        size: Style.iconSizeSmall
-                        color: Theme.surfaceVariantText
-                    }
-
-                    MouseArea {
-                        id: closeMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.close()
-                    }
+                DIconButton {
+                    iconName: "close"
+                    size: "s"
+                    onClicked: root.close()
                 }
             }
 
@@ -728,71 +712,35 @@ Item {
 
                 Item { Layout.fillWidth: true }
 
-                // Reset Button
-                Rectangle {
-                    width: resetText.implicitWidth + 24
-                    height: 38
-                    radius: 19
-                    color: resetMouse.containsMouse ? Theme.surfaceContainerLowest : "transparent"
-                    scale: resetMouse.pressed ? M3E.rowPressScale : 1.0
-
-                    StyledText {
-                        id: resetText
-                        anchors.centerIn: parent
-                        text: "Reset"
-                        font.pixelSize: Theme.fontSizeMedium
-                        font.weight: Theme.fontWeightMedium
-                        color: Theme.primary
-                    }
-
-                    MouseArea {
-                        id: resetMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            root.tempMediaType = "All Items"
-                            root.tempLocation = "Anywhere"
-                            root.tempDateAdded = "Any time"
-                            root.tempSortOrder = "Newest first"
-                            root.tempFavoritesOnly = false
-                            root.tempIncludeHidden = false
-                            root.activeDropdown = ""
-                        }
+                DButton {
+                    text: "Reset"
+                    buttonHeight: Style.buttonHeightS
+                    backgroundColor: "transparent"
+                    textColor: Theme.primary
+                    onClicked: {
+                        root.tempMediaType = "All Items"
+                        root.tempLocation = "Anywhere"
+                        root.tempDateAdded = "Any time"
+                        root.tempSortOrder = "Newest first"
+                        root.tempFavoritesOnly = false
+                        root.tempIncludeHidden = false
+                        root.activeDropdown = ""
                     }
                 }
 
-                // Apply Button
-                Rectangle {
-                    width: applyText.implicitWidth + 32
-                    height: 38
-                    radius: 19
-                    color: applyMouse.pressed ? Qt.darker(Theme.primary, 1.1) : Theme.primary
-                    scale: applyMouse.pressed ? M3E.rowPressScale : 1.0
-
-                    StyledText {
-                        id: applyText
-                        anchors.centerIn: parent
-                        text: "Apply"
-                        font.pixelSize: Theme.fontSizeMedium
-                        font.weight: Theme.fontWeightBold
-                        color: Theme.onPrimary
-                    }
-
-                    MouseArea {
-                        id: applyMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            ImageService.filterMediaType = root.tempMediaType
-                            ImageService.filterLocation = root.tempLocation
-                            ImageService.filterDateAdded = root.tempDateAdded
-                            ImageService.filterSortOrder = root.tempSortOrder
-                            ImageService.filterFavoritesOnly = root.tempFavoritesOnly
-                            ImageService.filterIncludeHidden = root.tempIncludeHidden
-                            root.close()
-                        }
+                DButton {
+                    text: "Apply"
+                    buttonHeight: Style.buttonHeightS
+                    backgroundColor: Theme.primary
+                    textColor: Theme.onPrimary
+                    onClicked: {
+                        ImageService.filterMediaType = root.tempMediaType
+                        ImageService.filterLocation = root.tempLocation
+                        ImageService.filterDateAdded = root.tempDateAdded
+                        ImageService.filterSortOrder = root.tempSortOrder
+                        ImageService.filterFavoritesOnly = root.tempFavoritesOnly
+                        ImageService.filterIncludeHidden = root.tempIncludeHidden
+                        root.close()
                     }
                 }
             }

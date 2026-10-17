@@ -76,7 +76,7 @@ Item {
         RowLayout {
             id: editAlbumsRow
             anchors.centerIn: parent
-            spacing: M3E.groupGap
+            spacing: Style.spacingS
             visible: opacity > 0
             opacity: root.dockState === "editAlbums" ? 1.0 : 0.0
             scale: root.dockState === "editAlbums" ? 1.0 : 0.92
@@ -84,106 +84,22 @@ Item {
             Behavior on opacity { DAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
             Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
 
-            // Cancel Button (Left segment)
-            Rectangle {
-                readonly property real pillR: height / 2
-                readonly property real leftR: M3E.leftRadius(0, 2, pillR, cancelEditMouse.pressed, cancelEditMouse.containsMouse, false, M3E.pressRadiusS)
-                readonly property real rightR: M3E.rightRadius(0, 2, pillR, cancelEditMouse.pressed, cancelEditMouse.containsMouse, false, M3E.pressRadiusS)
-
-                implicitHeight: Style.buttonHeightS
-                implicitWidth: cancelEditContent.implicitWidth + Style.spacingXL
-                topLeftRadius: leftR
-                bottomLeftRadius: leftR
-                topRightRadius: rightR
-                bottomRightRadius: rightR
-                scale: cancelEditMouse.pressed ? M3E.rowPressScale : 1.0
-                color: cancelEditMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainer
-
-                Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on topRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on bottomRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
-
-                RowLayout {
-                    id: cancelEditContent
-                    anchors.centerIn: parent
-                    spacing: Style.spacingS
-
-                    DIcon {
-                        name: "close"
-                        size: Style.chipIconSize
-                        color: Theme.surfaceText
-                    }
-
-                    StyledText {
-                        text: "Cancel"
-                        font.pixelSize: Style.fontSizeSmall
-                        font.weight: Style.fontWeightMedium
-                        color: Theme.surfaceText
-                    }
-                }
-
-                MouseArea {
-                    id: cancelEditMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: ImageService.cancelEditAlbums()
-                }
+            DButton {
+                text: "Cancel"
+                iconName: "close"
+                buttonHeight: Style.buttonHeightS
+                backgroundColor: Theme.surfaceContainer
+                textColor: Theme.surfaceText
+                onClicked: ImageService.cancelEditAlbums()
             }
 
-            // Confirm Button (Right segment)
-            Rectangle {
-                readonly property real pillR: height / 2
-                readonly property real leftR: M3E.leftRadius(1, 2, pillR, confirmEditMouse.pressed, confirmEditMouse.containsMouse, true, M3E.pressRadiusS)
-                readonly property real rightR: M3E.rightRadius(1, 2, pillR, confirmEditMouse.pressed, confirmEditMouse.containsMouse, true, M3E.pressRadiusS)
-
-                implicitHeight: Style.buttonHeightS
-                implicitWidth: confirmEditContent.implicitWidth + Style.spacingXL
-                topLeftRadius: leftR
-                bottomLeftRadius: leftR
-                topRightRadius: rightR
-                bottomRightRadius: rightR
-                scale: confirmEditMouse.pressed ? M3E.rowPressScale : 1.0
-                color: confirmEditMouse.containsMouse
-                    ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.88)
-                    : Theme.primary
-
-                Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on topRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on bottomRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
-
-                RowLayout {
-                    id: confirmEditContent
-                    anchors.centerIn: parent
-                    spacing: Style.spacingS
-
-                    DIcon {
-                        name: "check"
-                        size: Style.chipIconSize
-                        color: Theme.onPrimary
-                    }
-
-                    StyledText {
-                        text: "Confirm"
-                        font.pixelSize: Style.fontSizeSmall
-                        font.weight: Style.fontWeightBold
-                        color: Theme.onPrimary
-                    }
-                }
-
-                MouseArea {
-                    id: confirmEditMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: ImageService.confirmEditAlbums()
-                }
+            DButton {
+                text: "Confirm"
+                iconName: "check"
+                buttonHeight: Style.buttonHeightS
+                backgroundColor: Theme.primary
+                textColor: Theme.onPrimary
+                onClicked: ImageService.confirmEditAlbums()
             }
         }
 
