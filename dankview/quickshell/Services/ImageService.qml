@@ -117,6 +117,9 @@ Singleton {
 
     readonly property string favFilePath: SettingsData.configDir + "/favorites.json"
     readonly property string albumsFilePath: SettingsData.configDir + "/albums.json"
+    readonly property string recentsFilePath: SettingsData.configDir + "/recents.json"
+
+    property var recentImages: []
 
     property var albumsConfig: ({
         addedFolders: [],
@@ -201,6 +204,90 @@ Singleton {
             JSON.stringify(galleryFavorites, null, 2)
         ];
         saveFavProc.running = true;
+    }
+
+    FileView {
+        id: recentsFileView
+        path: root.recentsFilePath
+        blockLoading: false
+        printErrors: false
+        onLoaded: {
+            try {
+                const text = recentsFileView.text();
+                if (text) {
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) {
+                        root.recentImages = data;
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to parse recents.json:", e);
+            }
+        }
+    }
+
+    Process {
+        id: saveRecentsProc
+        running: false
+        command: []
+    }
+
+    Timer {
+        id: saveRecentsDebounce
+        interval: 250
+        repeat: false
+        onTriggered: {
+            if (!saveRecentsProc.running) {
+                saveRecentsProc.command = [
+                    "sh", "-c",
+                    'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
+                    "saveRecents",
+                    recentsFilePath,
+                    JSON.stringify(recentImages, null, 2)
+                ];
+                saveRecentsProc.running = true;
+            }
+        }
+    }
+
+    function saveRecents() {
+        saveRecentsDebounce.restart();
+    }
+
+    function recordRecentImage(filePath, thumbPath) {
+        if (!filePath) return;
+        if (root.recentImages && root.recentImages.length > 0 && root.recentImages[0] && root.recentImages[0].path === filePath) {
+            return;
+        }
+        let thumb = thumbPath || "";
+        if (!thumb && galleryData && galleryData.allImages) {
+            const found = galleryData.allImages.find(img => img.path === filePath);
+            if (found && found.thumbnail) {
+                thumb = found.thumbnail;
+            }
+        }
+        const name = filePath.split("/").pop() || "";
+        const list = (root.recentImages || []).filter(item => item && item.path !== filePath);
+        list.unshift({
+            path: filePath,
+            thumbnail: thumb,
+            name: name
+        });
+        if (list.length > 20) {
+            list.length = 20;
+        }
+        root.recentImages = list;
+        saveRecents();
+    }
+
+    function clearRecentImages() {
+        root.recentImages = [];
+        saveRecents();
+    }
+
+    function removeRecentImage(path) {
+        root.recentImages = (root.recentImages || []).filter(item => item && item.path !== path);
+        saveRecents();
     }
 
     function isAlbumRemoved(albumOrName, folderPath) {
@@ -329,51 +416,51 @@ Singleton {
         if (!albumsEditMode) saveAlbumsConfig();
     }
 
-    function reorderAlbum(sourceName, targetName, targetInQuickAccess) {
+    function reorderAlbum(sourceName, targetIndexOrName, targetInQuickAccess) {
         if (!sourceName || sourceName === "Favorites") return;
         const qaList = quickAccessFolderAlbums.map(a => a.name);
         const fList = folderAlbums.map(a => a.name);
         const sourceInQA = qaList.indexOf(sourceName) !== -1;
 
-        if (sourceName === targetName && sourceInQA === targetInQuickAccess) return;
+        let toIdx = 0;
+        if (typeof targetIndexOrName === "number") {
+            toIdx = targetIndexOrName;
+        } else if (typeof targetIndexOrName === "string" && targetIndexOrName) {
+            toIdx = targetInQuickAccess ? qaList.indexOf(targetIndexOrName) : fList.indexOf(targetIndexOrName);
+            if (toIdx === -1) toIdx = targetInQuickAccess ? qaList.length : fList.length;
+        } else {
+            toIdx = targetInQuickAccess ? qaList.length : fList.length;
+        }
 
         if (targetInQuickAccess) {
+            toIdx = Math.max(0, Math.min(qaList.length, toIdx));
             if (sourceInQA) {
                 const fromIdx = qaList.indexOf(sourceName);
-                const toIdx = (targetName && targetName !== "Favorites") ? qaList.indexOf(targetName) : 0;
-                if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+                if (fromIdx === -1) return;
+                if (fromIdx === toIdx || fromIdx === toIdx - 1) return;
                 qaList.splice(fromIdx, 1);
-                qaList.splice(toIdx, 0, sourceName);
+                const insertIdx = toIdx > fromIdx ? toIdx - 1 : toIdx;
+                qaList.splice(insertIdx, 0, sourceName);
             } else {
                 const fIdx = fList.indexOf(sourceName);
                 if (fIdx !== -1) fList.splice(fIdx, 1);
-                if (targetName && targetName !== "Favorites") {
-                    const toIdx = qaList.indexOf(targetName);
-                    if (toIdx !== -1) qaList.splice(toIdx, 0, sourceName);
-                    else qaList.push(sourceName);
-                } else {
-                    qaList.unshift(sourceName);
-                }
+                qaList.splice(toIdx, 0, sourceName);
             }
         } else {
+            toIdx = Math.max(0, Math.min(fList.length, toIdx));
             if (!sourceInQA) {
                 const fromIdx = fList.indexOf(sourceName);
-                const toIdx = targetName ? fList.indexOf(targetName) : (fList.length - 1);
-                if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+                if (fromIdx === -1) return;
+                if (fromIdx === toIdx || fromIdx === toIdx - 1) return;
                 fList.splice(fromIdx, 1);
-                fList.splice(toIdx, 0, sourceName);
+                const insertIdx = toIdx > fromIdx ? toIdx - 1 : toIdx;
+                fList.splice(insertIdx, 0, sourceName);
             } else {
                 const qIdx = qaList.indexOf(sourceName);
                 if (qIdx !== -1) qaList.splice(qIdx, 1);
                 const existingFIdx = fList.indexOf(sourceName);
                 if (existingFIdx !== -1) fList.splice(existingFIdx, 1);
-                if (targetName) {
-                    const toIdx = fList.indexOf(targetName);
-                    if (toIdx !== -1) fList.splice(toIdx, 0, sourceName);
-                    else fList.push(sourceName);
-                } else {
-                    fList.push(sourceName);
-                }
+                fList.splice(toIdx, 0, sourceName);
             }
         }
 
@@ -724,6 +811,9 @@ Singleton {
         fileList = [filePath];
         currentIndex = 0;
         galleryMode = false;
+        Qt.callLater(() => {
+            recordRecentImage(filePath, thumbPath);
+        });
         loadDirectoryFor(filePath);
     }
 
@@ -798,6 +888,7 @@ Singleton {
     Component.onCompleted: {
         const initImg = Quickshell.env("DVIEW_INITIAL_IMAGE");
         if (initImg) {
+            recordRecentImage(initImg, "");
             loadDirectoryFor(initImg);
             loadGallery();
         } else {
@@ -893,6 +984,23 @@ Singleton {
                                 }
                             }
                             root.galleryData = data;
+                            if (root.recentImages && root.recentImages.length > 0 && data.allImages) {
+                                let updated = false;
+                                const list = root.recentImages.map(item => {
+                                    if (!item.thumbnail) {
+                                        const found = data.allImages.find(img => img.path === item.path);
+                                        if (found && found.thumbnail) {
+                                            updated = true;
+                                            return { path: item.path, thumbnail: found.thumbnail, name: item.name };
+                                        }
+                                    }
+                                    return item;
+                                });
+                                if (updated) {
+                                    root.recentImages = list;
+                                    root.saveRecents();
+                                }
+                            }
                         }
                     } catch (e) {
                         console.warn("Failed to parse gallery JSON:", e);

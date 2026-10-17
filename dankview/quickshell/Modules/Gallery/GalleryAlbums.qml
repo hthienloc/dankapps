@@ -16,15 +16,18 @@ Item {
     property real dragY: 0
     property real dragOffsetX: 88
     property real dragOffsetY: 88
-    property string dropTargetName: ""
+    property int dropTargetIndex: -1
     property bool dropTargetInQA: false
     property bool hasDropTarget: false
+    property real dropIndicatorX: 0
+    property real dropIndicatorY: 0
+    property real dropIndicatorHeight: 176
 
     onEditModeChanged: {
         if (!editMode) {
             draggedAlbum = null;
-            dropTargetName = "";
             hasDropTarget = false;
+            dropTargetIndex = -1;
         }
     }
 
@@ -47,57 +50,128 @@ Item {
         updateDropTarget(pt.x, pt.y);
     }
 
+    function calculateGap(repeater, containerItem, rootX, rootY) {
+        const count = repeater.count;
+        if (count === 0) {
+            const tl = containerItem.mapToItem(root, 0, 0);
+            return { index: 0, x: tl.x, y: tl.y, height: 176 };
+        }
+
+        const items = [];
+        for (let i = 0; i < count; i++) {
+            const it = repeater.itemAt(i);
+            if (!it || !it.visible) continue;
+            const pt = it.mapToItem(root, 0, 0);
+            items.push({
+                index: i,
+                x: pt.x,
+                y: pt.y,
+                width: it.width,
+                height: it.height,
+                previewHeight: it.previewHeight || 176
+            });
+        }
+
+        if (items.length === 0) {
+            const tl = containerItem.mapToItem(root, 0, 0);
+            return { index: 0, x: tl.x, y: tl.y, height: 176 };
+        }
+
+        const spacing = Style.spacingL;
+
+        // Group cards into rows based on Y coordinates
+        const rows = [];
+        let currentRow = [items[0]];
+        for (let i = 1; i < items.length; i++) {
+            if (Math.abs(items[i].y - currentRow[0].y) < 24) {
+                currentRow.push(items[i]);
+            } else {
+                rows.push(currentRow);
+                currentRow = [items[i]];
+            }
+        }
+        rows.push(currentRow);
+
+        // Find closest row to rootY
+        let bestRow = rows[0];
+        let bestRowDist = Infinity;
+        for (let r = 0; r < rows.length; r++) {
+            const rowY = rows[r][0].y;
+            const rowH = rows[r][0].height;
+            let distY = 0;
+            if (rootY < rowY) distY = rowY - rootY;
+            else if (rootY > rowY + rowH) distY = rootY - (rowY + rowH);
+            if (distY < bestRowDist) {
+                bestRowDist = distY;
+                bestRow = rows[r];
+            }
+        }
+
+        // Before first card in row
+        if (rootX < bestRow[0].x + bestRow[0].width / 2) {
+            return {
+                index: bestRow[0].index,
+                x: Math.max(bestRow[0].x - spacing / 2, 4),
+                y: bestRow[0].y,
+                height: bestRow[0].previewHeight
+            };
+        }
+
+        // Between cards in row
+        for (let j = 0; j < bestRow.length - 1; j++) {
+            const mid = (bestRow[j].x + bestRow[j].width + bestRow[j + 1].x) / 2;
+            if (rootX < mid) {
+                return {
+                    index: bestRow[j].index + 1,
+                    x: bestRow[j].x + bestRow[j].width + spacing / 2,
+                    y: bestRow[j].y,
+                    height: bestRow[j].previewHeight
+                };
+            }
+        }
+
+        // After last card in row
+        const lastInRow = bestRow[bestRow.length - 1];
+        return {
+            index: lastInRow.index + 1,
+            x: lastInRow.x + lastInRow.width + spacing / 2,
+            y: lastInRow.y,
+            height: lastInRow.previewHeight
+        };
+    }
+
     function updateDropTarget(rootX, rootY) {
-        // Check Quick Access cards first
-        for (let i = 0; i < qaRepeater.count; i++) {
-            const item = qaRepeater.itemAt(i);
-            if (!item || !item.visible || !item.album) continue;
-            const tl = item.mapToItem(root, 0, 0);
-            if (rootX >= tl.x && rootX <= tl.x + item.width && rootY >= tl.y && rootY <= tl.y + item.height) {
-                dropTargetName = item.album.isFavorites ? "" : item.album.name;
-                dropTargetInQA = true;
-                hasDropTarget = true;
-                return;
-            }
-        }
-        // Check Folders cards
-        for (let i = 0; i < foldersRepeater.count; i++) {
-            const item = foldersRepeater.itemAt(i);
-            if (!item || !item.visible || !item.album) continue;
-            const tl = item.mapToItem(root, 0, 0);
-            if (rootX >= tl.x && rootX <= tl.x + item.width && rootY >= tl.y && rootY <= tl.y + item.height) {
-                dropTargetName = item.album.name;
-                dropTargetInQA = false;
-                hasDropTarget = true;
-                return;
-            }
-        }
-        // Check if hovered over Quick Access section or Folders section generally
-        const qaTL = qaFlow.mapToItem(root, 0, 0);
-        if (rootY >= qaTL.y - 20 && rootY <= qaTL.y + Math.max(qaFlow.height, 180) + 20) {
-            dropTargetName = "";
-            dropTargetInQA = true;
-            hasDropTarget = true;
+        if (!foldersSection) {
+            hasDropTarget = false;
             return;
         }
+
         const fTL = foldersSection.mapToItem(root, 0, 0);
-        if (rootY >= fTL.y - 20) {
-            dropTargetName = "";
-            dropTargetInQA = false;
+        const inQA = rootY < fTL.y - 10;
+        dropTargetInQA = inQA;
+
+        const res = inQA
+            ? calculateGap(qaRepeater, qaFlow, rootX, rootY)
+            : calculateGap(foldersRepeater, foldersSection, rootX, rootY);
+
+        if (res) {
+            dropTargetIndex = res.index;
+            dropIndicatorX = res.x;
+            dropIndicatorY = res.y;
+            dropIndicatorHeight = res.height;
             hasDropTarget = true;
-            return;
+        } else {
+            hasDropTarget = false;
         }
-        hasDropTarget = false;
-        dropTargetName = "";
     }
 
     function finishDrag() {
         if (draggedAlbum && hasDropTarget) {
-            ImageService.reorderAlbum(draggedAlbum.name, dropTargetName, dropTargetInQA);
+            ImageService.reorderAlbum(draggedAlbum.name, dropTargetIndex, dropTargetInQA);
         }
         draggedAlbum = null;
-        dropTargetName = "";
         hasDropTarget = false;
+        dropTargetIndex = -1;
     }
 
     readonly property var filteredQuickAccessFolders: {
@@ -239,43 +313,6 @@ Item {
                     }
                 }
 
-                // Add Folder button (Edit mode only)
-                Rectangle {
-                    visible: root.editMode
-                    implicitHeight: Style.buttonHeightXS
-                    implicitWidth: addFolderRow.implicitWidth + Style.spacingL
-                    radius: height / 2
-                    color: addFolderMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
-                    border.width: 1
-
-                    RowLayout {
-                        id: addFolderRow
-                        anchors.centerIn: parent
-                        spacing: Style.spacingXS
-
-                        DIcon {
-                            name: "create_new_folder"
-                            size: Style.iconSizeSmall
-                            color: Theme.primary
-                        }
-
-                        StyledText {
-                            text: "Add Folder"
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.weight: Theme.fontWeightMedium
-                            color: Theme.surfaceText
-                        }
-                    }
-
-                    MouseArea {
-                        id: addFolderMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: ImageService.openAddFolderDialog()
-                    }
-                }
 
                 // Edit button (triggers bottom dock morph to Cancel / Confirm)
                 Rectangle {
@@ -354,7 +391,6 @@ Item {
                         cardWidth: 176
                         previewHeight: 176
                         isBeingDragged: Boolean(root.draggedAlbum && root.draggedAlbum.name === modelData.name)
-                        isDropTarget: Boolean(root.draggedAlbum && root.hasDropTarget && root.dropTargetInQA && root.dropTargetName === modelData.name && root.draggedAlbum.name !== modelData.name)
                         onDragStarted: (alb, item, sx, sy) => root.startDrag(alb, item, sx, sy)
                         onDragMoved: (item, mx, my) => root.moveDrag(item, mx, my)
                         onDragEnded: () => root.finishDrag()
@@ -367,7 +403,7 @@ Item {
                 id: foldersSection
                 Layout.fillWidth: true
                 spacing: Style.spacingM
-                visible: root.filteredFolders.length > 0 || root.editMode
+                visible: root.filteredFolders.length > 0 || root.editMode || !root.query
 
                 StyledText {
                     text: "Folders"
@@ -391,14 +427,153 @@ Item {
                             cardWidth: 176
                             previewHeight: 176
                             isBeingDragged: Boolean(root.draggedAlbum && root.draggedAlbum.name === modelData.name)
-                            isDropTarget: Boolean(root.draggedAlbum && root.hasDropTarget && !root.dropTargetInQA && root.dropTargetName === modelData.name && root.draggedAlbum.name !== modelData.name)
                             onDragStarted: (alb, item, sx, sy) => root.startDrag(alb, item, sx, sy)
                             onDragMoved: (item, mx, my) => root.moveDrag(item, mx, my)
                             onDragEnded: () => root.finishDrag()
                         }
                     }
+
+                    // Empty album card with (+) to add folder
+                    Item {
+                        id: addFolderCard
+                        width: 176
+                        height: 176 + 36
+                        visible: !root.query
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            spacing: Style.spacingS
+
+                            Rectangle {
+                                id: addPreviewBox
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 176
+                                radius: 0
+                                color: addCardHover.hovered
+                                    ? Theme.surfaceContainerHighest
+                                    : Theme.surfaceContainerHigh
+                                border.color: addCardHover.hovered
+                                    ? Theme.primary
+                                    : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                                border.width: addCardHover.hovered ? Style.outlineWidth : 1
+
+                                scale: addCardMouse.pressed ? M3E.tilePressScale : (addCardHover.hovered ? 1.02 : 1.0)
+
+                                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+                                Behavior on border.color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+
+                                HoverHandler {
+                                    id: addCardHover
+                                }
+
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: 48
+                                    height: 48
+                                    radius: 0
+                                    color: addCardHover.hovered ? Theme.primaryContainer : Theme.surfaceContainerLowest
+                                    border.color: addCardHover.hovered ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+                                    border.width: 1
+
+                                    DIcon {
+                                        anchors.centerIn: parent
+                                        name: "add"
+                                        size: 28
+                                        color: addCardHover.hovered ? Theme.primary : Theme.surfaceVariantText
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: addCardMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: ImageService.openAddFolderDialog()
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: Style.spacingXXS
+
+                                StyledText {
+                                    Layout.fillWidth: true
+                                    text: "Add Folder"
+                                    font.pixelSize: Theme.fontSizeMedium
+                                    font.weight: Theme.fontWeightBold
+                                    color: addCardHover.hovered ? Theme.primary : Theme.surfaceText
+                                    elide: Text.ElideRight
+                                }
+
+                                StyledText {
+                                    Layout.fillWidth: true
+                                    text: "Choose directory"
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: Theme.surfaceVariantText
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    // Drop Insertion Gap Indicator
+    Rectangle {
+        id: dropIndicator
+        visible: root.draggedAlbum !== null && root.hasDropTarget
+        x: Math.round(root.dropIndicatorX - width / 2)
+        y: Math.round(root.dropIndicatorY)
+        width: 4
+        height: root.dropIndicatorHeight
+        radius: 2
+        color: Theme.primary
+        z: 95
+
+        // Subtle glow / pill effect
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width + 4
+            height: parent.height + 4
+            radius: 4
+            color: Theme.primary
+            opacity: 0.35
+            z: -1
+        }
+
+        // Top dot cap
+        Rectangle {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: -3
+            width: 8
+            height: 8
+            radius: 4
+            color: Theme.primary
+        }
+
+        // Bottom dot cap
+        Rectangle {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: -3
+            width: 8
+            height: 8
+            radius: 4
+            color: Theme.primary
+        }
+
+        Behavior on x {
+            DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial }
+        }
+        Behavior on y {
+            DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial }
+        }
+        Behavior on height {
+            DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial }
         }
     }
 

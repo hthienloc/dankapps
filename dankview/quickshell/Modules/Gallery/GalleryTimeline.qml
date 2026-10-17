@@ -119,9 +119,25 @@ Item {
         list.stopMomentum()
     }
 
+    readonly property bool showRecents: {
+        return Boolean(ImageService.recentImages && ImageService.recentImages.length > 0) &&
+               !root.query &&
+               (ImageService.selectedCategory === "All" || !ImageService.selectedCategory) &&
+               !ImageService.hasActiveFilters
+    }
+
     onVisibleChanged: {
         if (visible) {
-            root.resetScroll()
+            const topY = list.originY < 0 ? list.originY : -72
+            if (root.lastContentY > topY) {
+                Qt.callLater(() => {
+                    if (root.visible && root.lastContentY > (list.originY < 0 ? list.originY : -72)) {
+                        list.contentY = root.lastContentY
+                        list.savedY = root.lastContentY
+                        list.prevContentY = root.lastContentY
+                    }
+                })
+            }
         }
     }
 
@@ -132,7 +148,12 @@ Item {
         }
         function onGalleryTabChanged() {
             if (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline") {
-                root.resetScroll()
+                const topY = list.originY < 0 ? list.originY : -72
+                if (root.lastContentY > topY) {
+                    list.contentY = root.lastContentY
+                    list.savedY = root.lastContentY
+                    list.prevContentY = root.lastContentY
+                }
             }
         }
         function onSearchQueryDebouncedChanged() {
@@ -161,9 +182,238 @@ Item {
         fadeEdges: false
         showScrollBar: true
 
-        header: Item {
-            width: 1
-            height: 72
+        header: ColumnLayout {
+            width: list.width
+            spacing: 0
+
+            Item {
+                Layout.fillWidth: true
+                implicitHeight: 72
+            }
+
+            ColumnLayout {
+                id: recentsContainer
+                Layout.fillWidth: true
+                Layout.leftMargin: 8
+                Layout.rightMargin: 8
+                visible: root.showRecents
+                spacing: 12
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    StyledText {
+                        text: "Recent"
+                        font.pixelSize: Theme.fontSizeLarge
+                        font.weight: Theme.fontWeightBold
+                        color: Theme.surfaceText
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    Rectangle {
+                        implicitWidth: 28
+                        implicitHeight: 28
+                        radius: 14
+                        color: prevMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
+                        opacity: recentCarousel.contentX > recentCarousel.originX + 1 ? 1.0 : 0.35
+
+                        DIcon {
+                            anchors.centerIn: parent
+                            name: "chevron-left"
+                            size: 16
+                            color: Theme.surfaceText
+                        }
+
+                        MouseArea {
+                            id: prevMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            enabled: recentCarousel.contentX > recentCarousel.originX + 1
+                            onClicked: recentCarousel.scrollStep(-1)
+                        }
+                    }
+
+                    Rectangle {
+                        implicitWidth: 28
+                        implicitHeight: 28
+                        radius: 14
+                        color: nextMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
+                        opacity: recentCarousel.contentX < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1) ? 1.0 : 0.35
+
+                        DIcon {
+                            anchors.centerIn: parent
+                            name: "chevron-right"
+                            size: 16
+                            color: Theme.surfaceText
+                        }
+
+                        MouseArea {
+                            id: nextMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            enabled: recentCarousel.contentX < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1)
+                            onClicked: recentCarousel.scrollStep(1)
+                        }
+                    }
+
+                    Item { width: 4; height: 1 }
+
+                    Rectangle {
+                        implicitWidth: clearLabel.implicitWidth + 16
+                        implicitHeight: 28
+                        radius: 14
+                        color: clearMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
+
+                        StyledText {
+                            id: clearLabel
+                            anchors.centerIn: parent
+                            text: "Clear"
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Theme.fontWeightMedium
+                            color: clearMouse.containsMouse ? Theme.primary : Theme.surfaceVariantText
+                        }
+
+                        MouseArea {
+                            id: clearMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: ImageService.clearRecentImages()
+                        }
+                    }
+                }
+
+                DCarousel {
+                    id: recentCarousel
+                    Layout.fillWidth: true
+                    height: 140
+                    preferredItemWidth: Math.min(220, Math.max(160, width * 0.35))
+                    smallItemWidth: Style.listItemHeight
+                    itemRadius: Style.cornerRadiusM
+                    spacing: 10
+                    model: ImageService.recentImages
+
+                    property real targetContentX: originX
+                    property bool isSmoothScrolling: false
+
+                    NumberAnimation {
+                        id: smoothScrollAnim
+                        target: recentCarousel
+                        property: "contentX"
+                        duration: 260
+                        easing.type: Easing.OutCubic
+                        onFinished: {
+                            recentCarousel.isSmoothScrolling = false
+                        }
+                    }
+
+                    function scrollBy(wheel) {
+                        const isPad = wheel.phase !== Qt.NoScrollPhase && (wheel.pixelDelta.x !== 0 || wheel.pixelDelta.y !== 0);
+                        const delta = isPad
+                            ? (Math.abs(wheel.pixelDelta.x) > Math.abs(wheel.pixelDelta.y) ? wheel.pixelDelta.x : wheel.pixelDelta.y)
+                            : (Math.abs(wheel.angleDelta.x) > Math.abs(wheel.angleDelta.y) ? wheel.angleDelta.x : wheel.angleDelta.y) / 120 * (itemWidth + spacing);
+                        const maxX = originX + Math.max(0, contentWidth - width);
+
+                        if (isPad) {
+                            smoothScrollAnim.stop();
+                            isSmoothScrolling = false;
+                            contentX = Math.max(originX, Math.min(maxX, contentX - delta));
+                            targetContentX = contentX;
+                        } else {
+                            const startX = isSmoothScrolling ? targetContentX : contentX;
+                            targetContentX = Math.max(originX, Math.min(maxX, startX - delta));
+                            smoothScrollAnim.stop();
+                            smoothScrollAnim.from = contentX;
+                            smoothScrollAnim.to = targetContentX;
+                            isSmoothScrolling = true;
+                            smoothScrollAnim.start();
+                        }
+                    }
+
+                    function scrollStep(dir) {
+                        const maxX = originX + Math.max(0, contentWidth - width);
+                        const startX = isSmoothScrolling ? targetContentX : contentX;
+                        targetContentX = Math.max(originX, Math.min(maxX, startX + dir * (itemWidth + spacing)));
+                        smoothScrollAnim.stop();
+                        smoothScrollAnim.from = contentX;
+                        smoothScrollAnim.to = targetContentX;
+                        isSmoothScrolling = true;
+                        smoothScrollAnim.start();
+                    }
+
+                    delegate: DCarouselItem {
+                        id: tile
+
+                        required property var modelData
+                        required property int index
+
+                        readonly property var itemData: modelData !== undefined ? modelData : (ImageService.recentImages && ImageService.recentImages[index] ? ImageService.recentImages[index] : null)
+
+                        tooltipText: tile.itemData?.name || ""
+                        onClicked: {
+                            if (tile.itemData && tile.itemData.path) {
+                                const path = tile.itemData.path
+                                const thumb = tile.itemData.thumbnail || ""
+                                Qt.callLater(() => {
+                                    ImageService.openImageFromGallery(path, thumb)
+                                })
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: Theme.surfaceContainerHigh
+
+                            Image {
+                                anchors.fill: parent
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                cache: true
+                                source: {
+                                    if (!tile.itemData) return ""
+                                    if (tile.itemData.thumbnail) return "file://" + tile.itemData.thumbnail
+                                    return "file://" + tile.itemData.path
+                                }
+                                sourceSize.width: 320
+                                sourceSize.height: 320
+                            }
+
+                            Rectangle {
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.bottom: parent.bottom
+                                height: 38
+                                gradient: Gradient {
+                                    GradientStop { position: 0.0; color: "transparent" }
+                                    GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.72) }
+                                }
+                            }
+
+                            StyledText {
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.bottom: parent.bottom
+                                anchors.margins: 8
+                                text: tile.itemData?.name || ""
+                                elide: Text.ElideRight
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Theme.fontWeightMedium
+                                color: "#FFFFFF"
+                                visible: tile.maskWidth > 64
+                            }
+                        }
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                    implicitHeight: 12
+                }
+            }
         }
 
         footer: Item {
@@ -182,10 +432,9 @@ Item {
         property real accumulatedDown: 0
 
         onContentYChanged: {
+            if (!root.visible) return
             const topY = list.originY < 0 ? list.originY : -72
-            if (contentY > topY) {
-                root.lastContentY = contentY
-            }
+            root.lastContentY = contentY
             if (contentY <= topY + 12) {
                 accumulatedDown = 0
                 ImageService.searchBarCollapsed = false

@@ -14,7 +14,6 @@ Item {
     property real previewHeight: 176
     property bool editMode: ImageService.albumsEditMode
     property bool isBeingDragged: false
-    property bool isDropTarget: false
 
     signal dragStarted(var album, Item cardItem, real startMouseX, real startMouseY)
     signal dragMoved(Item cardItem, real mouseX, real mouseY)
@@ -38,20 +37,17 @@ Item {
             id: previewBox
             Layout.fillWidth: true
             Layout.preferredHeight: root.previewHeight
-            radius: M3E.tileRadius(cardMouse.pressed, cardHover.hovered || root.isDropTarget, root.canEditCard)
+            radius: 0
             clip: true
-            color: root.isDropTarget ? Theme.primaryContainer : Theme.surfaceContainerHigh
-            border.color: root.isDropTarget
-                ? Theme.primary
-                : (root.canEditCard
-                    ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.65)
-                    : (cardHover.hovered
-                        ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.5)
-                        : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)))
-            border.width: root.isDropTarget ? (Style.outlineWidth * 2) : (root.canEditCard ? Style.outlineWidth : 1)
+            color: Theme.surfaceContainerHigh
+            border.color: root.canEditCard
+                ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.65)
+                : (cardHover.hovered
+                    ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.5)
+                    : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25))
+            border.width: root.canEditCard ? Style.outlineWidth : 1
 
-            scale: root.isDropTarget ? 1.04 : (cardMouse.pressed && !root.canEditCard ? M3E.tilePressScale : (cardHover.hovered && !root.canEditCard ? 1.02 : 1.0))
-            Behavior on radius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+            scale: cardMouse.pressed && !root.canEditCard ? M3E.tilePressScale : (cardHover.hovered && !root.canEditCard ? 1.02 : 1.0)
             Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
 
             HoverHandler {
@@ -61,13 +57,12 @@ Item {
             // 2x2 Grid of Previews
             Grid {
                 anchors.fill: parent
-                anchors.margins: Style.spacingXS
                 columns: 2
                 rows: 2
-                spacing: 3
+                spacing: 2
 
-                readonly property real cellW: Math.floor((width - 3) / 2)
-                readonly property real cellH: Math.floor((height - 3) / 2)
+                readonly property real cellW: Math.floor((width - spacing) / 2)
+                readonly property real cellH: Math.floor((height - spacing) / 2)
 
                 Repeater {
                     model: 4
@@ -75,7 +70,7 @@ Item {
                         id: cellClip
                         width: parent.cellW
                         height: parent.cellH
-                        radius: Style.cornerRadiusS
+                        radius: 0
                         color: Theme.surfaceContainerLowest
 
                         readonly property string imgPath: {

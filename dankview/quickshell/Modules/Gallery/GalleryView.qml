@@ -170,7 +170,8 @@ Item {
                             verticalAlignment: TextInput.AlignVCenter
                             text: ImageService.searchQuery
                             font.pixelSize: Theme.fontSizeMedium - 1
-                            font.family: Theme.defaultFontFamily
+                            font.family: Style.fontFamily || Theme.fontFamily
+                            font.weight: Style.fontWeight
                             color: Theme.surfaceText
                             selectByMouse: true
                             selectionColor: Theme.primary
@@ -178,13 +179,12 @@ Item {
 
                             onTextEdited: ImageService.searchQuery = text
 
-                            Text {
+                            StyledText {
                                 anchors.fill: parent
                                 verticalAlignment: Text.AlignVCenter
                                 visible: !searchInput.text && !searchInput.inputMethodComposing
                                 text: ImageService.galleryTab === "albums" ? "Search albums..." : "Search photos"
-                                font.pixelSize: Theme.fontSizeMedium - 1
-                                font.family: Theme.defaultFontFamily
+                                font.pixelSize: searchInput.font.pixelSize
                                 color: Theme.surfaceVariantText
                             }
 
