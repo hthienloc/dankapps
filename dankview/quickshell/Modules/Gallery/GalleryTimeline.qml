@@ -106,21 +106,37 @@ Item {
     readonly property int columns: Math.max(3, Math.min(6, Math.floor((width - 40) / 168)))
     readonly property real tileWidth: Math.floor((width - 40 - (columns - 1) * 10) / columns)
 
-    property real lastContentY: 0
+    property real lastContentY: -72
+    property string lastCategory: ImageService.selectedCategory
+
+    function resetScroll() {
+        const topY = list.originY < 0 ? list.originY : -72
+        root.lastContentY = topY
+        list.savedY = topY
+        list.prevContentY = topY
+        list.accumulatedDown = 0
+        list.contentY = topY
+        list.stopMomentum()
+    }
+
+    onVisibleChanged: {
+        if (visible) {
+            root.resetScroll()
+        }
+    }
 
     Connections {
         target: ImageService
         function onSelectedCategoryChanged() {
-            root.lastContentY = 0
-            list.prevContentY = 0
-            list.accumulatedDown = 0
-            list.contentY = 0
+            root.resetScroll()
+        }
+        function onGalleryTabChanged() {
+            if (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline") {
+                root.resetScroll()
+            }
         }
         function onSearchQueryDebouncedChanged() {
-            root.lastContentY = 0
-            list.prevContentY = 0
-            list.accumulatedDown = 0
-            list.contentY = 0
+            root.resetScroll()
         }
         function onSearchBarCollapsedChanged() {
             if (!ImageService.searchBarCollapsed) {
@@ -147,7 +163,7 @@ Item {
 
         header: Item {
             width: 1
-            height: 64
+            height: 72
         }
 
         footer: Item {
@@ -156,26 +172,28 @@ Item {
         }
 
         onModelChanged: {
-            if (root.lastContentY > 0) {
-                contentY = Math.min(root.lastContentY, Math.max(originY, contentHeight - height + originY))
+            if (root.lastCategory !== ImageService.selectedCategory) {
+                root.lastCategory = ImageService.selectedCategory
+                root.resetScroll()
             }
         }
 
-        property real prevContentY: 0
+        property real prevContentY: -72
         property real accumulatedDown: 0
 
         onContentYChanged: {
-            if (contentY > 0) {
+            const topY = list.originY < 0 ? list.originY : -72
+            if (contentY > topY) {
                 root.lastContentY = contentY
             }
-            if (contentY <= 6) {
+            if (contentY <= topY + 12) {
                 accumulatedDown = 0
                 ImageService.searchBarCollapsed = false
             } else {
                 const delta = contentY - prevContentY
                 if (delta > 0) {
                     accumulatedDown += delta
-                    if (accumulatedDown > 12 && contentY > 20) {
+                    if (accumulatedDown > 12 && contentY > topY + 20) {
                         if (!ImageService.searchQuery) {
                             ImageService.searchBarCollapsed = true
                         }

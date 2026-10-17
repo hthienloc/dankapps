@@ -116,12 +116,20 @@ Item {
         return list.filter(a => (a._lowerName || (a.name || "").toLowerCase()).indexOf(query) !== -1);
     }
 
+    onVisibleChanged: {
+        if (visible) {
+            albumsFlick.contentY = 0
+            albumsFlick.prevContentY = 0
+            albumsFlick.accumulatedDown = 0
+        }
+    }
+
     DFlickable {
         id: albumsFlick
         anchors.fill: parent
         anchors.leftMargin: Style.spacingM
         anchors.rightMargin: Style.spacingM
-        contentHeight: albumsCol.implicitHeight + 64 + 80
+        contentHeight: albumsCol.implicitHeight + 72 + 80
         interactive: root.draggedAlbum === null
         clip: true
         property real prevContentY: 0
@@ -164,7 +172,7 @@ Item {
             anchors.leftMargin: Style.spacingS
             anchors.rightMargin: Style.spacingS
             anchors.top: parent.top
-            anchors.topMargin: 64
+            anchors.topMargin: 72
             spacing: Style.spacingXL
 
             // Top Header: Quick Access Title + Edit / Add Folder Controls

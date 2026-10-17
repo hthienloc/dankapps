@@ -9,7 +9,7 @@ DFlickable {
     id: root
 
     contentWidth: width
-    contentHeight: settingsCol.implicitHeight + 64 + Style.spacingXL * 2
+    contentHeight: settingsCol.implicitHeight + 72 + Style.spacingXL * 2
     clip: true
 
     ColumnLayout {
@@ -17,7 +17,7 @@ DFlickable {
         width: Math.min(parent.width - Style.spacingXL * 2, 680)
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: 64
+        anchors.topMargin: 72
         spacing: Style.spacingXL
 
         // === Page Header ===
