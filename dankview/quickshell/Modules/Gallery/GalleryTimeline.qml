@@ -54,20 +54,6 @@ Item {
     readonly property real tileWidth: Math.floor((width - 40 - (columns - 1) * 10) / columns)
 
     property real lastContentY: -8
-    property bool restoringScroll: false
-
-    onFilteredGroupsChanged: {
-        if (root.lastContentY > 0) {
-            root.restoringScroll = true
-            const targetY = root.lastContentY
-            Qt.callLater(() => {
-                if (list.contentHeight > 0) {
-                    list.contentY = Math.min(targetY, Math.max(-list.topMargin, list.contentHeight - list.height))
-                }
-                root.restoringScroll = false
-            })
-        }
-    }
 
     Connections {
         target: ImageService
@@ -97,8 +83,14 @@ Item {
         boundsBehavior: Flickable.StopAtBounds
         maximumFlickVelocity: 2500
 
+        onModelChanged: {
+            if (root.lastContentY > 0) {
+                contentY = Math.min(root.lastContentY, Math.max(-topMargin, contentHeight - height))
+            }
+        }
+
         onContentYChanged: {
-            if (!root.restoringScroll && contentY > 0) {
+            if (contentY > 0) {
                 root.lastContentY = contentY
             }
         }
