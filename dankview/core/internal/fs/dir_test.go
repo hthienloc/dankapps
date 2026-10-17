@@ -55,3 +55,27 @@ func TestScanDirectory(t *testing.T) {
 		t.Errorf("expected currentIndex to be 1 for b.jpg, got %d", list.CurrentIndex)
 	}
 }
+
+func TestNaturalLess(t *testing.T) {
+	tests := []struct {
+		a        string
+		b        string
+		expected bool
+	}{
+		{"img1.png", "img2.png", true},
+		{"img2.png", "img10.png", true},
+		{"img10.png", "img2.png", false},
+		{"photo_1_a.jpg", "photo_1_b.jpg", true},
+		{"photo_2.jpg", "photo_10.jpg", true},
+		{"Image.png", "image.png", false},
+		{"a", "a1", true},
+		{"file01.png", "file1.png", false},
+		{"file1.png", "file01.png", true},
+	}
+
+	for _, tt := range tests {
+		if got := NaturalLess(tt.a, tt.b); got != tt.expected {
+			t.Errorf("NaturalLess(%q, %q) = %v; want %v", tt.a, tt.b, got, tt.expected)
+		}
+	}
+}

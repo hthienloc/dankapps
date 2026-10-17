@@ -75,7 +75,7 @@ func ScanDirectory(targetPath string) (*ImageList, error) {
 	}
 
 	sort.Slice(images, func(i, j int) bool {
-		return strings.ToLower(images[i]) < strings.ToLower(images[j])
+		return NaturalLess(images[i], images[j])
 	})
 
 	currentIndex := 0
@@ -93,4 +93,65 @@ func ScanDirectory(targetPath string) (*ImageList, error) {
 		Files:        images,
 		CurrentIndex: currentIndex,
 	}, nil
+}
+
+// NaturalLess compares two strings using natural order (numeric comparison for digit runs, case-insensitive).
+func NaturalLess(a, b string) bool {
+	ia, ib := 0, 0
+	la, lb := len(a), len(b)
+
+	for ia < la && ib < lb {
+		ca, cb := a[ia], b[ib]
+
+		if isDigit(ca) && isDigit(cb) {
+			startA := ia
+			for ia < la && isDigit(a[ia]) {
+				ia++
+			}
+			numA := a[startA:ia]
+
+			startB := ib
+			for ib < lb && isDigit(b[ib]) {
+				ib++
+			}
+			numB := b[startB:ib]
+
+			trimA := strings.TrimLeft(numA, "0")
+			trimB := strings.TrimLeft(numB, "0")
+
+			if len(trimA) != len(trimB) {
+				return len(trimA) < len(trimB)
+			}
+			if trimA != trimB {
+				return trimA < trimB
+			}
+			if len(numA) != len(numB) {
+				return len(numA) < len(numB)
+			}
+			continue
+		}
+
+		caLow := toLower(ca)
+		cbLow := toLower(cb)
+
+		if caLow != cbLow {
+			return caLow < cbLow
+		}
+
+		ia++
+		ib++
+	}
+
+	return (la - ia) < (lb - ib)
+}
+
+func isDigit(b byte) bool {
+	return b >= '0' && b <= '9'
+}
+
+func toLower(b byte) byte {
+	if b >= 'A' && b <= 'Z' {
+		return b + ('a' - 'A')
+	}
+	return b
 }

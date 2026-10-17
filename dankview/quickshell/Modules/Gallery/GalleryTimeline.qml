@@ -88,14 +88,14 @@ Item {
             const sorted = []
             for (let i = 0; i < result.length; i++) {
                 const g = result[i]
-                sorted.push({ dateGroup: g.dateGroup, images: g.images.slice().sort((a, b) => (a.name || "").localeCompare(b.name || "")) })
+                sorted.push({ dateGroup: g.dateGroup, images: g.images.slice().sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true, sensitivity: 'base' })) })
             }
             return sorted
         } else if (sortOrder === "Name (Z-A)") {
             const sorted = []
             for (let i = 0; i < result.length; i++) {
                 const g = result[i]
-                sorted.push({ dateGroup: g.dateGroup, images: g.images.slice().sort((a, b) => (b.name || "").localeCompare(a.name || "")) })
+                sorted.push({ dateGroup: g.dateGroup, images: g.images.slice().sort((a, b) => (b.name || "").localeCompare(a.name || "", undefined, { numeric: true, sensitivity: 'base' })) })
             }
             return sorted
         }
@@ -212,78 +212,26 @@ Item {
 
                     Item { Layout.fillWidth: true }
 
-                    Rectangle {
-                        implicitWidth: 28
-                        implicitHeight: 28
-                        radius: 14
-                        color: prevMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
-                        opacity: recentCarousel.contentX > recentCarousel.originX + 1 ? 1.0 : 0.35
-
-                        DIcon {
-                            anchors.centerIn: parent
-                            name: "chevron-left"
-                            size: 16
-                            color: Theme.surfaceText
-                        }
-
-                        MouseArea {
-                            id: prevMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            enabled: recentCarousel.contentX > recentCarousel.originX + 1
-                            onClicked: recentCarousel.scrollStep(-1)
-                        }
+                    DIconButton {
+                        iconName: "chevron-left"
+                        size: "s"
+                        enabled: recentCarousel.contentX > recentCarousel.originX + 1
+                        onClicked: recentCarousel.scrollStep(-1)
                     }
 
-                    Rectangle {
-                        implicitWidth: 28
-                        implicitHeight: 28
-                        radius: 14
-                        color: nextMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
-                        opacity: recentCarousel.contentX < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1) ? 1.0 : 0.35
-
-                        DIcon {
-                            anchors.centerIn: parent
-                            name: "chevron-right"
-                            size: 16
-                            color: Theme.surfaceText
-                        }
-
-                        MouseArea {
-                            id: nextMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            enabled: recentCarousel.contentX < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1)
-                            onClicked: recentCarousel.scrollStep(1)
-                        }
+                    DIconButton {
+                        iconName: "chevron-right"
+                        size: "s"
+                        enabled: recentCarousel.contentX < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1)
+                        onClicked: recentCarousel.scrollStep(1)
                     }
 
-                    Item { width: 4; height: 1 }
-
-                    Rectangle {
-                        implicitWidth: clearLabel.implicitWidth + 16
-                        implicitHeight: 28
-                        radius: 14
-                        color: clearMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
-
-                        StyledText {
-                            id: clearLabel
-                            anchors.centerIn: parent
-                            text: "Clear"
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.weight: Theme.fontWeightMedium
-                            color: clearMouse.containsMouse ? Theme.primary : Theme.surfaceVariantText
-                        }
-
-                        MouseArea {
-                            id: clearMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: ImageService.clearRecentImages()
-                        }
+                    DButton {
+                        text: "Clear"
+                        buttonHeight: Style.buttonHeightXS
+                        backgroundColor: "transparent"
+                        textColor: Theme.primary
+                        onClicked: ImageService.clearRecentImages()
                     }
                 }
 
