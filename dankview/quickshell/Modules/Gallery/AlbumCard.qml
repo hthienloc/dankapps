@@ -66,11 +66,10 @@ Item {
 
                 Repeater {
                     model: 4
-                    delegate: ClippingRectangle {
+                    delegate: Rectangle {
                         id: cellClip
                         width: parent.cellW
                         height: parent.cellH
-                        radius: 0
                         color: Theme.surfaceContainerLowest
 
                         readonly property string imgPath: {

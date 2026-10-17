@@ -300,6 +300,8 @@ Item {
                     property real targetContentX: originX
                     property bool isSmoothScrolling: false
 
+                    onOriginXChanged: targetContentX = originX
+
                     NumberAnimation {
                         id: smoothScrollAnim
                         target: recentCarousel

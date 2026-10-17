@@ -159,15 +159,26 @@ Singleton {
         command: []
     }
 
+    Timer {
+        id: saveAlbumsDebounce
+        interval: 200
+        repeat: false
+        onTriggered: {
+            if (!saveAlbumsProc.running) {
+                saveAlbumsProc.command = [
+                    "sh", "-c",
+                    'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
+                    "saveAlbums",
+                    albumsFilePath,
+                    JSON.stringify(albumsConfig, null, 2)
+                ];
+                saveAlbumsProc.running = true;
+            }
+        }
+    }
+
     function saveAlbumsConfig() {
-        saveAlbumsProc.command = [
-            "sh", "-c",
-            'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
-            "saveAlbums",
-            albumsFilePath,
-            JSON.stringify(albumsConfig, null, 2)
-        ];
-        saveAlbumsProc.running = true;
+        saveAlbumsDebounce.restart();
     }
 
     FileView {
@@ -195,15 +206,26 @@ Singleton {
         command: []
     }
 
+    Timer {
+        id: saveFavDebounce
+        interval: 200
+        repeat: false
+        onTriggered: {
+            if (!saveFavProc.running) {
+                saveFavProc.command = [
+                    "sh", "-c",
+                    'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
+                    "saveFav",
+                    favFilePath,
+                    JSON.stringify(galleryFavorites, null, 2)
+                ];
+                saveFavProc.running = true;
+            }
+        }
+    }
+
     function saveFavorites() {
-        saveFavProc.command = [
-            "sh", "-c",
-            'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
-            "saveFav",
-            favFilePath,
-            JSON.stringify(galleryFavorites, null, 2)
-        ];
-        saveFavProc.running = true;
+        saveFavDebounce.restart();
     }
 
     FileView {
