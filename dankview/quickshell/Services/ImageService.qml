@@ -795,7 +795,7 @@ Singleton {
     function trashSelected() {
         const list = gallerySelectedList;
         if (list.length === 0) return;
-        batchTrashProc.command = ["gio", "trash"].concat(list);
+        batchTrashProc.command = ["dms", "trash", "put"].concat(list);
         batchTrashProc.running = true;
     }
 
@@ -1423,7 +1423,7 @@ Singleton {
         if (!currentFilePath) return;
         lastTrashedPath = currentFilePath;
         removeFavorites([currentFilePath]);
-        trashProc.command = ["gio", "trash", currentFilePath];
+        trashProc.command = ["dms", "trash", "put", currentFilePath];
         trashProc.running = true;
     }
 

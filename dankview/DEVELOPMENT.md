@@ -129,7 +129,7 @@ Always leverage components from `qs.DCommon.Widgets` before implementing custom 
 - [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell) (required runtime environment)
 - Go 1.21+
 - `quickshell` (Wayland Qt 6 environment)
-- `dms` CLI / `gio` (for trash & system operations)
+- `dms` CLI (for trash, wallpaper, clipboard & system operations)
 
 ### Common Commands
 

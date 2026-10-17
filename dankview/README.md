@@ -34,7 +34,7 @@ Image viewer for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMa
 | | `p` / `Ctrl + P` | Print image |
 | | `w` / `Ctrl + W` | Set as wallpaper |
 | **File & Trash** | `o` / `Ctrl + O` | Open image dialog |
-| | `d` / `Delete` | Move image to trash (`gio trash`) |
+| | `d` / `Delete` | Move image to trash (`dms trash put`) |
 | | `u` / `z` / `Ctrl + Z` | Undo trash (restore last trashed image) |
 | **Window & UI** | `f` / `F11` | Toggle maximize / fullscreen |
 | | `i` | Toggle EXIF inspector |
