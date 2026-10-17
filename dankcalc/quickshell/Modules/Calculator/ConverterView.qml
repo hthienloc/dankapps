@@ -184,16 +184,16 @@ Item {
                 // Row 1: Actions
                 CalculatorButton {
                     text: "C"
-                    backgroundColor: Theme.surfaceContainerHighest
-                    textColor: Theme.primary
-                    fontWeight: Font.Bold
+                    backgroundColor: Theme.tertiaryContainer
+                    textColor: Theme.onTertiaryContainer
+                    fontWeight: Font.Medium
                     onClicked: CalculatorService.clearConverter()
                 }
 
                 CalculatorButton {
                     iconName: "backspace"
-                    backgroundColor: Theme.surfaceContainerHighest
-                    textColor: Theme.surfaceText
+                    backgroundColor: Theme.secondaryContainer
+                    textColor: Theme.onSecondaryContainer
                     onClicked: CalculatorService.backspaceConverter()
                 }
 
