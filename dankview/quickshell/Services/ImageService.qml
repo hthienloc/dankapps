@@ -47,12 +47,51 @@ Singleton {
 
     // Gallery State
     property bool galleryMode: currentFilePath === ""
-    property string galleryTab: "gallery" // "gallery" | "albums"
+    property string galleryTab: "gallery" // "gallery" (Timeline) | "albums" | "settings"
+    property bool sidebarCollapsed: true
+    property bool albumsEditMode: false
+    property var _albumsConfigSnapshot: null
     property string selectedCategory: "All"
     property string searchQuery: ""
     property string searchQueryDebounced: ""
     property bool searchActive: false
+    property bool searchBarCollapsed: false
+
+    // Filter & Sort Settings
+    property string filterMediaType: "All Items"
+    property string filterLocation: "Anywhere"
+    property string filterDateAdded: "Any time"
+    property string filterSortOrder: "Newest first"
+    property bool filterFavoritesOnly: false
+    property bool filterIncludeHidden: false
+
+    readonly property bool hasActiveFilters: {
+        return filterMediaType !== "All Items" ||
+               filterLocation !== "Anywhere" ||
+               filterDateAdded !== "Any time" ||
+               filterSortOrder !== "Newest first" ||
+               filterFavoritesOnly ||
+               filterIncludeHidden;
+    }
+
+    function resetFilters() {
+        filterMediaType = "All Items";
+        filterLocation = "Anywhere";
+        filterDateAdded = "Any time";
+        filterSortOrder = "Newest first";
+        filterFavoritesOnly = false;
+        filterIncludeHidden = false;
+    }
+
     property var galleryData: null
+
+    onGalleryTabChanged: {
+        searchBarCollapsed = false;
+        if (galleryTab !== "albums" && albumsEditMode) cancelEditAlbums();
+    }
+    onGalleryModeChanged: {
+        if (!galleryMode && albumsEditMode) cancelEditAlbums();
+    }
 
     Timer {
         id: searchDebounce
@@ -60,7 +99,11 @@ Singleton {
         repeat: false
         onTriggered: root.searchQueryDebounced = (root.searchQuery || "").toLowerCase().trim()
     }
-    onSearchQueryChanged: searchDebounce.restart()
+    onSearchQueryChanged: {
+        searchDebounce.restart()
+        if (searchQuery !== "") searchBarCollapsed = false
+    }
+    onSelectedCategoryChanged: searchBarCollapsed = false
     onSearchActiveChanged: {
         if (!searchActive) {
             searchDebounce.stop()
@@ -73,6 +116,56 @@ Singleton {
     property string previewThumbnail: ""
 
     readonly property string favFilePath: SettingsData.configDir + "/favorites.json"
+    readonly property string albumsFilePath: SettingsData.configDir + "/albums.json"
+
+    property var albumsConfig: ({
+        addedFolders: [],
+        removedFolders: [],
+        quickAccess: null,
+        albumOrder: []
+    })
+
+    FileView {
+        id: albumsFileView
+        path: root.albumsFilePath
+        blockLoading: true
+        printErrors: false
+        onLoaded: {
+            try {
+                const text = albumsFileView.text();
+                if (text) {
+                    const data = JSON.parse(text);
+                    if (data && typeof data === "object") {
+                        root.albumsConfig = {
+                            addedFolders: Array.isArray(data.addedFolders) ? data.addedFolders : [],
+                            removedFolders: Array.isArray(data.removedFolders) ? data.removedFolders : [],
+                            quickAccess: Array.isArray(data.quickAccess) ? data.quickAccess : null,
+                            albumOrder: Array.isArray(data.albumOrder) ? data.albumOrder : []
+                        };
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to parse albums.json:", e);
+            }
+        }
+    }
+
+    Process {
+        id: saveAlbumsProc
+        running: false
+        command: []
+    }
+
+    function saveAlbumsConfig() {
+        saveAlbumsProc.command = [
+            "sh", "-c",
+            'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
+            "saveAlbums",
+            albumsFilePath,
+            JSON.stringify(albumsConfig, null, 2)
+        ];
+        saveAlbumsProc.running = true;
+    }
 
     FileView {
         id: favFileView
@@ -110,24 +203,262 @@ Singleton {
         saveFavProc.running = true;
     }
 
-    readonly property var galleryCategories: {
-        const raw = (galleryData && galleryData.categories) ? galleryData.categories : ["All"];
-        const list = [];
+    function isAlbumRemoved(albumOrName, folderPath) {
+        const rem = (albumsConfig && Array.isArray(albumsConfig.removedFolders)) ? albumsConfig.removedFolders : [];
+        if (rem.length === 0) return false;
+        const name = typeof albumOrName === "object" ? (albumOrName.name || "") : (albumOrName || "");
+        const p = typeof albumOrName === "object" ? (albumOrName.path || "") : (folderPath || "");
+        return (name !== "" && rem.indexOf(name) !== -1) || (p !== "" && rem.indexOf(p) !== -1);
+    }
+
+    readonly property var managedAlbums: {
+        const raw = (galleryData && galleryData.albums) ? galleryData.albums : [];
+        const cfg = albumsConfig || {};
+        const qaList = Array.isArray(cfg.quickAccess) ? cfg.quickAccess : null;
+
+        const result = [];
         for (let i = 0; i < raw.length; i++) {
-            list.push(raw[i]);
-            if (raw[i] === "All") {
-                list.push("Favorites");
+            const a = raw[i];
+            if (isAlbumRemoved(a)) continue;
+            const inQA = qaList !== null ? (qaList.indexOf(a.name) !== -1) : !!a.isPinned;
+            result.push({
+                name: a.name,
+                path: a.path || "",
+                isPinned: inQA,
+                isQuickAccess: inQA,
+                isFavorites: false,
+                totalCount: a.totalCount || 0,
+                previews: a.previews || [],
+                _lowerName: a._lowerName || (a.name || "").toLowerCase()
+            });
+        }
+        return result;
+    }
+
+    readonly property var quickAccessFolderAlbums: {
+        const cfg = albumsConfig || {};
+        const qaList = Array.isArray(cfg.quickAccess) ? cfg.quickAccess : [];
+        const list = managedAlbums.filter(a => a.isQuickAccess);
+        list.sort((a, b) => {
+            const ia = qaList.indexOf(a.name);
+            const ib = qaList.indexOf(b.name);
+            if (ia !== -1 && ib !== -1) return ia - ib;
+            if (ia !== -1) return -1;
+            if (ib !== -1) return 1;
+            return (a.name || "").localeCompare(b.name || "");
+        });
+        return list;
+    }
+
+    readonly property var folderAlbums: {
+        const cfg = albumsConfig || {};
+        const orderList = Array.isArray(cfg.albumOrder) ? cfg.albumOrder : [];
+        const list = managedAlbums.filter(a => !a.isQuickAccess);
+        list.sort((a, b) => {
+            const ia = orderList.indexOf(a.name);
+            const ib = orderList.indexOf(b.name);
+            if (ia !== -1 && ib !== -1) return ia - ib;
+            if (ia !== -1) return -1;
+            if (ib !== -1) return 1;
+            return (a.name || "").localeCompare(b.name || "");
+        });
+        return list;
+    }
+
+    readonly property bool hasRemovedFolders: {
+        const rem = (albumsConfig && Array.isArray(albumsConfig.removedFolders)) ? albumsConfig.removedFolders : [];
+        return rem.length > 0;
+    }
+
+    readonly property var galleryCategories: {
+        const list = ["All"];
+        const qa = quickAccessFolderAlbums;
+        for (let i = 0; i < qa.length; i++) {
+            const name = qa[i].name;
+            if (name && list.indexOf(name) === -1) {
+                list.push(name);
             }
         }
-        if (list.indexOf("Favorites") === -1) {
-            list.push("Favorites");
+        if (selectedCategory && selectedCategory !== "All" && selectedCategory !== "Favorites" && list.indexOf(selectedCategory) === -1) {
+            list.push(selectedCategory);
         }
         return list;
     }
 
+    function startEditAlbums() {
+        _albumsConfigSnapshot = {
+            addedFolders: (albumsConfig.addedFolders || []).slice(),
+            removedFolders: (albumsConfig.removedFolders || []).slice(),
+            quickAccess: Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : quickAccessFolderAlbums.map(a => a.name),
+            albumOrder: (albumsConfig.albumOrder || []).slice()
+        };
+        albumsEditMode = true;
+    }
+
+    function confirmEditAlbums() {
+        albumsEditMode = false;
+        _albumsConfigSnapshot = null;
+        saveAlbumsConfig();
+        showToast("Saved album layout");
+    }
+
+    function cancelEditAlbums() {
+        if (_albumsConfigSnapshot) {
+            albumsConfig = _albumsConfigSnapshot;
+            _albumsConfigSnapshot = null;
+            loadGallery();
+        }
+        albumsEditMode = false;
+    }
+
+    function toggleQuickAccess(albumName) {
+        if (!albumName || albumName === "Favorites") return;
+        const currentQA = quickAccessFolderAlbums.map(a => a.name);
+        const idx = currentQA.indexOf(albumName);
+        if (idx !== -1) {
+            currentQA.splice(idx, 1);
+        } else {
+            currentQA.push(albumName);
+        }
+        albumsConfig = {
+            addedFolders: (albumsConfig.addedFolders || []).slice(),
+            removedFolders: (albumsConfig.removedFolders || []).slice(),
+            quickAccess: currentQA,
+            albumOrder: (albumsConfig.albumOrder || []).slice()
+        };
+        if (!albumsEditMode) saveAlbumsConfig();
+    }
+
+    function reorderAlbum(sourceName, targetName, targetInQuickAccess) {
+        if (!sourceName || sourceName === "Favorites") return;
+        const qaList = quickAccessFolderAlbums.map(a => a.name);
+        const fList = folderAlbums.map(a => a.name);
+        const sourceInQA = qaList.indexOf(sourceName) !== -1;
+
+        if (sourceName === targetName && sourceInQA === targetInQuickAccess) return;
+
+        if (targetInQuickAccess) {
+            if (sourceInQA) {
+                const fromIdx = qaList.indexOf(sourceName);
+                const toIdx = (targetName && targetName !== "Favorites") ? qaList.indexOf(targetName) : 0;
+                if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+                qaList.splice(fromIdx, 1);
+                qaList.splice(toIdx, 0, sourceName);
+            } else {
+                const fIdx = fList.indexOf(sourceName);
+                if (fIdx !== -1) fList.splice(fIdx, 1);
+                if (targetName && targetName !== "Favorites") {
+                    const toIdx = qaList.indexOf(targetName);
+                    if (toIdx !== -1) qaList.splice(toIdx, 0, sourceName);
+                    else qaList.push(sourceName);
+                } else {
+                    qaList.unshift(sourceName);
+                }
+            }
+        } else {
+            if (!sourceInQA) {
+                const fromIdx = fList.indexOf(sourceName);
+                const toIdx = targetName ? fList.indexOf(targetName) : (fList.length - 1);
+                if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
+                fList.splice(fromIdx, 1);
+                fList.splice(toIdx, 0, sourceName);
+            } else {
+                const qIdx = qaList.indexOf(sourceName);
+                if (qIdx !== -1) qaList.splice(qIdx, 1);
+                const existingFIdx = fList.indexOf(sourceName);
+                if (existingFIdx !== -1) fList.splice(existingFIdx, 1);
+                if (targetName) {
+                    const toIdx = fList.indexOf(targetName);
+                    if (toIdx !== -1) fList.splice(toIdx, 0, sourceName);
+                    else fList.push(sourceName);
+                } else {
+                    fList.push(sourceName);
+                }
+            }
+        }
+
+        albumsConfig = {
+            addedFolders: (albumsConfig.addedFolders || []).slice(),
+            removedFolders: (albumsConfig.removedFolders || []).slice(),
+            quickAccess: qaList,
+            albumOrder: fList
+        };
+        if (!albumsEditMode) saveAlbumsConfig();
+    }
+
+    function addAlbumFolder(folderPath) {
+        if (!folderPath) return;
+        const cleanPath = folderPath.replace(/\/+$/, "");
+        if (!cleanPath) return;
+        const parts = cleanPath.split("/");
+        const folderName = parts[parts.length - 1] || cleanPath;
+
+        const added = (albumsConfig.addedFolders || []).slice();
+        if (added.indexOf(cleanPath) === -1) {
+            added.push(cleanPath);
+        }
+        const removed = (albumsConfig.removedFolders || []).filter(item => item !== cleanPath && item !== folderName);
+        const order = (albumsConfig.albumOrder || []).slice();
+        if (order.indexOf(folderName) === -1) {
+            order.push(folderName);
+        }
+        albumsConfig = {
+            addedFolders: added,
+            removedFolders: removed,
+            quickAccess: Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : null,
+            albumOrder: order
+        };
+        if (!albumsEditMode) saveAlbumsConfig();
+        loadGallery();
+    }
+
+    function removeAlbumFolder(album) {
+        if (!album || album.isFavorites) return;
+        const cleanPath = (album.path || "").replace(/\/+$/, "");
+        const folderName = album.name || "";
+
+        const added = (albumsConfig.addedFolders || []).filter(p => p !== cleanPath);
+        const removed = (albumsConfig.removedFolders || []).slice();
+        if (cleanPath && removed.indexOf(cleanPath) === -1) removed.push(cleanPath);
+        if (folderName && removed.indexOf(folderName) === -1) removed.push(folderName);
+
+        let qa = Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : quickAccessFolderAlbums.map(a => a.name);
+        qa = qa.filter(n => n !== folderName);
+
+        if (selectedCategory === folderName) {
+            selectedCategory = "All";
+        }
+
+        albumsConfig = {
+            addedFolders: added,
+            removedFolders: removed,
+            quickAccess: qa,
+            albumOrder: (albumsConfig.albumOrder || []).filter(n => n !== folderName)
+        };
+        if (!albumsEditMode) saveAlbumsConfig();
+        loadGallery();
+    }
+
+    function restoreRemovedFolders() {
+        albumsConfig = {
+            addedFolders: (albumsConfig.addedFolders || []).slice(),
+            removedFolders: [],
+            quickAccess: Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : null,
+            albumOrder: (albumsConfig.albumOrder || []).slice()
+        };
+        if (!albumsEditMode) saveAlbumsConfig();
+        loadGallery();
+    }
+
+    signal openAddFolderDialogRequested()
+
+    function openAddFolderDialog() {
+        openAddFolderDialogRequested();
+    }
+
     readonly property var favoriteImages: {
         if (!galleryData || !galleryData.allImages) return [];
-        return galleryData.allImages.filter(img => !!galleryFavorites[img.path]);
+        return galleryData.allImages.filter(img => !!galleryFavorites[img.path] && !isAlbumRemoved(img.category, ""));
     }
     readonly property int favoriteCount: favoriteImages.length
 
@@ -135,6 +466,7 @@ Singleton {
         name: "Favorites",
         path: "",
         isPinned: true,
+        isQuickAccess: true,
         isFavorites: true,
         totalCount: root.favoriteCount,
         previews: root.favoriteImages.slice(0, 4).map(img => img.thumbnail || img.path)
@@ -378,8 +710,11 @@ Singleton {
 
     function loadGallery(dirPath) {
         isGalleryLoading = true;
-        const cmd = [dviewBin, "-gallery"];
-        if (dirPath) cmd.push(dirPath);
+        const cmd = [dviewBin, "-gallery", dirPath || ""];
+        const added = (albumsConfig && Array.isArray(albumsConfig.addedFolders)) ? albumsConfig.addedFolders : [];
+        for (let i = 0; i < added.length; i++) {
+            if (added[i]) cmd.push(added[i]);
+        }
         galleryProc.command = cmd;
         galleryProc.running = true;
     }

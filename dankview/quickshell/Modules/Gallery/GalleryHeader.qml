@@ -8,8 +8,8 @@ import qs.DCommon.Widgets
 Item {
     id: root
 
-    implicitHeight: ImageService.galleryTab === "gallery" ? 44 : 0
-    visible: ImageService.galleryTab === "gallery"
+    implicitHeight: ((ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline") && ImageService.selectedCategory !== "Favorites") ? 44 : 0
+    visible: (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline") && ImageService.selectedCategory !== "Favorites"
 
     Behavior on implicitHeight {
         DAnim {
@@ -46,8 +46,8 @@ Item {
                     readonly property real leftR: M3E.leftRadius(index, chipRepeater.count, pillR, chipMouse.pressed, chipMouse.containsMouse, isSelected, M3E.pressRadiusXS)
                     readonly property real rightR: M3E.rightRadius(index, chipRepeater.count, pillR, chipMouse.pressed, chipMouse.containsMouse, isSelected, M3E.pressRadiusXS)
 
-                    implicitHeight: 32
-                    implicitWidth: chipContent.implicitWidth + 24
+                    implicitHeight: Style.buttonHeightXS
+                    implicitWidth: chipContent.implicitWidth + Style.spacingXL
                     topLeftRadius: leftR
                     bottomLeftRadius: leftR
                     topRightRadius: rightR
@@ -60,7 +60,7 @@ Item {
                     border.color: isSelected
                         ? (isFavChip ? Theme.error : Theme.primary)
                         : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.22)
-                    border.width: isSelected ? 1 : 0
+                    border.width: isSelected ? Style.outlineWidth : 0
 
                     Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
                     Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
@@ -72,12 +72,12 @@ Item {
                     RowLayout {
                         id: chipContent
                         anchors.centerIn: parent
-                        spacing: 5
+                        spacing: Style.spacingXS
 
                         DIcon {
                             visible: isFavChip
                             name: "favorite"
-                            size: 14
+                            size: Style.iconSizeSmall
                             filled: isSelected
                             color: isFavChip ? Theme.error : (isSelected ? Theme.primary : Theme.surfaceText)
                         }

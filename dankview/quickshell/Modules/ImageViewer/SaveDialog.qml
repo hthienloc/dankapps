@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 import qs.DCommon.FileBrowser
 import qs.DCommon.Common as DC
@@ -38,7 +39,7 @@ Rectangle {
     Rectangle {
         anchors.centerIn: parent
         width: 420
-        radius: 16
+        radius: Style.cornerRadiusL
         color: Theme.surfaceContainerHigh
         border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
         border.width: 1
@@ -56,18 +57,18 @@ Rectangle {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.margins: 16
-            spacing: 14
+            anchors.margins: Style.spacingL
+            spacing: Style.spacingM
 
             // Header
             RowLayout {
                 Layout.fillWidth: true
 
-                DIcon { name: root.cropRegion ? "crop" : "save"; size: 20; color: Theme.primary }
+                DIcon { name: root.cropRegion ? "crop" : "save"; size: Style.iconSizeMedium; color: Theme.primary }
 
                 StyledText {
                     Layout.fillWidth: true
-                    leftPadding: 8
+                    leftPadding: Style.spacingS
                     text: root.cropRegion ? "Save Cropped Image" : "Save As / Export"
                     font.pixelSize: Theme.fontSizeLarge
                     font.weight: Theme.fontWeightBold
@@ -75,7 +76,7 @@ Rectangle {
                 }
 
                 DActionButton {
-                    iconName: "close"; iconSize: 18; buttonSize: 32
+                    iconName: "close"; iconSize: Style.chipIconSize; buttonSize: Style.buttonHeightXS
                     iconColor: Theme.surfaceText
                     onClicked: root.cancelled()
                 }
@@ -90,17 +91,17 @@ Rectangle {
 
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 38
-                radius: 8
+                implicitHeight: Style.buttonHeightS
+                radius: Style.cornerRadiusS
                 color: Theme.surfaceContainerLow
                 border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
                 border.width: 1
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 6
-                    spacing: 8
+                    anchors.leftMargin: Style.spacingM
+                    anchors.rightMargin: Style.spacingXS
+                    spacing: Style.spacingS
 
                     StyledText {
                         Layout.fillWidth: true
@@ -112,8 +113,8 @@ Rectangle {
 
                     DActionButton {
                         iconName: "folder_open"
-                        iconSize: 18
-                        buttonSize: 28
+                        iconSize: Style.chipIconSize
+                        buttonSize: Style.buttonHeightXXS
                         iconColor: Theme.primary
                         tooltipText: "Browse Destination..."
                         tooltipSide: "top"
@@ -131,14 +132,14 @@ Rectangle {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: Style.spacingS
 
                 Repeater {
                     model: ["PNG", "JPEG", "WebP"]
                     delegate: Rectangle {
                         Layout.fillWidth: true
-                        implicitHeight: 36
-                        radius: 8
+                        implicitHeight: Style.buttonHeightXS
+                        radius: Style.cornerRadiusS
                         color: formatSelector.currentFormat === modelData
                             ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.22)
                             : (fmtMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow)
@@ -172,7 +173,7 @@ Rectangle {
             // Quality slider (lossy only)
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: Style.spacingXS
                 visible: formatSelector.currentFormat !== "PNG"
 
                 RowLayout {
@@ -194,7 +195,7 @@ Rectangle {
                 DSlider {
                     id: qualitySlider
                     Layout.fillWidth: true
-                    height: 36
+                    height: Style.buttonHeightXS
                     minimum: 10
                     maximum: 100
                     step: 1
@@ -217,12 +218,12 @@ Rectangle {
                 Rectangle {
                     id: stripToggle
                     property bool checked: false
-                    width: 40; height: 24; radius: 12
+                    width: Style.buttonHeightS; height: Style.iconSize; radius: height / 2
                     color: checked ? Theme.primary : Theme.surfaceContainerHighest
                     Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
 
                     Rectangle {
-                        width: 18; height: 18; radius: 9
+                        width: Style.chipIconSize; height: Style.chipIconSize; radius: height / 2
                         anchors.verticalCenter: parent.verticalCenter
                         x: stripToggle.checked ? parent.width - width - 3 : 3
                         color: "white"
@@ -240,13 +241,13 @@ Rectangle {
             // Action buttons
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: Style.spacingS
 
                 Item { Layout.fillWidth: true }
 
                 // Cancel
                 Rectangle {
-                    implicitWidth: 80; implicitHeight: 36; radius: 18
+                    implicitWidth: 80; implicitHeight: Style.buttonHeightXS; radius: height / 2
                     color: cancelMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
                     border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.4)
                     border.width: 1
@@ -268,7 +269,7 @@ Rectangle {
 
                 // Save
                 Rectangle {
-                    implicitWidth: 90; implicitHeight: 36; radius: 18
+                    implicitWidth: 90; implicitHeight: Style.buttonHeightXS; radius: height / 2
                     color: saveMouse.containsMouse
                         ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.85)
                         : Theme.primary
@@ -290,7 +291,7 @@ Rectangle {
             }
 
             // Spacer at bottom
-            Item { implicitHeight: 4 }
+            Item { implicitHeight: Style.spacingXS }
         }
     }
 

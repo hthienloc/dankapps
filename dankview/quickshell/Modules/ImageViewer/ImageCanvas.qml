@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 
 Item {
@@ -275,9 +276,9 @@ Item {
 
             Rectangle {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: openBtnRow.implicitWidth + 36
-                implicitHeight: 46
-                radius: 23
+                implicitWidth: openBtnRow.implicitWidth + Style.spacingXL
+                implicitHeight: Style.buttonHeightS
+                radius: height / 2
                 color: openBtnMouse.containsMouse
                     ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.85)
                     : Theme.primary
@@ -285,11 +286,11 @@ Item {
                 RowLayout {
                     id: openBtnRow
                     anchors.centerIn: parent
-                    spacing: 8
+                    spacing: Style.spacingS
 
                     DIcon {
                         name: "folder_open"
-                        size: 20
+                        size: Style.iconSizeMedium
                         color: Theme.primaryText
                     }
 
@@ -325,11 +326,11 @@ Item {
 
         Rectangle {
             anchors.left: parent.left
-            anchors.leftMargin: 12
+            anchors.leftMargin: Style.spacingM
             anchors.verticalCenter: parent.verticalCenter
-            width: 44
-            height: 44
-            radius: 22
+            width: Style.buttonHeightS
+            height: Style.buttonHeightS
+            radius: height / 2
             color: parent.containsMouse ? Theme.surfaceContainerHigh : "transparent"
             opacity: parent.containsMouse ? 0.9 : 0.0
 
@@ -343,7 +344,7 @@ Item {
             DIcon {
                 anchors.centerIn: parent
                 name: "chevron_left"
-                size: 28
+                size: Style.iconSize
                 color: Theme.surfaceText
             }
         }
@@ -361,11 +362,11 @@ Item {
 
         Rectangle {
             anchors.right: parent.right
-            anchors.rightMargin: 12
+            anchors.rightMargin: Style.spacingM
             anchors.verticalCenter: parent.verticalCenter
-            width: 44
-            height: 44
-            radius: 22
+            width: Style.buttonHeightS
+            height: Style.buttonHeightS
+            radius: height / 2
             color: parent.containsMouse ? Theme.surfaceContainerHigh : "transparent"
             opacity: parent.containsMouse ? 0.9 : 0.0
 
@@ -379,7 +380,7 @@ Item {
             DIcon {
                 anchors.centerIn: parent
                 name: "chevron_right"
-                size: 28
+                size: Style.iconSize
                 color: Theme.surfaceText
             }
         }

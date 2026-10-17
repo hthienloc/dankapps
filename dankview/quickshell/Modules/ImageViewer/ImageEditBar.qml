@@ -74,7 +74,7 @@ Item {
             readonly property real leftR: M3E.leftRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
             readonly property real rightR: M3E.rightRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
 
-            buttonSize: 40
+            buttonSize: Style.buttonHeightS
             iconSize: Style.iconSizeMedium
             topLeftRadius: leftR
             bottomLeftRadius: leftR
@@ -138,7 +138,7 @@ Item {
                     iconName: "flip"
                     tooltipText: "Flip Vertically (V)"
                     tooltipSide: "right"
-                    transform: Rotation { angle: 90; origin.x: 20; origin.y: 20 }
+                    transform: Rotation { angle: 90; origin.x: Style.buttonHeightS / 2; origin.y: Style.buttonHeightS / 2 }
                     onClicked: ImageService.toggleFlipVertical()
                 }
             }
@@ -192,7 +192,7 @@ Item {
         id: cropBar
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        implicitHeight: 46
+        implicitHeight: Style.buttonHeightM
         implicitWidth: cropRow.implicitWidth + Style.spacingM * 2
         radius: Style.fullRadius(height, height)
         color: Style.withAlpha(Style.surfaceContainerHigh, 0.95)
@@ -205,14 +205,14 @@ Item {
 
         Behavior on opacity {
             DAnim {
-                duration: Style.shortDuration
-                easing.bezierCurve: Style.expressiveCurves.standard
+                duration: M3E.effectsMs
+                easing.bezierCurve: M3E.curveEffects
             }
         }
         Behavior on scale {
             DAnim {
-                duration: Style.shortDuration
-                easing.bezierCurve: Style.expressiveCurves.standard
+                duration: M3E.spatialFastMs
+                easing.bezierCurve: M3E.curveFastSpatial
             }
         }
 
@@ -226,7 +226,7 @@ Item {
 
         component BarSeparator: Rectangle {
             implicitWidth: Style.dividerWidth
-            implicitHeight: 20
+            implicitHeight: Style.iconSizeMedium
             Layout.alignment: Qt.AlignVCenter
             Layout.leftMargin: Style.spacingXS / 2
             Layout.rightMargin: Style.spacingXS / 2
@@ -244,8 +244,8 @@ Item {
 
         Behavior on opacity {
             DAnim {
-                duration: Style.shortDuration
-                easing.bezierCurve: Style.expressiveCurves.standard
+                duration: M3E.effectsMs
+                easing.bezierCurve: M3E.curveEffects
             }
         }
 
@@ -266,7 +266,7 @@ Item {
         DActionButton {
             iconName: "restart_alt"
             iconSize: Style.iconSizeMedium
-            buttonSize: 34
+            buttonSize: Style.buttonHeightXS
             tooltipText: "Reset Crop Selection"
             tooltipSide: "top"
             onClicked: {

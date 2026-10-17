@@ -34,21 +34,21 @@ Singleton {
     // -------------------------------------------------------------------------
     // Connected Group & Card Geometry
     // -------------------------------------------------------------------------
-    readonly property real outerR: 16
+    readonly property real outerR: Style.cornerRadiusL
     readonly property real innerR: 6
-    readonly property int groupGap: 2
+    readonly property int groupGap: Style.spacingXXS
 
-    readonly property real cardRadius: 16
-    readonly property real tileRadiusIdle: 16
-    readonly property real tileRadiusHover: 24
-    readonly property real tileRadiusPress: 8
+    readonly property real cardRadius: Style.cornerRadiusL
+    readonly property real tileRadiusIdle: Style.cornerRadiusL
+    readonly property real tileRadiusHover: Style.cornerRadiusXL
+    readonly property real tileRadiusPress: Style.cornerRadiusS
 
     // -------------------------------------------------------------------------
     // Interactive Press Radii & Scales
     // -------------------------------------------------------------------------
     readonly property real pressRadiusXS: 6
-    readonly property real pressRadiusS: 8
-    readonly property real pressRadiusM: 12
+    readonly property real pressRadiusS: Style.cornerRadiusS
+    readonly property real pressRadiusM: Style.cornerRadiusM
 
     readonly property real tilePressScale: 0.96
     readonly property real rowPressScale: 0.97

@@ -18,52 +18,115 @@ Item {
         return ln.indexOf(query) !== -1 || lp.indexOf(query) !== -1
     }
 
+    function matchesFilters(img) {
+        if (ImageService.filterMediaType === "Images only") {
+            if (/\.(mp4|mkv|webm|avi|mov|m4v)$/i.test(img.path) || /\.gif$/i.test(img.path)) return false
+        } else if (ImageService.filterMediaType === "Videos only") {
+            if (!/\.(mp4|mkv|webm|avi|mov|m4v)$/i.test(img.path)) return false
+        } else if (ImageService.filterMediaType === "GIFs / Animations") {
+            if (!/\.gif$/i.test(img.path)) return false
+        }
+
+        if (ImageService.filterLocation !== "Anywhere") {
+            if (ImageService.filterLocation === "Favorites") {
+                if (!ImageService.isFavorite(img.path)) return false
+            } else if (img.category !== ImageService.filterLocation) {
+                return false
+            }
+        }
+
+        if (ImageService.filterFavoritesOnly && !ImageService.isFavorite(img.path)) {
+            return false
+        }
+
+        if (!ImageService.filterIncludeHidden && (img.name || "").startsWith(".")) {
+            return false
+        }
+
+        if (ImageService.filterDateAdded !== "Any time" && img.modTime > 0) {
+            const nowSec = Date.now() / 1000
+            const diffSec = nowSec - img.modTime
+            if (ImageService.filterDateAdded === "Today" && diffSec > 86400) return false
+            if (ImageService.filterDateAdded === "Last 7 days" && diffSec > 7 * 86400) return false
+            if (ImageService.filterDateAdded === "Last 30 days" && diffSec > 30 * 86400) return false
+            if (ImageService.filterDateAdded === "This year" && diffSec > 365 * 86400) return false
+        }
+
+        return true
+    }
+
     readonly property var filteredGroups: {
         let base = rawGroups
         const cat = ImageService.selectedCategory
-        const q = query
-        if (cat && cat !== "All") {
-            if (cat === "Favorites") {
-                const result = []
-                for (let i = 0; i < base.length; i++) {
-                    const grp = base[i]
-                    const imgs = grp.images.filter(img => ImageService.isFavorite(img.path) && matchesQuery(img))
-                    if (imgs.length > 0) result.push({ dateGroup: grp.dateGroup, images: imgs })
-                }
-                return result
-            }
-            const result = []
-            for (let i = 0; i < base.length; i++) {
-                const grp = base[i]
-                const imgs = grp.images.filter(img => img.category === cat && matchesQuery(img))
-                if (imgs.length > 0) result.push({ dateGroup: grp.dateGroup, images: imgs })
-            }
-            return result
-        }
-        if (!q) return base
         const result = []
+
         for (let i = 0; i < base.length; i++) {
             const grp = base[i]
-            const imgs = grp.images.filter(matchesQuery)
+            const imgs = grp.images.filter(img => {
+                if (ImageService.isAlbumRemoved(img.category, "")) return false
+                if (cat && cat !== "All") {
+                    if (cat === "Favorites") {
+                        if (!ImageService.isFavorite(img.path)) return false
+                    } else if (img.category !== cat) {
+                        return false
+                    }
+                }
+                return matchesQuery(img) && matchesFilters(img)
+            })
             if (imgs.length > 0) result.push({ dateGroup: grp.dateGroup, images: imgs })
         }
+
+        const sortOrder = ImageService.filterSortOrder
+        if (sortOrder === "Oldest first") {
+            const rev = []
+            for (let i = result.length - 1; i >= 0; i--) {
+                const g = result[i]
+                rev.push({ dateGroup: g.dateGroup, images: g.images.slice().reverse() })
+            }
+            return rev
+        } else if (sortOrder === "Name (A-Z)") {
+            const sorted = []
+            for (let i = 0; i < result.length; i++) {
+                const g = result[i]
+                sorted.push({ dateGroup: g.dateGroup, images: g.images.slice().sort((a, b) => (a.name || "").localeCompare(b.name || "")) })
+            }
+            return sorted
+        } else if (sortOrder === "Name (Z-A)") {
+            const sorted = []
+            for (let i = 0; i < result.length; i++) {
+                const g = result[i]
+                sorted.push({ dateGroup: g.dateGroup, images: g.images.slice().sort((a, b) => (b.name || "").localeCompare(a.name || "")) })
+            }
+            return sorted
+        }
+
         return result
     }
 
     readonly property int columns: Math.max(3, Math.min(6, Math.floor((width - 40) / 168)))
     readonly property real tileWidth: Math.floor((width - 40 - (columns - 1) * 10) / columns)
 
-    property real lastContentY: -8
+    property real lastContentY: 0
 
     Connections {
         target: ImageService
         function onSelectedCategoryChanged() {
-            root.lastContentY = -list.topMargin
-            list.contentY = -list.topMargin
+            root.lastContentY = 0
+            list.prevContentY = 0
+            list.accumulatedDown = 0
+            list.contentY = 0
         }
         function onSearchQueryDebouncedChanged() {
-            root.lastContentY = -list.topMargin
-            list.contentY = -list.topMargin
+            root.lastContentY = 0
+            list.prevContentY = 0
+            list.accumulatedDown = 0
+            list.contentY = 0
+        }
+        function onSearchBarCollapsedChanged() {
+            if (!ImageService.searchBarCollapsed) {
+                list.prevContentY = list.contentY
+                list.accumulatedDown = 0
+            }
         }
     }
 
@@ -77,10 +140,15 @@ Item {
         model: root.filteredGroups
         spacing: 24
         cacheBuffer: 400
-        topMargin: 8
+        topMargin: 0
         reuseItems: true
         fadeEdges: false
         showScrollBar: true
+
+        header: Item {
+            width: 1
+            height: 64
+        }
 
         footer: Item {
             width: 1
@@ -93,10 +161,30 @@ Item {
             }
         }
 
+        property real prevContentY: 0
+        property real accumulatedDown: 0
+
         onContentYChanged: {
             if (contentY > 0) {
                 root.lastContentY = contentY
             }
+            if (contentY <= 6) {
+                accumulatedDown = 0
+                ImageService.searchBarCollapsed = false
+            } else {
+                const delta = contentY - prevContentY
+                if (delta > 0) {
+                    accumulatedDown += delta
+                    if (accumulatedDown > 12 && contentY > 20) {
+                        if (!ImageService.searchQuery) {
+                            ImageService.searchBarCollapsed = true
+                        }
+                    }
+                } else if (delta < -2) {
+                    accumulatedDown = 0
+                }
+            }
+            prevContentY = contentY
         }
 
         delegate: ColumnLayout {

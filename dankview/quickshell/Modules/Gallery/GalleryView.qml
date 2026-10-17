@@ -14,193 +14,328 @@ Item {
     focus: true
     Keys.onPressed: event => {
         if (!ImageService.galleryMode) return
-        // Ctrl+F or '/' to open search, Esc to close
-        if (event.key === Qt.Key_Escape && ImageService.searchActive) {
-            ImageService.searchActive = false
-            event.accepted = true
-            return
+        if (event.key === Qt.Key_Escape) {
+            if (filterDialog.opened) {
+                filterDialog.close()
+                event.accepted = true
+                return
+            }
+            if (searchInput.activeFocus) {
+                root.forceActiveFocus()
+                event.accepted = true
+                return
+            }
         }
         if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_F) {
-            ImageService.searchActive = !ImageService.searchActive
-            if (ImageService.searchActive) searchField.forceActiveFocus()
+            ImageService.searchBarCollapsed = false
+            searchInput.forceActiveFocus()
             event.accepted = true
             return
         }
-        if (event.key === Qt.Key_Slash && !searchField.activeFocus) {
-            ImageService.searchActive = true
-            searchField.forceActiveFocus()
+        if (event.key === Qt.Key_Slash && !searchInput.activeFocus) {
+            ImageService.searchBarCollapsed = false
+            searchInput.forceActiveFocus()
             event.accepted = true
             return
         }
     }
 
-    // Top bar: chips + search icon (right)
-    Item {
-        id: topBar
-        anchors.top: parent.top
-        anchors.topMargin: 8
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: 44
-        z: 20
-
-        GalleryHeader {
-            id: header
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: topBarActions.left
-            anchors.rightMargin: 12
-        }
-
-        Row {
-            id: topBarActions
-            anchors.right: parent.right
-            anchors.rightMargin: Style.spacingM
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: Style.spacingXS
-
-            DIconButton {
-                iconName: "folder_open"
-                size: "s"
-                variant: "standard"
-                tooltipText: "Open Image (Ctrl+O)"
-                Accessible.name: "Open Image"
-                visible: ImageService.galleryMode
-                onClicked: ImageService.openFileDialog()
-            }
-
-            DIconButton {
-                id: searchIconBtn
-                iconName: ImageService.searchActive ? "close" : "search"
-                size: "s"
-                variant: ImageService.searchActive ? "tonal" : "standard"
-                tooltipText: ImageService.searchActive ? "Close search (Esc)" : "Search (Ctrl+F / /)"
-                Accessible.name: tooltipText
-                visible: ImageService.galleryMode
-                onClicked: {
-                    ImageService.searchActive = !ImageService.searchActive
-                    if (ImageService.searchActive) {
-                        searchField.forceActiveFocus()
-                    } else {
-                        root.forceActiveFocus()
-                    }
-                }
-            }
-        }
-    }
-
-    // Morph search bar — appears below navigation when activated
-    Item {
-        id: searchBar
-        anchors.top: topBar.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        height: ImageService.searchActive && ImageService.galleryMode ? 48 : 0
-        opacity: height > 0 ? 1.0 : 0.0
-        clip: true
-        visible: opacity > 0
-
-        Behavior on height {
-            enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
-            DAnim {
-                duration: Style.shortDuration
-                easing.bezierCurve: Style.expressiveCurves.emphasized
-            }
-        }
-        Behavior on opacity {
-            DAnim {
-                duration: Style.shortDuration
-                easing.bezierCurve: Style.expressiveCurves.standard
-            }
-        }
-
-        // Inner search field morphs from icon scale
-        DSearchField {
-            id: searchField
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            placeholderText: ImageService.galleryTab === "albums" ? "Search albums..." : "Search images..."
-            text: ImageService.searchQuery
-            scale: ImageService.searchActive ? 1.0 : 0.92
-            opacity: ImageService.searchActive ? 1.0 : 0.0
-
-            Behavior on scale {
-                enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
-                DAnim {
-                    duration: Style.shortDuration
-                    easing.bezierCurve: Style.expressiveCurves.emphasized
-                }
-            }
-            Behavior on opacity {
-                DAnim {
-                    duration: Style.shortDuration
-                    easing.bezierCurve: Style.expressiveCurves.standard
-                }
-            }
-
-            onTextEdited: ImageService.searchQuery = text
-            onAccepted: ImageService.searchQuery = text
-            Keys.onEscapePressed: {
-                ImageService.searchActive = false
+    Connections {
+        target: ImageService
+        function onSearchBarCollapsedChanged() {
+            if (ImageService.searchBarCollapsed && searchInput.activeFocus) {
                 root.forceActiveFocus()
             }
         }
     }
 
-    Item {
-        id: contentContainer
-        anchors.top: searchBar.bottom
-        anchors.topMargin: searchBar.height > 0 ? 8 : 10
-        anchors.bottom: parent.bottom
+    // Left Sidebar Navigation (Timeline, Albums, Settings)
+    GallerySidebar {
+        id: sidebar
         anchors.left: parent.left
-        anchors.right: parent.right
-
-        Behavior on anchors.topMargin {
-            DAnim {
-                duration: Style.shortDuration
-                easing.bezierCurve: Style.expressiveCurves.standard
-            }
-        }
-
-        GalleryTimeline {
-            anchors.fill: parent
-            visible: ImageService.galleryTab === "gallery"
-        }
-
-        GalleryAlbums {
-            anchors.fill: parent
-            visible: ImageService.galleryTab === "albums"
-        }
-    }
-
-    // Floating Bottom Navigation Dock
-    GalleryDock {
-        id: dock
+        anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
-        anchors.horizontalCenter: parent.horizontalCenter
-        z: 30
+        z: 25
     }
 
-    // Auto-focus search when activated
-    Connections {
-        target: ImageService
-        function onSearchActiveChanged() {
-            if (ImageService.searchActive) {
-                // delay to allow morph animation to start
-                focusTimer.restart()
-            } else {
-                ImageService.searchQuery = ""
+    // Main Content Card (Rounded container adjacent to sidebar, matching M3 / DankCalendar aesthetic)
+    Rectangle {
+        id: mainArea
+        anchors.left: sidebar.right
+        anchors.leftMargin: Style.spacingS
+        anchors.right: parent.right
+        anchors.rightMargin: Style.spacingM
+        anchors.top: parent.top
+        anchors.topMargin: Style.spacingS
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Style.spacingM
+        radius: Style.cornerRadiusL
+        color: Theme.surfaceContainer
+        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.22)
+        border.width: Style.outlineWidth
+        clip: true
+
+        // Floating M3E Search Bar Pill (Overlays content, collapses to right on scroll)
+        Rectangle {
+            id: searchPill
+            readonly property int expandedWidth: Math.min(420, mainArea.width - 48)
+            readonly property int collapsedWidth: 40
+            readonly property bool isCollapsed: ImageService.searchBarCollapsed && ImageService.searchQuery === ""
+
+            anchors.top: parent.top
+            anchors.topMargin: 16
+            anchors.right: parent.right
+            anchors.rightMargin: isCollapsed ? 16 : Math.round((mainArea.width - expandedWidth) / 2)
+            width: isCollapsed ? collapsedWidth : expandedWidth
+            height: 40
+            radius: height / 2
+            z: 30
+            visible: ImageService.galleryTab !== "settings"
+                color: searchInput.activeFocus ? Theme.surfaceContainerHighest : (isCollapsed && collapsedMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh)
+                border.color: searchInput.activeFocus ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.28)
+                border.width: searchInput.activeFocus ? 2 : 1
+                clip: true
+
+                Behavior on width {
+                    DAnim {
+                        duration: M3E.spatialFastMs
+                        easing.bezierCurve: M3E.curveFastSpatial
+                    }
+                }
+                Behavior on anchors.rightMargin {
+                    DAnim {
+                        duration: M3E.spatialFastMs
+                        easing.bezierCurve: M3E.curveFastSpatial
+                    }
+                }
+                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+                Behavior on border.color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+
+                // Search icon container (Centered when collapsed, left icon when expanded)
+                Item {
+                    id: searchIconContainer
+                    width: 40
+                    height: 40
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+
+                    DIcon {
+                        anchors.centerIn: parent
+                        name: "search"
+                        size: 18
+                        color: searchInput.activeFocus ? Theme.primary : Theme.surfaceVariantText
+                    }
+
+                    // Dot indicator on collapsed pill when active filters exist
+                    Rectangle {
+                        visible: searchPill.isCollapsed && ImageService.hasActiveFilters
+                        width: 7
+                        height: 7
+                        radius: 3.5
+                        anchors.top: parent.top
+                        anchors.topMargin: 7
+                        anchors.right: parent.right
+                        anchors.rightMargin: 7
+                        color: Theme.primary
+                    }
+                }
+
+                // Expanded content: TextInput, Clear button, Divider, Filter button
+                Item {
+                    id: expandedContent
+                    anchors.left: searchIconContainer.right
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    opacity: searchPill.isCollapsed ? 0 : 1
+                    visible: opacity > 0
+                    clip: true
+
+                    Behavior on opacity {
+                        DAnim {
+                            duration: M3E.effectsFastMs
+                            easing.bezierCurve: M3E.curveFastEffects
+                        }
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.rightMargin: 6
+                        spacing: 6
+
+                        TextInput {
+                            id: searchInput
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            verticalAlignment: TextInput.AlignVCenter
+                            text: ImageService.searchQuery
+                            font.pixelSize: Theme.fontSizeMedium - 1
+                            font.family: Theme.defaultFontFamily
+                            color: Theme.surfaceText
+                            selectByMouse: true
+                            selectionColor: Theme.primary
+                            selectedTextColor: Theme.onPrimary
+
+                            onTextEdited: ImageService.searchQuery = text
+
+                            Text {
+                                anchors.fill: parent
+                                verticalAlignment: Text.AlignVCenter
+                                visible: !searchInput.text && !searchInput.inputMethodComposing
+                                text: ImageService.galleryTab === "albums" ? "Search albums..." : "Search photos"
+                                font.pixelSize: Theme.fontSizeMedium - 1
+                                font.family: Theme.defaultFontFamily
+                                color: Theme.surfaceVariantText
+                            }
+
+                            Keys.onEscapePressed: {
+                                searchInput.text = ""
+                                ImageService.searchQuery = ""
+                                root.forceActiveFocus()
+                            }
+                        }
+
+                        // Clear button
+                        Rectangle {
+                            visible: searchInput.text !== ""
+                            width: 26
+                            height: 26
+                            radius: 13
+                            color: clearMouse.containsMouse ? Theme.surfaceContainerLowest : "transparent"
+
+                            DIcon {
+                                anchors.centerIn: parent
+                                name: "close"
+                                size: 14
+                                color: Theme.surfaceVariantText
+                            }
+
+                            MouseArea {
+                                id: clearMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    searchInput.text = ""
+                                    ImageService.searchQuery = ""
+                                    searchInput.forceActiveFocus()
+                                }
+                            }
+                        }
+
+                        // Divider before filter button
+                        Rectangle {
+                            width: 1
+                            height: 18
+                            color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+                        }
+
+                        // Filter & Sort Button (tune icon as in Google Photos reference)
+                        Rectangle {
+                            id: filterBtn
+                            width: 30
+                            height: 30
+                            radius: 15
+                            color: ImageService.hasActiveFilters
+                                ? Theme.primaryContainer
+                                : (filterMouse.containsMouse ? Theme.surfaceContainerLowest : "transparent")
+
+                            scale: filterMouse.pressed ? M3E.iconBtnPressScale : 1.0
+
+                            Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+                            Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+
+                            DIcon {
+                                anchors.centerIn: parent
+                                name: "tune"
+                                size: 18
+                                color: ImageService.hasActiveFilters ? Theme.onPrimaryContainer : Theme.surfaceText
+                            }
+
+                            // Dot indicator when filters are active
+                            Rectangle {
+                                visible: ImageService.hasActiveFilters
+                                width: 7
+                                height: 7
+                                radius: 3.5
+                                anchors.top: parent.top
+                                anchors.topMargin: 3
+                                anchors.right: parent.right
+                                anchors.rightMargin: 3
+                                color: Theme.primary
+                            }
+
+                            DTooltipHost {
+                                anchors.fill: parent
+                                text: "Filter & Sort"
+                            }
+
+                            MouseArea {
+                                id: filterMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: filterDialog.open()
+                            }
+                        }
+                    }
+                }
+
+                // Click overlay to expand when collapsed
+                MouseArea {
+                    id: collapsedMouse
+                    anchors.fill: parent
+                    enabled: searchPill.isCollapsed
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        ImageService.searchBarCollapsed = false
+                        searchInput.forceActiveFocus()
+                    }
+                }
+
+                DTooltipHost {
+                    anchors.fill: parent
+                    text: "Search photos"
+                    visible: searchPill.isCollapsed
+                }
+            }
+
+        Item {
+            id: contentContainer
+            anchors.fill: parent
+            z: 10
+
+            GalleryTimeline {
+                anchors.fill: parent
+                visible: ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline"
+            }
+
+            GalleryAlbums {
+                anchors.fill: parent
+                visible: ImageService.galleryTab === "albums"
+            }
+
+            GallerySettings {
+                anchors.fill: parent
+                visible: ImageService.galleryTab === "settings"
             }
         }
+
+        // Floating Contextual Actions Dock (Selection toolbar & Album edit actions)
+        GalleryDock {
+            id: dock
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 20
+            anchors.horizontalCenter: parent.horizontalCenter
+            z: 30
+        }
     }
-    Timer {
-        id: focusTimer
-        interval: 120
-        onTriggered: searchField.forceActiveFocus()
+
+    // Filter & Sort Modal Dialog
+    FilterSortDialog {
+        id: filterDialog
+        anchors.fill: parent
+        z: 100
     }
 }

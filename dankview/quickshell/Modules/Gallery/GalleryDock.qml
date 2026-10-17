@@ -9,81 +9,58 @@ Item {
     id: root
 
     readonly property bool isSelectionMode: ImageService.gallerySelectedCount > 0
+    readonly property bool isEditAlbumsMode: ImageService.albumsEditMode && ImageService.galleryTab === "albums"
+    readonly property bool isDockActive: isSelectionMode || isEditAlbumsMode
+    readonly property string dockState: isSelectionMode ? "selection" : (isEditAlbumsMode ? "editAlbums" : "")
 
-    // M3E toolbar height = buttonHeightM (56) for expressive
+    readonly property real targetWidth: {
+        if (dockState === "selection") return selectionRow.implicitWidth + Style.spacingM * 2;
+        if (dockState === "editAlbums") return editAlbumsRow.implicitWidth + Style.spacingS * 2;
+        return 0;
+    }
+
     implicitHeight: Style.buttonHeightM
-    implicitWidth: isSelectionMode ? selectionPill.implicitWidth : navGroup.implicitWidth
+    implicitWidth: dockPill.width
+    visible: opacity > 0
+    opacity: isDockActive ? 1.0 : 0.0
+    scale: isDockActive ? 1.0 : 0.88
 
-    Behavior on implicitWidth {
-        enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
+    Behavior on opacity {
         DAnim {
-            duration: Style.expressiveDurations.expressiveDefaultSpatial
-            easing.bezierCurve: Style.expressiveCurves.expressiveDefaultSpatial
+            duration: M3E.effectsDefaultMs
+            easing.bezierCurve: M3E.curveDefaultEffects
+        }
+    }
+    Behavior on scale {
+        DAnim {
+            duration: M3E.spatialFastMs
+            easing.bezierCurve: M3E.curveFastSpatial
         }
     }
 
-    // === Navigation (no selection) - M3E Connected Button Group ===
-    DButtonGroup {
-        id: navGroup
-        anchors.centerIn: parent
-        model: [
-            { text: "Gallery", icon: "photo_library" },
-            { text: "Albums",  icon: "collections_bookmark" }
-        ]
-        currentIndex: ImageService.galleryTab === "albums" ? 1 : 0
-        size: "small"
-        onSelectionChanged: (index, selected) => {
-            if (selected) ImageService.galleryTab = index === 0 ? "gallery" : "albums"
-        }
-        visible: opacity > 0
-        opacity: root.isSelectionMode ? 0.0 : 1.0
-        scale: root.isSelectionMode ? 0.92 : 1.0
-
-        Behavior on opacity {
-            DAnim {
-                duration: Style.expressiveDurations.expressiveEffects
-                easing.bezierCurve: Style.expressiveCurves.expressiveEffects
-            }
-        }
-        Behavior on scale {
-            DAnim {
-                duration: Style.expressiveDurations.expressiveFastSpatial
-                easing.bezierCurve: Style.expressiveCurves.expressiveFastSpatial
-            }
-        }
-    }
-
-    // === Selection Toolbar — M3 Expressive ===
-    // Pill container with elevated tonal surface
+    // Unified M3E Floating Pill Container that morphs across contextual action states
     Rectangle {
-        id: selectionPill
+        id: dockPill
         anchors.centerIn: parent
-        implicitHeight: Style.buttonHeightM
-        implicitWidth: selectionRow.implicitWidth + Style.spacingM * 2
-        radius: Style.cornerRadiusXL
+        height: Style.buttonHeightM
+        width: Math.max(1, root.targetWidth)
+        radius: height / 2
         color: Style.foregroundColor(Style.surfaceContainerHigh, false)
-        border.color: Style.withAlpha(Style.primary, 0.10)
-        border.width: root.isSelectionMode ? 1 : 0
-        visible: opacity > 0
-        opacity: root.isSelectionMode ? 1.0 : 0.0
-        scale: root.isSelectionMode ? 1.0 : 0.94
+        border.color: Style.withAlpha(Style.primary, 0.22)
+        border.width: 1
+        clip: true
 
-        Behavior on opacity {
+        Behavior on width {
+            enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
             DAnim {
-                duration: Style.expressiveDurations.expressiveEffects
-                easing.bezierCurve: Style.expressiveCurves.expressiveEffects
-            }
-        }
-        Behavior on scale {
-            DAnim {
-                duration: Style.expressiveDurations.expressiveFastSpatial
-                easing.bezierCurve: Style.expressiveCurves.expressiveFastSpatial
+                duration: M3E.spatialDefaultMs
+                easing.bezierCurve: M3E.curveDefaultSpatial
             }
         }
         Behavior on border.color {
             DColorAnim {
-                duration: Style.expressiveDurations.expressiveEffects
-                easing.bezierCurve: Style.expressiveCurves.expressiveEffects
+                duration: M3E.effectsFastMs
+                easing.bezierCurve: M3E.curveFastEffects
             }
         }
 
@@ -93,13 +70,134 @@ Item {
             targetRadius: parent.radius
             targetColor: parent.color
             level: Style.elevationLevel2
-            visible: root.isSelectionMode
         }
 
+        // === 2. Edit Albums State (Cancel / Confirm) ===
+        RowLayout {
+            id: editAlbumsRow
+            anchors.centerIn: parent
+            spacing: M3E.groupGap
+            visible: opacity > 0
+            opacity: root.dockState === "editAlbums" ? 1.0 : 0.0
+            scale: root.dockState === "editAlbums" ? 1.0 : 0.92
+
+            Behavior on opacity { DAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+            Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+
+            // Cancel Button (Left segment)
+            Rectangle {
+                readonly property real pillR: height / 2
+                readonly property real leftR: M3E.leftRadius(0, 2, pillR, cancelEditMouse.pressed, cancelEditMouse.containsMouse, false, M3E.pressRadiusS)
+                readonly property real rightR: M3E.rightRadius(0, 2, pillR, cancelEditMouse.pressed, cancelEditMouse.containsMouse, false, M3E.pressRadiusS)
+
+                implicitHeight: Style.buttonHeightS
+                implicitWidth: cancelEditContent.implicitWidth + Style.spacingXL
+                topLeftRadius: leftR
+                bottomLeftRadius: leftR
+                topRightRadius: rightR
+                bottomRightRadius: rightR
+                scale: cancelEditMouse.pressed ? M3E.rowPressScale : 1.0
+                color: cancelEditMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainer
+
+                Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on topRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on bottomRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+
+                RowLayout {
+                    id: cancelEditContent
+                    anchors.centerIn: parent
+                    spacing: Style.spacingS
+
+                    DIcon {
+                        name: "close"
+                        size: Style.chipIconSize
+                        color: Theme.surfaceText
+                    }
+
+                    StyledText {
+                        text: "Cancel"
+                        font.pixelSize: Style.fontSizeSmall
+                        font.weight: Style.fontWeightMedium
+                        color: Theme.surfaceText
+                    }
+                }
+
+                MouseArea {
+                    id: cancelEditMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: ImageService.cancelEditAlbums()
+                }
+            }
+
+            // Confirm Button (Right segment)
+            Rectangle {
+                readonly property real pillR: height / 2
+                readonly property real leftR: M3E.leftRadius(1, 2, pillR, confirmEditMouse.pressed, confirmEditMouse.containsMouse, true, M3E.pressRadiusS)
+                readonly property real rightR: M3E.rightRadius(1, 2, pillR, confirmEditMouse.pressed, confirmEditMouse.containsMouse, true, M3E.pressRadiusS)
+
+                implicitHeight: Style.buttonHeightS
+                implicitWidth: confirmEditContent.implicitWidth + Style.spacingXL
+                topLeftRadius: leftR
+                bottomLeftRadius: leftR
+                topRightRadius: rightR
+                bottomRightRadius: rightR
+                scale: confirmEditMouse.pressed ? M3E.rowPressScale : 1.0
+                color: confirmEditMouse.containsMouse
+                    ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.88)
+                    : Theme.primary
+
+                Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on topRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on bottomRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+
+                RowLayout {
+                    id: confirmEditContent
+                    anchors.centerIn: parent
+                    spacing: Style.spacingS
+
+                    DIcon {
+                        name: "check"
+                        size: Style.chipIconSize
+                        color: Theme.onPrimary
+                    }
+
+                    StyledText {
+                        text: "Confirm"
+                        font.pixelSize: Style.fontSizeSmall
+                        font.weight: Style.fontWeightBold
+                        color: Theme.onPrimary
+                    }
+                }
+
+                MouseArea {
+                    id: confirmEditMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: ImageService.confirmEditAlbums()
+                }
+            }
+        }
+
+        // === 3. Selection Toolbar State ===
         RowLayout {
             id: selectionRow
             anchors.centerIn: parent
             spacing: Style.spacingS
+            visible: opacity > 0
+            opacity: root.dockState === "selection" ? 1.0 : 0.0
+            scale: root.dockState === "selection" ? 1.0 : 0.92
+
+            Behavior on opacity { DAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
+            Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
 
             // Leading count chip — M3E tonal chip
             Rectangle {
@@ -116,7 +214,7 @@ Item {
 
                     DIcon {
                         name: "check_circle"
-                        size: 18
+                        size: Style.chipIconSize
                         color: Style.onPrimaryContainer
                     }
                     StyledText {
@@ -127,7 +225,7 @@ Item {
                     }
                     DIcon {
                         name: "close"
-                        size: 14
+                        size: Style.iconSizeSmall
                         color: Style.onPrimaryContainer
                         opacity: 0.85
                     }
@@ -140,10 +238,10 @@ Item {
                 }
             }
 
-            // Divider — M3 outlineVariant 12%
+            // Divider
             Rectangle {
                 implicitWidth: Style.dividerWidth
-                implicitHeight: 24
+                implicitHeight: Style.iconSize
                 color: Style.outlineVariant
                 opacity: 0.30
             }
@@ -169,7 +267,7 @@ Item {
             // Divider between groups
             Rectangle {
                 implicitWidth: Style.dividerWidth
-                implicitHeight: 24
+                implicitHeight: Style.iconSize
                 color: Style.outlineVariant
                 opacity: 0.20
             }

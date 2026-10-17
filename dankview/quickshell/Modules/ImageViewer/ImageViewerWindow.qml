@@ -251,7 +251,7 @@ FloatingWindow {
             id: windowFrame
             anchors.fill: parent
             radius: window.maximized ? 0 : Theme.windowRadius
-            color: Theme.surfaceContainerLowest
+            color: ImageService.galleryMode ? Theme.surface : Theme.surfaceContainerLowest
             border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.4)
             border.width: window.maximized ? 0 : 1
 
@@ -262,9 +262,9 @@ FloatingWindow {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 height: headerBar.implicitHeight
-                color: Theme.withAlpha(Theme.cardSurface, 0.90)
-                border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
-                border.width: 1
+                color: ImageService.galleryMode ? "transparent" : Theme.withAlpha(Theme.cardSurface, 0.90)
+                border.color: ImageService.galleryMode ? "transparent" : Theme.withAlpha(Theme.outlineVariant, 0.25)
+                border.width: ImageService.galleryMode ? 0 : 1
                 opacity: !ImageService.uiLocked ? 1.0 : 0.0
                 visible: opacity > 0
                 z: 40
@@ -374,13 +374,13 @@ FloatingWindow {
                 Rectangle {
                     id: floatingLockBadge
                     anchors.centerIn: parent
-                    width: 40
-                    height: 40
-                    radius: 20
+                    width: Style.buttonHeightS
+                    height: Style.buttonHeightS
+                    radius: height / 2
                     color: lockBadgeMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
                     opacity: lockBadgeMouse.containsMouse ? 0.95 : 0.0
                     border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
-                    border.width: 1
+                    border.width: Style.outlineWidth
 
                     Behavior on opacity {
                         NumberAnimation {
@@ -392,7 +392,7 @@ FloatingWindow {
                     DIcon {
                         anchors.centerIn: parent
                         name: "lock_open"
-                        size: 20
+                        size: Style.iconSizeMedium
                         color: Theme.primary
                     }
                 }
@@ -415,7 +415,7 @@ FloatingWindow {
                 anchors.right: ImageService.cropMode ? undefined : editFab.right
                 anchors.horizontalCenter: ImageService.cropMode ? parent.horizontalCenter : undefined
                 anchors.bottom: ImageService.cropMode ? parent.bottom : editFab.top
-                anchors.bottomMargin: ImageService.cropMode ? 24 : 12
+                anchors.bottomMargin: ImageService.cropMode ? Style.spacingXL : Style.spacingM
                 z: 60
             }
 
@@ -426,9 +426,9 @@ FloatingWindow {
                 anchors.rightMargin: 28
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 28
-                width: 56
-                height: 56
-                radius: fabMouse.pressed ? M3E.pressRadiusM : ((ImageService.editMode || fabMouse.containsMouse) ? 28 : 16)
+                width: Style.buttonHeightM
+                height: Style.buttonHeightM
+                radius: fabMouse.pressed ? M3E.pressRadiusM : ((ImageService.editMode || fabMouse.containsMouse) ? height / 2 : Style.cornerRadiusL)
                 z: 60
 
                 readonly property bool shouldShow: !ImageService.galleryMode &&
@@ -452,7 +452,7 @@ FloatingWindow {
                 border.color: ImageService.editMode
                     ? Theme.primary
                     : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
-                border.width: 1
+                border.width: Style.outlineWidth
 
                 Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }
                 Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
@@ -462,7 +462,7 @@ FloatingWindow {
                 DIcon {
                     anchors.centerIn: parent
                     name: ImageService.editMode ? "close" : "edit"
-                    size: 24
+                    size: Style.iconSize
                     color: ImageService.editMode ? Theme.primary : (Theme.onPrimary || Theme.primaryText)
 
                     Behavior on rotation {
@@ -484,10 +484,10 @@ FloatingWindow {
             Rectangle {
                 id: floatingActionsPill
                 anchors.right: editFab.left
-                anchors.rightMargin: 12
+                anchors.rightMargin: Style.spacingM
                 anchors.verticalCenter: editFab.verticalCenter
-                implicitHeight: 56
-                implicitWidth: actionRow.implicitWidth + 16
+                implicitHeight: Style.buttonHeightM
+                implicitWidth: actionRow.implicitWidth + Style.spacingL
                 radius: height / 2
                 z: 60
 
@@ -504,7 +504,7 @@ FloatingWindow {
                 scale: shouldShow ? 1.0 : 0.8
                 color: Theme.withAlpha(Theme.chipSurface, 0.95)
                 border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
-                border.width: 1
+                border.width: Style.outlineWidth
 
                 Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }
                 Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
@@ -521,8 +521,8 @@ FloatingWindow {
                     readonly property real leftR: M3E.leftRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
                     readonly property real rightR: M3E.rightRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
 
-                    buttonSize: 40
-                    iconSize: 22
+                    buttonSize: Style.buttonHeightS
+                    iconSize: Style.iconSizeMedium
                     topLeftRadius: leftR
                     bottomLeftRadius: leftR
                     topRightRadius: rightR
@@ -589,9 +589,9 @@ FloatingWindow {
                 anchors.leftMargin: 28
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 28
-                implicitWidth: zoomContentRow.implicitWidth + 28
-                implicitHeight: 56
-                radius: zoomMouse.pressed ? M3E.pressRadiusM : (zoomMouse.containsMouse ? 28 : 16)
+                implicitWidth: zoomContentRow.implicitWidth + Style.spacingXL
+                implicitHeight: Style.buttonHeightM
+                radius: zoomMouse.pressed ? M3E.pressRadiusM : (zoomMouse.containsMouse ? height / 2 : Style.cornerRadiusL)
                 z: 60
 
                 readonly property bool shouldShow: !ImageService.galleryMode &&
@@ -611,7 +611,7 @@ FloatingWindow {
                     : (zoomMouse.containsMouse ? Qt.lighter(Theme.chipSurface, 1.08) : Theme.withAlpha(Theme.chipSurface, 0.95))
 
                 border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
-                border.width: 1
+                border.width: Style.outlineWidth
 
                 Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }
                 Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
@@ -621,11 +621,11 @@ FloatingWindow {
                 RowLayout {
                     id: zoomContentRow
                     anchors.centerIn: parent
-                    spacing: 8
+                    spacing: Style.spacingS
 
                     DIcon {
                         name: "zoom_in"
-                        size: 22
+                        size: Style.iconSizeMedium
                         color: Theme.surfaceText
                     }
 
@@ -717,11 +717,26 @@ FloatingWindow {
         }
     }
 
+    FileBrowserModal {
+        id: addFolderModal
+        folderMode: true
+        browserTitle: "Add Album Folder"
+        browserIcon: "create_new_folder"
+        parentModal: window
+        onFileSelected: path => {
+            ImageService.addAlbumFolder(path);
+            close();
+        }
+    }
+
     Connections {
         target: ImageService
         function onOpenFileDialogRequested() {
             openImageModal.revealPath = ImageService.currentFilePath || "";
             openImageModal.open();
+        }
+        function onOpenAddFolderDialogRequested() {
+            addFolderModal.open();
         }
     }
 }

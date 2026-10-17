@@ -90,10 +90,14 @@ func main() {
 
 	if *printGallery {
 		dir := ""
+		var extraDirs []string
 		if flag.NArg() > 0 {
 			dir = flag.Arg(0)
+			if flag.NArg() > 1 {
+				extraDirs = flag.Args()[1:]
+			}
 		}
-		data, err := fs.ScanGallery(dir)
+		data, err := fs.ScanGallery(dir, extraDirs...)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error scanning gallery: %v\n", err)
 			os.Exit(1)

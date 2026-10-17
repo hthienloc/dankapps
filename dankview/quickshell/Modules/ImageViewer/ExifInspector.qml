@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 
 Rectangle {
@@ -10,7 +11,7 @@ Rectangle {
 
     width: 760
     height: 480
-    radius: 20
+    radius: Style.cornerRadiusL
     color: Theme.withAlpha(Theme.cardSurface, 0.97)
     border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.28)
     border.width: 1
@@ -21,7 +22,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         width: 120
-        height: 24
+        height: Style.iconSize
         z: 10
 
         Rectangle {
@@ -29,7 +30,7 @@ Rectangle {
             anchors.centerIn: parent
             width: grabHandleMouse.containsMouse ? 48 : 36
             height: 4
-            radius: 2
+            radius: Style.cornerRadiusXXS
             color: grabHandleMouse.containsMouse ? Theme.primary : Qt.rgba(1, 1, 1, 0.38)
 
             Behavior on width { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
@@ -47,7 +48,7 @@ Rectangle {
 
     component M3Card: Rectangle {
         Layout.fillWidth: true
-        radius: 14
+        radius: Style.cornerRadiusM
         color: Theme.surfaceContainerHigh
         border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.20)
         border.width: 1
@@ -58,11 +59,11 @@ Rectangle {
         property string iconName: ""
 
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Style.spacingS
 
         DIcon {
             name: iconName
-            size: 18
+            size: Style.chipIconSize
             color: Theme.primary
         }
 
@@ -82,7 +83,7 @@ Rectangle {
         visible: value !== ""
 
         Layout.fillWidth: true
-        spacing: 12
+        spacing: Style.spacingM
 
         StyledText {
             Layout.preferredWidth: 110
@@ -113,9 +114,9 @@ Rectangle {
         property color labelColor: Theme.surfaceText
         signal clicked()
 
-        implicitHeight: 32
-        implicitWidth: chipRow.implicitWidth + 20
-        radius: 8
+        implicitHeight: Style.buttonHeightXS
+        implicitWidth: chipRow.implicitWidth + Style.spacingL
+        radius: Style.cornerRadiusS
         color: chipMouse.containsMouse ? Theme.surfaceContainerHighest : (Theme.surfaceContainerLow || Theme.surfaceContainerHigh)
         border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.28)
         border.width: 1
@@ -123,11 +124,11 @@ Rectangle {
         RowLayout {
             id: chipRow
             anchors.centerIn: parent
-            spacing: 6
+            spacing: Style.spacingXS
 
             DIcon {
                 name: chip.iconName
-                size: 16
+                size: Style.iconSizeSmall
                 color: chip.iconColor
             }
 
@@ -154,9 +155,9 @@ Rectangle {
         property color bgColor: Theme.surfaceContainerHighest
         property color borderColor: "transparent"
 
-        implicitHeight: 24
-        implicitWidth: badgeText.implicitWidth + 14
-        radius: 8
+        implicitHeight: Style.iconSize
+        implicitWidth: badgeText.implicitWidth + Style.spacingM
+        radius: Style.cornerRadiusS
         color: bgColor
         border.color: borderColor
         border.width: borderColor !== "transparent" ? 1 : 0
@@ -164,7 +165,7 @@ Rectangle {
         StyledText {
             id: badgeText
             anchors.centerIn: parent
-            font.pixelSize: Theme.fontSizeSmall - 1
+            font.pixelSize: Theme.fontSizeSmall
             font.weight: Theme.fontWeightMedium
             color: textColor
         }
@@ -176,19 +177,19 @@ Rectangle {
 
         Layout.fillWidth: true
         implicitHeight: 48
-        radius: 10
+        radius: Style.cornerRadiusS
         color: Theme.surfaceContainerLow || Theme.surfaceContainerHigh
         border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.16)
         border.width: 1
 
         ColumnLayout {
             anchors.centerIn: parent
-            spacing: 2
+            spacing: Style.spacingXXS
 
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
                 text: label
-                font.pixelSize: Theme.fontSizeSmall - 2
+                font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.Normal
                 color: Theme.surfaceVariantText
             }
@@ -222,15 +223,15 @@ Rectangle {
         // Header
         RowLayout {
             Layout.fillWidth: true
-            Layout.topMargin: 16
-            Layout.bottomMargin: 10
-            Layout.leftMargin: 16
-            Layout.rightMargin: 16
-            spacing: 10
+            Layout.topMargin: Style.spacingL
+            Layout.bottomMargin: Style.spacingS
+            Layout.leftMargin: Style.spacingL
+            Layout.rightMargin: Style.spacingL
+            spacing: Style.spacingS
 
             DIcon {
                 name: "info"
-                size: 20
+                size: Style.iconSizeMedium
                 color: Theme.primary
             }
 
@@ -244,8 +245,8 @@ Rectangle {
 
             DActionButton {
                 iconName: "delete"
-                iconSize: 18
-                buttonSize: 32
+                iconSize: Style.chipIconSize
+                buttonSize: Style.buttonHeightXS
                 iconColor: Theme.error
                 tooltipText: "Move to Trash (Delete)"
                 tooltipSide: "left"
@@ -289,30 +290,30 @@ Rectangle {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 12
+                            spacing: Style.spacingM
 
                             Rectangle {
-                                width: 42
-                                height: 42
-                                radius: 10
+                                width: Style.buttonHeightS
+                                height: Style.buttonHeightS
+                                radius: Style.cornerRadiusS
                                 color: Theme.primaryContainer
 
                                 DIcon {
                                     anchors.centerIn: parent
                                     name: "image"
-                                    size: 22
+                                    size: Style.iconSize
                                     color: Theme.primaryText
                                 }
                             }
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: 2
+                                spacing: Style.spacingXXS
 
                                 StyledText {
                                     Layout.fillWidth: true
                                     text: ImageService.currentFileName || "Image"
-                                    font.pixelSize: Theme.fontSizeMedium + 1
+                                    font.pixelSize: Theme.fontSizeMedium
                                     font.weight: Theme.fontWeightBold
                                     color: Theme.surfaceText
                                     elide: Text.ElideMiddle

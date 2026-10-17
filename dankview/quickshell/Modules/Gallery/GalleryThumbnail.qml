@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 
 Item {
@@ -63,7 +64,7 @@ Item {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 44
+            height: Style.buttonHeightS
             visible: thumbMouse.containsMouse || root.isSelected || root.isFav || root.isSelectionMode
             gradient: Gradient {
                 GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.55) }
@@ -76,10 +77,10 @@ Item {
             id: selectBtn
             anchors.top: parent.top
             anchors.left: parent.left
-            anchors.margins: 8
-            width: 24
-            height: 24
-            radius: 12
+            anchors.margins: Style.spacingS
+            width: Style.iconSize
+            height: Style.iconSize
+            radius: height / 2
             visible: thumbMouse.containsMouse || root.isSelected || root.isSelectionMode
             color: root.isSelected ? Theme.primary : Qt.rgba(0, 0, 0, 0.35)
             border.color: root.isSelected ? Theme.primary : Qt.rgba(1, 1, 1, 0.8)
@@ -89,7 +90,7 @@ Item {
                 anchors.centerIn: parent
                 visible: root.isSelected
                 name: "check"
-                size: 16
+                size: Style.iconSizeSmall
                 color: Theme.primaryText
             }
 
@@ -107,10 +108,10 @@ Item {
             id: favBtn
             anchors.top: parent.top
             anchors.right: parent.right
-            anchors.margins: 8
-            width: 24
-            height: 24
-            radius: 12
+            anchors.margins: Style.spacingS
+            width: Style.iconSize
+            height: Style.iconSize
+            radius: height / 2
             visible: thumbMouse.containsMouse || root.isFav
             color: Qt.rgba(0, 0, 0, 0.35)
 
@@ -118,7 +119,7 @@ Item {
                 anchors.centerIn: parent
                 name: "favorite"
                 filled: root.isFav
-                size: 16
+                size: Style.iconSizeSmall
                 color: root.isFav ? Theme.error : Qt.rgba(1, 1, 1, 0.9)
             }
 

@@ -202,8 +202,8 @@ func tryScanWithDsearch(absRoot string, thumbDir string, today, yesterday time.T
 	return allImages, albumMap, categorySet, true
 }
 
-// ScanGallery scans rootDir and its subdirectories for images and organizes them into GalleryData.
-func ScanGallery(rootDir string) (*GalleryData, error) {
+// ScanGallery scans rootDir and its subdirectories (plus any extraDirs) for images and organizes them into GalleryData.
+func ScanGallery(rootDir string, extraDirs ...string) (*GalleryData, error) {
 	if rootDir == "" {
 		rootDir = GetPicturesDir()
 	}
@@ -220,6 +220,7 @@ func ScanGallery(rootDir string) (*GalleryData, error) {
 	var allImages []GalleryImage
 	albumMap := make(map[string]*GalleryAlbum)
 	categorySet := make(map[string]bool)
+	explicitAlbums := make(map[string]bool)
 
 	thumbDir := ""
 	if cacheDir, err := os.UserCacheDir(); err == nil {
@@ -243,42 +244,109 @@ func ScanGallery(rootDir string) (*GalleryData, error) {
 
 		// Walk max 2 levels deep
 		_ = filepath.Walk(absRoot, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info == nil {
-			return nil
-		}
-
-		rel, relErr := filepath.Rel(absRoot, path)
-		if relErr == nil {
-			depth := len(strings.Split(rel, string(os.PathSeparator)))
-			if info.IsDir() && depth > 2 && rel != "." {
-				return filepath.SkipDir
+			if err != nil || info == nil {
+				return nil
 			}
-		}
 
-		if info.IsDir() {
-			if path != absRoot {
-				albumName := info.Name()
-				isPinned := strings.EqualFold(albumName, "Screenshots") || strings.EqualFold(albumName, "Wallpapers")
-				if _, exists := albumMap[path]; !exists {
-					albumMap[path] = &GalleryAlbum{
-						Name:     albumName,
-						Path:     path,
-						IsPinned: isPinned,
-						Previews: []string{},
-					}
+			rel, relErr := filepath.Rel(absRoot, path)
+			if relErr == nil {
+				depth := len(strings.Split(rel, string(os.PathSeparator)))
+				if info.IsDir() && depth > 2 && rel != "." {
+					return filepath.SkipDir
 				}
 			}
+
+			if info.IsDir() {
+				if path != absRoot {
+					albumName := info.Name()
+					isPinned := strings.EqualFold(albumName, "Screenshots") || strings.EqualFold(albumName, "Wallpapers")
+					if _, exists := albumMap[path]; !exists {
+						albumMap[path] = &GalleryAlbum{
+							Name:     albumName,
+							Path:     path,
+							IsPinned: isPinned,
+							Previews: []string{},
+						}
+					}
+				}
+				return nil
+			}
+
+			if !IsSupportedImage(path) {
+				return nil
+			}
+
+			img := addGalleryImage(path, absRoot, thumbDir, info.Name(), info.ModTime(), today, yesterday, albumMap, categorySet)
+			allImages = append(allImages, img)
 			return nil
+		})
+	}
+
+	seenPaths := make(map[string]bool, len(allImages))
+	for _, img := range allImages {
+		seenPaths[img.Path] = true
+	}
+
+	// Scan any user-added extra folders
+	for _, extra := range extraDirs {
+		if strings.TrimSpace(extra) == "" {
+			continue
+		}
+		absExtra, err := filepath.Abs(extra)
+		if err != nil {
+			continue
+		}
+		fi, err := os.Stat(absExtra)
+		if err != nil || !fi.IsDir() {
+			continue
 		}
 
-		if !IsSupportedImage(path) {
-			return nil
+		explicitAlbums[absExtra] = true
+		albumName := filepath.Base(absExtra)
+		alb, exists := albumMap[absExtra]
+		if !exists {
+			alb = &GalleryAlbum{
+				Name:     albumName,
+				Path:     absExtra,
+				IsPinned: false,
+				Previews: []string{},
+			}
+			albumMap[absExtra] = alb
 		}
+		categorySet[albumName] = true
 
-		img := addGalleryImage(path, absRoot, thumbDir, info.Name(), info.ModTime(), today, yesterday, albumMap, categorySet)
-		allImages = append(allImages, img)
-		return nil
-	})
+		_ = filepath.Walk(absExtra, func(path string, info os.FileInfo, err error) error {
+			if err != nil || info == nil {
+				return nil
+			}
+			rel, relErr := filepath.Rel(absExtra, path)
+			if relErr == nil {
+				depth := len(strings.Split(rel, string(os.PathSeparator)))
+				if info.IsDir() && depth > 2 && rel != "." {
+					return filepath.SkipDir
+				}
+			}
+			if info.IsDir() || !IsSupportedImage(path) || seenPaths[path] {
+				return nil
+			}
+
+			seenPaths[path] = true
+			thumbPath := resolveXdgThumbnail(path, thumbDir)
+			img := GalleryImage{
+				Path:      path,
+				Thumbnail: thumbPath,
+				Name:      info.Name(),
+				ModTime:   info.ModTime().Unix(),
+				DateGroup: computeDateGroup(info.ModTime(), today, yesterday),
+				Category:  albumName,
+			}
+			allImages = append(allImages, img)
+			alb.TotalCount++
+			if len(alb.Previews) < 4 {
+				alb.Previews = append(alb.Previews, path)
+			}
+			return nil
+		})
 	}
 
 	// Sort images newest first
@@ -308,8 +376,8 @@ func ScanGallery(rootDir string) (*GalleryData, error) {
 	// Build albums list (Pinned first, then custom)
 	var pinnedAlbums []GalleryAlbum
 	var customAlbums []GalleryAlbum
-	for _, alb := range albumMap {
-		if alb.TotalCount > 0 || alb.IsPinned {
+	for pathKey, alb := range albumMap {
+		if alb.TotalCount > 0 || alb.IsPinned || explicitAlbums[pathKey] {
 			if alb.IsPinned {
 				pinnedAlbums = append(pinnedAlbums, *alb)
 			} else {
