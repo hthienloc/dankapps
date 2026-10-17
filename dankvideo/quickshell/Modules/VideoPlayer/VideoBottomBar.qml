@@ -127,15 +127,15 @@ Rectangle {
         }
 
         // Control Buttons
-        RowLayout {
+        Item {
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 0
+            Layout.preferredHeight: 42
 
             // Left cluster: Volume
             RowLayout {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
                 spacing: 8
-                Layout.alignment: Qt.AlignVCenter
 
                 DActionButton {
                     iconName: VideoService.isMuted || VideoService.volume === 0 ? "volume_off" : (VideoService.volume < 0.5 ? "volume_down" : "volume_up")
@@ -196,12 +196,10 @@ Rectangle {
                 }
             }
 
-            Item { Layout.fillWidth: true }
-
-            // Playback cluster (centered)
+            // Playback cluster (strictly centered)
             RowLayout {
+                anchors.centerIn: parent
                 spacing: 8
-                Layout.alignment: Qt.AlignVCenter
 
                 // Step Back 10s
                 DActionButton {
@@ -278,14 +276,13 @@ Rectangle {
                 }
             }
 
-            Item { Layout.fillWidth: true }
-
             // Right cluster: Playback speed chip
             Rectangle {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
                 implicitHeight: Style.buttonHeightXS - 6
-                implicitWidth: speedText.implicitWidth + 16
+                implicitWidth: Math.max(54, speedText.implicitWidth + 16)
                 radius: height / 2
-                Layout.alignment: Qt.AlignVCenter
                 color: speedMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
                 border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
                 border.width: 1
