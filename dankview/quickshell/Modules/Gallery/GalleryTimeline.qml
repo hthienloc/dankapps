@@ -53,6 +53,34 @@ Item {
     readonly property int columns: Math.max(3, Math.min(6, Math.floor((width - 40) / 168)))
     readonly property real tileWidth: Math.floor((width - 40 - (columns - 1) * 10) / columns)
 
+    property real lastContentY: -8
+    property bool restoringScroll: false
+
+    onFilteredGroupsChanged: {
+        if (root.lastContentY > 0) {
+            root.restoringScroll = true
+            const targetY = root.lastContentY
+            Qt.callLater(() => {
+                if (list.contentHeight > 0) {
+                    list.contentY = Math.min(targetY, Math.max(-list.topMargin, list.contentHeight - list.height))
+                }
+                root.restoringScroll = false
+            })
+        }
+    }
+
+    Connections {
+        target: ImageService
+        function onSelectedCategoryChanged() {
+            root.lastContentY = -list.topMargin
+            list.contentY = -list.topMargin
+        }
+        function onSearchQueryDebouncedChanged() {
+            root.lastContentY = -list.topMargin
+            list.contentY = -list.topMargin
+        }
+    }
+
     // Virtualized list of date groups — Grid is ~3× faster than Flow for fixed columns
     ListView {
         id: list
@@ -68,6 +96,12 @@ Item {
         reuseItems: true
         boundsBehavior: Flickable.StopAtBounds
         maximumFlickVelocity: 2500
+
+        onContentYChanged: {
+            if (!root.restoringScroll && contentY > 0) {
+                root.lastContentY = contentY
+            }
+        }
 
         delegate: ColumnLayout {
             width: ListView.view.width - 16

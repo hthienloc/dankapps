@@ -319,6 +319,28 @@ Singleton {
         }
     }
 
+    function removePathsFromGalleryData(paths) {
+        if (!galleryData || !paths || paths.length === 0) return;
+        const pathSet = {};
+        for (let i = 0; i < paths.length; i++) pathSet[paths[i]] = true;
+
+        const newAll = (galleryData.allImages || []).filter(img => !pathSet[img.path]);
+        const newGroups = [];
+        const oldGroups = galleryData.groups || [];
+        for (let gi = 0; gi < oldGroups.length; gi++) {
+            const g = oldGroups[gi];
+            const newImgs = (g.images || []).filter(img => !pathSet[img.path]);
+            if (newImgs.length > 0) {
+                newGroups.push({ dateGroup: g.dateGroup, images: newImgs });
+            }
+        }
+        galleryData = {
+            allImages: newAll,
+            albums: galleryData.albums,
+            groups: newGroups
+        };
+    }
+
     function trashSelected() {
         const list = gallerySelectedList;
         if (list.length === 0) return;
@@ -332,8 +354,10 @@ Singleton {
         command: []
         onExited: exitCode => {
             if (exitCode === 0) {
-                root.removeFavorites(root.gallerySelectedList);
-                root.showToast(`Moved ${root.gallerySelectedList.length} to trash`);
+                const list = root.gallerySelectedList.slice();
+                root.removeFavorites(list);
+                root.removePathsFromGalleryData(list);
+                root.showToast(`Moved ${list.length} to trash`);
                 root.clearSelection();
                 root.loadGallery();
             } else {
@@ -542,6 +566,9 @@ Singleton {
         onExited: exitCode => {
             if (exitCode === 0) {
                 root.showToast("Moved to trash (Ctrl+Z to undo)");
+                if (root.lastTrashedPath) {
+                    root.removePathsFromGalleryData([root.lastTrashedPath]);
+                }
                 removeCurrentFromList();
             } else {
                 root.showToast("Failed to move image to trash", true);
@@ -559,6 +586,7 @@ Singleton {
                 if (restored.length > 0) {
                     root.showToast("Restored from trash");
                     root.loadDirectoryFor(restored);
+                    root.loadGallery();
                 } else {
                     root.showToast("Nothing to undo", true);
                 }
