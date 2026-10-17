@@ -4,6 +4,7 @@ import Quickshell
 import qs.Common
 import qs.Services
 import qs.DCommon.Widgets
+import qs.DCommon.FileBrowser
 import "."
 import "../Gallery"
 
@@ -652,6 +653,31 @@ FloatingWindow {
                     saveDialog.cropRegion = null;
                 }
             }
+        }
+    }
+
+    FileBrowserModal {
+        id: openImageModal
+        browserTitle: "Open Image"
+        browserIcon: "image"
+        parentModal: window
+        fileExtensions: [
+            "*.jpg", "*.jpeg", "*.png", "*.webp", "*.svg", "*.gif",
+            "*.bmp", "*.avif", "*.heic", "*.heif", "*.jxl", "*.tif",
+            "*.tiff", "*.exr", "*.hdr", "*.tga", "*.qoi", "*.psd", "*.dds"
+        ]
+        revealPath: ImageService.currentFilePath || ""
+        onFileSelected: path => {
+            ImageService.loadDirectoryFor(path);
+            close();
+        }
+    }
+
+    Connections {
+        target: ImageService
+        function onOpenFileDialogRequested() {
+            openImageModal.revealPath = ImageService.currentFilePath || "";
+            openImageModal.open();
         }
     }
 }

@@ -5,6 +5,8 @@ import Quickshell.Io
 import qs.Common
 import qs.Services
 import qs.DCommon.Widgets
+import qs.DCommon.FileBrowser
+import qs.DCommon.Common as DC
 
 // Modal "Save As / Export" sheet.
 // Emits saved(destPath) on success, cancelled() on dismiss.
@@ -320,29 +322,29 @@ Rectangle {
         return getDefaultDestPath();
     }
 
-    function openBrowseDialog() {
-        const defaultName = root.getDisplayDestPath();
-        browseProc.command = [
-            "sh", "-c",
-            'zenity --file-selection --save --confirm-overwrite --title="Save As" --filename="$1" 2>/dev/null || kdialog --getsavefilename "$1" 2>/dev/null',
-            "browseProc",
-            defaultName
-        ];
-        browseProc.running = true;
+    FileBrowserModal {
+        id: saveFileBrowserModal
+        saveMode: true
+        browserTitle: "Save As"
+        browserIcon: "save"
+        defaultFileName: {
+            const dest = root.getDisplayDestPath();
+            const parts = dest.split("/");
+            return parts[parts.length - 1];
+        }
+        revealPath: {
+            const dest = root.getDisplayDestPath();
+            const idx = dest.lastIndexOf("/");
+            return idx > 0 ? dest.substring(0, idx) : "";
+        }
+        onFileSelected: path => {
+            root.customDestPath = path;
+            close();
+        }
     }
 
-    Process {
-        id: browseProc
-        running: false
-        command: []
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const picked = text.trim();
-                if (picked.length > 0) {
-                    root.customDestPath = picked;
-                }
-            }
-        }
+    function openBrowseDialog() {
+        saveFileBrowserModal.open();
     }
 
     function _doSave() {

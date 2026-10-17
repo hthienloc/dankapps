@@ -25,6 +25,7 @@ ShellRoot {
         DC.Style.theme = Theme;
         DC.Style.settings = SettingsData;
         DC.Paths.backend = Paths;
+        DC.Host.files = FilesService;
     }
 
     ImageViewerWindow {
