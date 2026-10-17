@@ -159,7 +159,16 @@ Item {
 
                 onSourceChanged: {
                     ImageService.isPlaying = true;
+                    ImageService.isAnimated = false;
+                    ImageService.frameCount = 1;
                     currentFrame = 0;
+                }
+
+                onStatusChanged: {
+                    if (status === Image.Ready) {
+                        ImageService.frameCount = frameCount;
+                        ImageService.isAnimated = frameCount > 1;
+                    }
                 }
 
                 // Scale up or down to fit viewport initially if needed

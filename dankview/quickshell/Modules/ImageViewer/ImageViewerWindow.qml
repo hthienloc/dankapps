@@ -35,8 +35,15 @@ FloatingWindow {
                 break;
             case Qt.Key_Right:
             case Qt.Key_PageDown:
-            case Qt.Key_Space:
                 ImageService.nextImage();
+                event.accepted = true;
+                break;
+            case Qt.Key_Space:
+                if (ImageService.isAnimated && !ImageService.galleryMode) {
+                    ImageService.togglePlayback();
+                } else {
+                    ImageService.nextImage();
+                }
                 event.accepted = true;
                 break;
 
@@ -508,6 +515,25 @@ FloatingWindow {
                     id: actionRow
                     anchors.centerIn: parent
                     spacing: 8
+
+                    DActionButton {
+                        visible: ImageService.isAnimated
+                        iconName: ImageService.isPlaying ? "pause" : "play_arrow"
+                        iconSize: 22
+                        buttonSize: 40
+                        iconColor: Theme.surfaceText
+                        tooltipText: ImageService.isPlaying ? "Pause GIF (Space)" : "Play GIF (Space)"
+                        tooltipSide: "top"
+                        onClicked: ImageService.togglePlayback()
+                    }
+
+                    Rectangle {
+                        visible: ImageService.isAnimated
+                        implicitWidth: 1
+                        implicitHeight: 24
+                        color: Theme.outlineVariant
+                        opacity: 0.35
+                    }
 
                     DActionButton {
                         readonly property bool isFav: ImageService.isFavorite(ImageService.currentFilePath)

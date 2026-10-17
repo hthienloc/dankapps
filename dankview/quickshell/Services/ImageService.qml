@@ -335,10 +335,19 @@ Singleton {
                 newGroups.push({ dateGroup: g.dateGroup, images: newImgs });
             }
         }
+        const activeCats = { "All": true };
+        for (let i = 0; i < newAll.length; i++) {
+            if (newAll[i].category) activeCats[newAll[i].category] = true;
+        }
+        const newCategories = (galleryData.categories || ["All"]).filter(cat => !!activeCats[cat]);
+        if (selectedCategory !== "All" && selectedCategory !== "Favorites" && !activeCats[selectedCategory]) {
+            selectedCategory = "All";
+        }
         galleryData = {
             allImages: newAll,
             albums: galleryData.albums,
-            groups: newGroups
+            groups: newGroups,
+            categories: newCategories
         };
     }
 
@@ -571,6 +580,9 @@ Singleton {
                     root.removePathsFromGalleryData([root.lastTrashedPath]);
                 }
                 removeCurrentFromList();
+                if (root.currentFilePath) {
+                    root.loadGallery();
+                }
             } else {
                 root.showToast("Failed to move image to trash", true);
             }
