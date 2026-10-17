@@ -14,10 +14,12 @@ StyledButton {
     property int buttonSize: Style.buttonHeightXS
     property var tooltipText: null
     property string tooltipSide: "bottom"
-    property int shapeDuration: Style.expressiveDurations.expressiveEffects
-    property var shapeCurve: Style.expressiveCurves.standard
-    property int stateDuration: Style.shorterDuration
-    property var stateCurve: Style.expressiveCurves.standardDecel
+    property bool enableScaleAnimation: true
+    property real pressScaleFactor: M3E.iconBtnPressScale
+    property int shapeDuration: M3E.spatialFastMs
+    property var shapeCurve: M3E.curveFastSpatial
+    property int stateDuration: M3E.effectsFastMs
+    property var stateCurve: M3E.curveFastEffects
 
     signal entered
     signal exited
@@ -29,12 +31,21 @@ StyledButton {
     implicitWidth: buttonSize
     implicitHeight: buttonSize
     radius: Style.buttonRadius(width, height, buttonSize, pressed, circular)
+    scale: (enableScaleAnimation && pressed) ? pressScaleFactor : 1.0
     color: enabled || backgroundColor.a === 0 ? backgroundColor : Style.onSurface_12
     Accessible.role: Accessible.Button
     Accessible.name: tooltipText || iconName
 
     Behavior on radius {
         enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
+        DAnim {
+            duration: root.shapeDuration
+            easing.bezierCurve: root.shapeCurve
+        }
+    }
+
+    Behavior on scale {
+        enabled: root.enableScaleAnimation && !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
         DAnim {
             duration: root.shapeDuration
             easing.bezierCurve: root.shapeCurve

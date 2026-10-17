@@ -41,18 +41,28 @@ Item {
     Rectangle {
         id: bgRect
         anchors.fill: parent
-        radius: root.cornerRadius
+        radius: stateLayer.pressed ? M3E.pressRadiusM : (root.activeState ? M3E.outerR : root.cornerRadius)
         color: root.activeState ? Theme.primaryContainer : root.backgroundColor
-        scale: 1.0
+        scale: stateLayer.pressed ? M3E.iconBtnPressScale : 1.0
 
         Behavior on color {
-            DColorAnim { duration: Theme.shortDuration }
+            DColorAnim {
+                duration: M3E.effectsFastMs
+                easing.bezierCurve: M3E.curveFastEffects
+            }
         }
 
         Behavior on radius {
             DAnim {
-                duration: Theme.shortDuration
-                easing.bezierCurve: Theme.expressiveCurves.standard
+                duration: M3E.spatialFastMs
+                easing.bezierCurve: M3E.curveFastSpatial
+            }
+        }
+
+        Behavior on scale {
+            DAnim {
+                duration: M3E.spatialFastMs
+                easing.bezierCurve: M3E.curveFastSpatial
             }
         }
 

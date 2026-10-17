@@ -224,22 +224,41 @@ Rectangle {
                     onClicked: VideoService.prevVideo()
                 }
 
-                // Play / Pause main button — M3 Primary circular button
+                // Play / Pause main button — M3E shape-morphing button (circle when paused -> squircle when playing/pressed)
                 Rectangle {
-                    width: 42
-                    height: 42
-                    radius: 21
+                    width: 44
+                    height: 44
+                    radius: playMouse.pressed ? M3E.pressRadiusS : (VideoService.isPlaying && !playMouse.containsMouse ? M3E.pressRadiusM : 22)
+                    scale: playMouse.pressed ? M3E.iconBtnPressScale : (playMouse.containsMouse ? 1.05 : 1.0)
                     color: playMouse.containsMouse ? Theme.primaryContainer : Theme.primary
                     Layout.alignment: Qt.AlignVCenter
 
+                    Behavior on radius {
+                        DAnim {
+                            duration: M3E.spatialFastMs
+                            easing.bezierCurve: M3E.curveFastSpatial
+                        }
+                    }
+
+                    Behavior on scale {
+                        DAnim {
+                            duration: M3E.spatialFastMs
+                            easing.bezierCurve: M3E.curveFastSpatial
+                        }
+                    }
+
                     Behavior on color {
-                        ColorAnimation { duration: Theme.shortDuration }
+                        DColorAnim {
+                            duration: M3E.effectsFastMs
+                            easing.bezierCurve: M3E.curveFastEffects
+                        }
                     }
 
                     DIcon {
                         anchors.centerIn: parent
                         name: VideoService.isPlaying ? "pause" : "play_arrow"
                         size: 24
+                        filled: true
                         color: playMouse.containsMouse ? Theme.onPrimaryContainer : Theme.onPrimary
                     }
 
@@ -276,16 +295,40 @@ Rectangle {
                 }
             }
 
-            // Right cluster: Playback speed chip
+            // Right cluster: Playback speed chip (M3E morphing chip)
             Rectangle {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                implicitHeight: Style.buttonHeightXS - 6
+                implicitHeight: Style.buttonHeightXS - 4
                 implicitWidth: Math.max(54, speedText.implicitWidth + 16)
-                radius: height / 2
-                color: speedMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
+                radius: speedMouse.pressed ? M3E.pressRadiusXS : height / 2
+                scale: speedMouse.pressed ? M3E.iconBtnPressScale : 1.0
+                color: VideoService.playbackRate !== 1.0
+                    ? Theme.secondaryContainer
+                    : (speedMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow)
                 border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
-                border.width: 1
+                border.width: VideoService.playbackRate !== 1.0 ? 0 : 1
+
+                Behavior on radius {
+                    DAnim {
+                        duration: M3E.spatialFastMs
+                        easing.bezierCurve: M3E.curveFastSpatial
+                    }
+                }
+
+                Behavior on scale {
+                    DAnim {
+                        duration: M3E.spatialFastMs
+                        easing.bezierCurve: M3E.curveFastSpatial
+                    }
+                }
+
+                Behavior on color {
+                    DColorAnim {
+                        duration: M3E.effectsFastMs
+                        easing.bezierCurve: M3E.curveFastEffects
+                    }
+                }
 
                 StyledText {
                     id: speedText
@@ -294,7 +337,7 @@ Rectangle {
                     font.family: Theme.monoFontFamily
                     font.pixelSize: Style.fontSizeSmall
                     font.weight: Font.Medium
-                    color: Theme.surfaceText
+                    color: VideoService.playbackRate !== 1.0 ? Theme.onSecondaryContainer : Theme.surfaceText
                 }
 
                 MouseArea {

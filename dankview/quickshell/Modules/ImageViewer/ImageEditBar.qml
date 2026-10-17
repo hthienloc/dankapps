@@ -47,14 +47,14 @@ Item {
 
         Behavior on opacity {
             DAnim {
-                duration: Style.shortDuration
-                easing.bezierCurve: Style.expressiveCurves.standard
+                duration: M3E.effectsMs
+                easing.bezierCurve: M3E.curveEffects
             }
         }
         Behavior on scale {
             DAnim {
-                duration: Style.shortDuration
-                easing.bezierCurve: Style.expressiveCurves.standard
+                duration: M3E.spatialFastMs
+                easing.bezierCurve: M3E.curveFastSpatial
             }
         }
 
@@ -66,164 +66,122 @@ Item {
             level: Style.elevationLevel2
         }
 
+        component ConnectedEditBtn: DActionButton {
+            property int segIndex: 0
+            property int segCount: 2
+            property bool segActive: false
+            readonly property real pillR: height / 2
+            readonly property real leftR: M3E.leftRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
+            readonly property real rightR: M3E.rightRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
+
+            buttonSize: 40
+            iconSize: Style.iconSizeMedium
+            topLeftRadius: leftR
+            bottomLeftRadius: leftR
+            topRightRadius: rightR
+            bottomRightRadius: rightR
+            backgroundColor: segActive ? Style.primaryContainer : (hovered ? Style.surfaceContainerHighest : Style.surfaceContainer)
+            iconColor: segActive ? Style.primary : Style.onSurfaceVariant
+
+            Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+            Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+            Behavior on topRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+            Behavior on bottomRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        }
+
         ColumnLayout {
             id: editColumn
             anchors.centerIn: parent
-            spacing: Style.spacingS
+            spacing: Style.spacingXS
 
             // Group 1: Rotation Pair (Left & Right)
-            Rectangle {
+            RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: rotateRow.implicitWidth + 8
-                implicitHeight: 46
-                radius: 12
-                color: Style.surfaceContainerHighest
-                border.color: Qt.rgba(Style.outlineVariant.r, Style.outlineVariant.g, Style.outlineVariant.b, 0.25)
-                border.width: 1
+                spacing: M3E.groupGap
 
-                RowLayout {
-                    id: rotateRow
-                    anchors.centerIn: parent
-                    spacing: 4
+                ConnectedEditBtn {
+                    segIndex: 0
+                    segCount: 2
+                    iconName: "rotate_left"
+                    tooltipText: "Rotate Counter-Clockwise (L / Shift+R)"
+                    tooltipSide: "left"
+                    onClicked: ImageService.rotateCounterClockwise()
+                }
 
-                    DActionButton {
-                        iconName: "rotate_left"
-                        iconSize: Style.iconSizeMedium
-                        buttonSize: 38
-                        tooltipText: "Rotate Counter-Clockwise (L / Shift+R)"
-                        tooltipSide: "left"
-                        onClicked: ImageService.rotateCounterClockwise()
-                    }
-
-                    Rectangle {
-                        implicitWidth: 1
-                        implicitHeight: 22
-                        color: Style.outlineVariant
-                        opacity: 0.35
-                    }
-
-                    DActionButton {
-                        iconName: "rotate_right"
-                        iconSize: Style.iconSizeMedium
-                        buttonSize: 38
-                        tooltipText: "Rotate Clockwise (R)"
-                        tooltipSide: "right"
-                        onClicked: ImageService.rotateClockwise()
-                    }
+                ConnectedEditBtn {
+                    segIndex: 1
+                    segCount: 2
+                    iconName: "rotate_right"
+                    tooltipText: "Rotate Clockwise (R)"
+                    tooltipSide: "right"
+                    onClicked: ImageService.rotateClockwise()
                 }
             }
 
             // Group 2: Flip Pair (Horizontal & Vertical)
-            Rectangle {
+            RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: flipRow.implicitWidth + 8
-                implicitHeight: 46
-                radius: 12
-                color: Style.surfaceContainerHighest
-                border.color: Qt.rgba(Style.outlineVariant.r, Style.outlineVariant.g, Style.outlineVariant.b, 0.25)
-                border.width: 1
+                spacing: M3E.groupGap
 
-                RowLayout {
-                    id: flipRow
-                    anchors.centerIn: parent
-                    spacing: 4
+                ConnectedEditBtn {
+                    segIndex: 0
+                    segCount: 2
+                    iconName: "flip"
+                    tooltipText: "Flip Horizontally (H / M)"
+                    tooltipSide: "left"
+                    onClicked: ImageService.toggleFlipHorizontal()
+                }
 
-                    DActionButton {
-                        iconName: "flip"
-                        iconSize: Style.iconSizeMedium
-                        buttonSize: 38
-                        tooltipText: "Flip Horizontally (H / M)"
-                        tooltipSide: "left"
-                        onClicked: ImageService.toggleFlipHorizontal()
-                    }
-
-                    Rectangle {
-                        implicitWidth: 1
-                        implicitHeight: 22
-                        color: Style.outlineVariant
-                        opacity: 0.35
-                    }
-
-                    DActionButton {
-                        iconName: "flip"
-                        iconSize: Style.iconSizeMedium
-                        buttonSize: 38
-                        tooltipText: "Flip Vertically (V)"
-                        tooltipSide: "right"
-                        transform: Rotation { angle: 90; origin.x: 19; origin.y: 19 }
-                        onClicked: ImageService.toggleFlipVertical()
-                    }
+                ConnectedEditBtn {
+                    segIndex: 1
+                    segCount: 2
+                    iconName: "flip"
+                    tooltipText: "Flip Vertically (V)"
+                    tooltipSide: "right"
+                    transform: Rotation { angle: 90; origin.x: 20; origin.y: 20 }
+                    onClicked: ImageService.toggleFlipVertical()
                 }
             }
 
             // Group 3: Creative Tools (Crop & Annotate)
-            Rectangle {
+            RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: toolRow.implicitWidth + 8
-                implicitHeight: 46
-                radius: 12
-                color: Style.surfaceContainerHighest
-                border.color: Qt.rgba(Style.outlineVariant.r, Style.outlineVariant.g, Style.outlineVariant.b, 0.25)
-                border.width: 1
+                spacing: M3E.groupGap
 
-                RowLayout {
-                    id: toolRow
-                    anchors.centerIn: parent
-                    spacing: 4
+                ConnectedEditBtn {
+                    segIndex: 0
+                    segCount: 2
+                    segActive: ImageService.cropMode
+                    iconName: "crop"
+                    tooltipText: "Crop Image (X)"
+                    tooltipSide: "left"
+                    stateColor: Style.primary
+                    onClicked: ImageService.toggleCropMode()
+                }
 
-                    DActionButton {
-                        iconName: "crop"
-                        iconSize: Style.iconSizeMedium
-                        buttonSize: 38
-                        tooltipText: "Crop Image (X)"
-                        tooltipSide: "left"
-                        backgroundColor: ImageService.cropMode ? Style.primaryContainer : "transparent"
-                        iconColor: ImageService.cropMode ? Style.primary : Style.onSurfaceVariant
-                        stateColor: Style.primary
-                        onClicked: ImageService.toggleCropMode()
-                    }
-
-                    Rectangle {
-                        implicitWidth: 1
-                        implicitHeight: 22
-                        color: Style.outlineVariant
-                        opacity: 0.35
-                    }
-
-                    DActionButton {
-                        iconName: "draw"
-                        iconSize: Style.iconSizeMedium
-                        buttonSize: 38
-                        tooltipText: "Annotate in Quick Capture (A)"
-                        tooltipSide: "right"
-                        onClicked: ImageService.annotateImage()
-                    }
+                ConnectedEditBtn {
+                    segIndex: 1
+                    segCount: 2
+                    iconName: "draw"
+                    tooltipText: "Annotate in Quick Capture (A)"
+                    tooltipSide: "right"
+                    onClicked: ImageService.annotateImage()
                 }
             }
 
             // Optional Group 4: Animation Play/Pause (if animated GIF/APNG)
-            Rectangle {
+            RowLayout {
                 visible: ImageService.isAnimated
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: animRow.implicitWidth + 8
-                implicitHeight: 46
-                radius: 12
-                color: Style.surfaceContainerHighest
-                border.color: Qt.rgba(Style.outlineVariant.r, Style.outlineVariant.g, Style.outlineVariant.b, 0.25)
-                border.width: 1
 
-                RowLayout {
-                    id: animRow
-                    anchors.centerIn: parent
-
-                    DActionButton {
-                        iconName: ImageService.isPlaying ? "pause" : "play_arrow"
-                        iconSize: Style.iconSizeMedium
-                        buttonSize: 38
-                        tooltipText: ImageService.isPlaying ? "Pause Animation (Space)" : "Play Animation (Space)"
-                        tooltipSide: "left"
-                        onClicked: ImageService.togglePlayback()
-                    }
+                ConnectedEditBtn {
+                    segIndex: 0
+                    segCount: 1
+                    segActive: !ImageService.isPlaying
+                    iconName: ImageService.isPlaying ? "pause" : "play_arrow"
+                    tooltipText: ImageService.isPlaying ? "Pause Animation (Space)" : "Play Animation (Space)"
+                    tooltipSide: "left"
+                    onClicked: ImageService.togglePlayback()
                 }
             }
         }

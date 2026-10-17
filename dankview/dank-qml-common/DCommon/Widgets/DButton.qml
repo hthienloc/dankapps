@@ -21,7 +21,7 @@ StyledButton {
             return Style.spacingL;
         return Style.spacingXL;
     }
-    property bool enableScaleAnimation: false
+    property bool enableScaleAnimation: true
     property bool enableRipple: Style.enableRippleEffects
     property real minimumWidth: Style.buttonMinWidth
     property var tooltipText: null
@@ -37,7 +37,7 @@ StyledButton {
     property real pressProgress: pressed ? 1 : 0
     radius: restRadius + (pressedRadius - restRadius) * pressProgress
     color: enabled ? backgroundColor : Style.onSurface_12
-    scale: (enableScaleAnimation && pressed) ? Style.pressScale : 1.0
+    scale: (enableScaleAnimation && pressed) ? M3E.rowPressScale : 1.0
     Accessible.role: Accessible.Button
     Accessible.name: text || tooltipText || iconName
 
@@ -49,16 +49,16 @@ StyledButton {
     Behavior on pressProgress {
         enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
         DAnim {
-            duration: Style.expressiveDurations.expressiveEffects
-            easing.bezierCurve: Style.expressiveCurves.standard
+            duration: M3E.spatialFastMs
+            easing.bezierCurve: M3E.curveFastSpatial
         }
     }
 
     Behavior on scale {
         enabled: enableScaleAnimation && !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
         DAnim {
-            duration: Style.expressiveDurations.expressiveFastSpatial
-            easing.bezierCurve: Style.expressiveCurves.expressiveFastSpatial
+            duration: M3E.spatialFastMs
+            easing.bezierCurve: M3E.curveFastSpatial
         }
     }
 

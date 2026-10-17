@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 
 Item {
@@ -22,14 +23,15 @@ Item {
             id: previewBox
             Layout.fillWidth: true
             Layout.preferredHeight: root.previewHeight
-            radius: 16
+            radius: M3E.tileRadius(cardMouse.pressed, cardMouse.containsMouse, false)
             clip: true
             color: Theme.surfaceContainerHigh
             border.color: cardMouse.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.5) : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
             border.width: 1
 
-            scale: cardMouse.containsMouse ? 1.02 : 1.0
-            Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
+            scale: cardMouse.pressed ? M3E.tilePressScale : (cardMouse.containsMouse ? 1.02 : 1.0)
+            Behavior on radius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+            Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
 
             // 2x2 Grid of Previews
             Grid {

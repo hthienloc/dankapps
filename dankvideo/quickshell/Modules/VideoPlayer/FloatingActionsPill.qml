@@ -24,56 +24,61 @@ Rectangle {
         level: Style.elevationLevel2
     }
 
+    component ConnectedActionBtn: DActionButton {
+        property int segIndex: 0
+        property int segCount: 3
+        property bool segActive: false
+        readonly property real pillR: height / 2
+        readonly property real leftR: M3E.leftRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusXS)
+        readonly property real rightR: M3E.rightRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusXS)
+
+        buttonSize: Style.buttonHeightXS
+        iconSize: 18
+        topLeftRadius: leftR
+        bottomLeftRadius: leftR
+        topRightRadius: rightR
+        bottomRightRadius: rightR
+        backgroundColor: segActive ? Theme.secondaryContainer : (hovered ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh)
+        iconColor: segActive ? Theme.primary : Theme.surfaceText
+
+        Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        Behavior on topRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        Behavior on bottomRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+    }
+
     RowLayout {
         id: contentRow
         anchors.centerIn: parent
-        spacing: 4
+        spacing: M3E.groupGap
 
         // Open Video Action
-        DActionButton {
+        ConnectedActionBtn {
+            segIndex: 0
+            segCount: 3
             iconName: "folder_open"
-            iconSize: 18
-            buttonSize: Style.buttonHeightXS
-            iconColor: Theme.surfaceText
             tooltipText: "Open Video (O)"
             tooltipSide: "bottom"
             onClicked: VideoService.openFileDialog()
         }
 
-        Rectangle {
-            implicitWidth: 1
-            implicitHeight: 18
-            color: Theme.outlineVariant
-            opacity: 0.35
-            Layout.alignment: Qt.AlignVCenter
-        }
-
         // Media Details / Inspector Toggle
-        DActionButton {
+        ConnectedActionBtn {
+            segIndex: 1
+            segCount: 3
+            segActive: VideoService.inspectorOpen
             iconName: "info"
-            iconSize: 18
-            buttonSize: Style.buttonHeightXS
-            iconColor: VideoService.inspectorOpen ? Theme.primary : Theme.surfaceText
-            backgroundColor: VideoService.inspectorOpen ? Theme.secondaryContainer : "transparent"
+            iconFilled: VideoService.inspectorOpen
             tooltipText: "Media Details (I)"
             tooltipSide: "bottom"
             onClicked: VideoService.toggleInspector()
         }
 
-        Rectangle {
-            implicitWidth: 1
-            implicitHeight: 18
-            color: Theme.outlineVariant
-            opacity: 0.35
-            Layout.alignment: Qt.AlignVCenter
-        }
-
         // Lock UI Action
-        DActionButton {
+        ConnectedActionBtn {
+            segIndex: 2
+            segCount: 3
             iconName: "lock_open"
-            iconSize: 18
-            buttonSize: Style.buttonHeightXS
-            iconColor: Theme.surfaceText
             tooltipText: "Lock UI / Clean View (K)"
             tooltipSide: "bottom"
             onClicked: VideoService.toggleLockUI()
@@ -82,14 +87,14 @@ Rectangle {
         // Counter badge e.g. "2 / 5" if playlist has multiple files
         Rectangle {
             visible: VideoService.fileList.length > 1
-            implicitHeight: Style.buttonHeightXS - 6
+            implicitHeight: Style.buttonHeightXS - 4
             implicitWidth: counterText.implicitWidth + 14
             radius: height / 2
             color: Theme.surfaceContainerHighest
             border.color: Theme.withAlpha(Theme.outlineVariant, 0.2)
             border.width: 1
             Layout.alignment: Qt.AlignVCenter
-            Layout.leftMargin: 2
+            Layout.leftMargin: 4
 
             StyledText {
                 id: counterText

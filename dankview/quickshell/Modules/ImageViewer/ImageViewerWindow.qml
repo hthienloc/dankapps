@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 import qs.DCommon.FileBrowser
 import "."
@@ -418,7 +419,7 @@ FloatingWindow {
                 z: 60
             }
 
-            // Material 3 Floating Action Button (FAB)
+            // Material 3 Expressive Floating Action Button (FAB)
             Rectangle {
                 id: editFab
                 anchors.right: parent.right
@@ -427,7 +428,7 @@ FloatingWindow {
                 anchors.bottomMargin: 28
                 width: 56
                 height: 56
-                radius: 16
+                radius: fabMouse.pressed ? M3E.pressRadiusM : ((ImageService.editMode || fabMouse.containsMouse) ? 28 : 16)
                 z: 60
 
                 readonly property bool shouldShow: !ImageService.galleryMode &&
@@ -440,7 +441,7 @@ FloatingWindow {
 
                 visible: opacity > 0
                 opacity: shouldShow ? (isDimmed ? 0.35 : 1.0) : 0.0
-                scale: shouldShow ? (fabMouse.pressed ? 0.94 : (fabMouse.containsMouse ? 1.06 : 1.0)) : 0.8
+                scale: shouldShow ? (fabMouse.pressed ? M3E.iconBtnPressScale : (fabMouse.containsMouse ? 1.05 : 1.0)) : 0.8
 
                 color: ImageService.editMode
                     ? Theme.surfaceContainerHighest
@@ -453,9 +454,10 @@ FloatingWindow {
                     : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
                 border.width: 1
 
-                Behavior on opacity { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
-                Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
-                Behavior on color { ColorAnimation { duration: Theme.shorterDuration } }
+                Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }
+                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on radius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
 
                 DIcon {
                     anchors.centerIn: parent
@@ -464,13 +466,13 @@ FloatingWindow {
                     color: ImageService.editMode ? Theme.primary : (Theme.onPrimary || Theme.primaryText)
 
                     Behavior on rotation {
-                        NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing }
+                        DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial }
                     }
                 }
 
                 StateLayer {
                     id: fabMouse
-                    cornerRadius: 16
+                    cornerRadius: editFab.radius
                     stateColor: ImageService.editMode ? Theme.primary : (Theme.onPrimary || Theme.primaryText)
                     tooltipText: ImageService.editMode ? "Close Edit Menu (E / Esc)" : "Edit (E)"
                     tooltipSide: "left"
@@ -478,15 +480,15 @@ FloatingWindow {
                 }
             }
 
-            // Material 3 Floating Actions Pill (Favorite & Info)
+            // Material 3 Expressive Floating Actions Pill (Connected Button Group)
             Rectangle {
                 id: floatingActionsPill
                 anchors.right: editFab.left
                 anchors.rightMargin: 12
                 anchors.verticalCenter: editFab.verticalCenter
                 implicitHeight: 56
-                implicitWidth: actionRow.implicitWidth + 24
-                radius: 16
+                implicitWidth: actionRow.implicitWidth + 16
+                radius: height / 2
                 z: 60
 
                 readonly property bool shouldShow: !ImageService.galleryMode &&
@@ -504,59 +506,74 @@ FloatingWindow {
                 border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
                 border.width: 1
 
-                Behavior on opacity { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
-                Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
+                Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }
+                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
 
                 HoverHandler {
                     id: pillHover
                 }
 
+                component ConnectedPillButton: DActionButton {
+                    property int segIndex: 0
+                    property int segCount: 2
+                    property bool segActive: false
+                    readonly property real pillR: height / 2
+                    readonly property real leftR: M3E.leftRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
+                    readonly property real rightR: M3E.rightRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
+
+                    buttonSize: 40
+                    iconSize: 22
+                    topLeftRadius: leftR
+                    bottomLeftRadius: leftR
+                    topRightRadius: rightR
+                    bottomRightRadius: rightR
+                    backgroundColor: segActive ? Theme.secondaryContainer : (hovered ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh)
+
+                    Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                    Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                    Behavior on topRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                    Behavior on bottomRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                }
+
                 RowLayout {
                     id: actionRow
                     anchors.centerIn: parent
-                    spacing: 8
+                    spacing: M3E.groupGap
 
-                    DActionButton {
+                    readonly property int totalCount: ImageService.isAnimated ? 3 : 2
+
+                    ConnectedPillButton {
                         visible: ImageService.isAnimated
+                        segIndex: 0
+                        segCount: actionRow.totalCount
+                        segActive: !ImageService.isPlaying
                         iconName: ImageService.isPlaying ? "pause" : "play_arrow"
-                        iconSize: 22
-                        buttonSize: 40
-                        iconColor: Theme.surfaceText
+                        iconColor: !ImageService.isPlaying ? Theme.primary : Theme.surfaceText
                         tooltipText: ImageService.isPlaying ? "Pause GIF (Space)" : "Play GIF (Space)"
                         tooltipSide: "top"
                         onClicked: ImageService.togglePlayback()
                     }
 
-                    Rectangle {
-                        visible: ImageService.isAnimated
-                        implicitWidth: 1
-                        implicitHeight: 24
-                        color: Theme.outlineVariant
-                        opacity: 0.35
-                    }
-
-                    DActionButton {
+                    ConnectedPillButton {
                         readonly property bool isFav: ImageService.isFavorite(ImageService.currentFilePath)
+                        segIndex: ImageService.isAnimated ? 1 : 0
+                        segCount: actionRow.totalCount
+                        segActive: isFav
                         iconName: isFav ? "favorite" : "favorite_border"
-                        iconSize: 22
-                        buttonSize: 40
+                        iconFilled: isFav
                         iconColor: isFav ? Theme.error : Theme.surfaceText
+                        backgroundColor: isFav ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.18) : (hovered ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh)
                         tooltipText: isFav ? "Remove from Favorites (F)" : "Add to Favorites (F)"
                         tooltipSide: "top"
                         onClicked: ImageService.toggleFavorite(ImageService.currentFilePath)
                     }
 
-                    Rectangle {
-                        implicitWidth: 1
-                        implicitHeight: 24
-                        color: Theme.outlineVariant
-                        opacity: 0.35
-                    }
-
-                    DActionButton {
+                    ConnectedPillButton {
+                        segIndex: ImageService.isAnimated ? 2 : 1
+                        segCount: actionRow.totalCount
+                        segActive: ImageService.inspectorOpen
                         iconName: "info"
-                        iconSize: 22
-                        buttonSize: 40
+                        iconFilled: ImageService.inspectorOpen
                         iconColor: ImageService.inspectorOpen ? Theme.primary : Theme.surfaceText
                         tooltipText: "Image Info / EXIF (I)"
                         tooltipSide: "top"
@@ -565,7 +582,7 @@ FloatingWindow {
                 }
             }
 
-            // Material 3 Floating Zoom Action Button (M3 Extended FAB)
+            // Material 3 Expressive Floating Zoom Action Button (M3 Extended FAB)
             Rectangle {
                 id: zoomFab
                 anchors.left: parent.left
@@ -574,7 +591,7 @@ FloatingWindow {
                 anchors.bottomMargin: 28
                 implicitWidth: zoomContentRow.implicitWidth + 28
                 implicitHeight: 56
-                radius: 16
+                radius: zoomMouse.pressed ? M3E.pressRadiusM : (zoomMouse.containsMouse ? 28 : 16)
                 z: 60
 
                 readonly property bool shouldShow: !ImageService.galleryMode &&
@@ -587,7 +604,7 @@ FloatingWindow {
 
                 visible: opacity > 0
                 opacity: shouldShow ? (isDimmed ? 0.35 : 1.0) : 0.0
-                scale: shouldShow ? (zoomMouse.pressed ? 0.94 : (zoomMouse.containsMouse ? 1.06 : 1.0)) : 0.8
+                scale: shouldShow ? (zoomMouse.pressed ? M3E.iconBtnPressScale : (zoomMouse.containsMouse ? 1.05 : 1.0)) : 0.8
 
                 color: zoomMouse.pressed
                     ? Qt.darker(Theme.chipSurface, 1.15)
@@ -596,9 +613,10 @@ FloatingWindow {
                 border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
                 border.width: 1
 
-                Behavior on opacity { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
-                Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
-                Behavior on color { ColorAnimation { duration: Theme.shorterDuration } }
+                Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }
+                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on radius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
 
                 RowLayout {
                     id: zoomContentRow
@@ -621,7 +639,7 @@ FloatingWindow {
 
                 StateLayer {
                     id: zoomMouse
-                    cornerRadius: 16
+                    cornerRadius: zoomFab.radius
                     stateColor: Theme.surfaceText
                     tooltipText: "Scroll to zoom • Click to reset"
                     tooltipSide: "top"

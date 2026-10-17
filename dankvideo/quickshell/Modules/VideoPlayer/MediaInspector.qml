@@ -41,14 +41,31 @@ Rectangle {
     component ActionChip: Rectangle {
         property string iconName: ""
         property string label: ""
+        property int segIndex: 0
+        property int segCount: 2
         signal clicked()
+
+        readonly property real pillR: height / 2
+        readonly property real leftR: M3E.leftRadius(segIndex, segCount, pillR, chipMouse.pressed, chipMouse.containsMouse, false, M3E.pressRadiusXS)
+        readonly property real rightR: M3E.rightRadius(segIndex, segCount, pillR, chipMouse.pressed, chipMouse.containsMouse, false, M3E.pressRadiusXS)
 
         Layout.fillWidth: true
         implicitHeight: Style.buttonHeightXS
-        radius: Style.cornerRadiusSmall
+        topLeftRadius: leftR
+        bottomLeftRadius: leftR
+        topRightRadius: rightR
+        bottomRightRadius: rightR
+        scale: chipMouse.pressed ? M3E.rowPressScale : 1.0
         color: chipMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
         border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
         border.width: 1
+
+        Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        Behavior on topRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        Behavior on bottomRightRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
+        Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
 
         RowLayout {
             anchors.centerIn: parent
@@ -232,15 +249,19 @@ Rectangle {
                         RowLayout {
                             Layout.fillWidth: true
                             Layout.topMargin: 4
-                            spacing: 8
+                            spacing: M3E.groupGap
 
                             ActionChip {
+                                segIndex: 0
+                                segCount: 2
                                 iconName: "content_copy"
                                 label: "Copy Path"
                                 onClicked: VideoService.copyPathToClipboard()
                             }
 
                             ActionChip {
+                                segIndex: 1
+                                segCount: 2
                                 iconName: "folder_open"
                                 label: "Open Folder"
                                 onClicked: VideoService.openContainingFolder()
