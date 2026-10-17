@@ -1,6 +1,9 @@
 # dankapps
 
-A collection of Quickshell-based desktop apps for DankMaterialShell (DMS) and standalone use.
+A collection of Quickshell-based desktop apps designed exclusively to run alongside [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell). These applications require an active DMS environment and are not intended for standalone use.
+
+> [!IMPORTANT]
+> **DMS Dependency**: All apps in this repository rely directly on DMS design tokens, `dms` CLI utilities (trash, wallpaper, notifications), and IPC services (such as Quick Capture annotation). They must be run within a DMS session.
 
 > [!NOTE]
 > These applications are currently **experimental prototypes**. Features, UI design, and architecture are actively evolving and may change significantly in final releases.
@@ -47,9 +50,9 @@ cd dankcalc && make install-user
 
 ## Requirements
 
+- [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell) (required: runtime shell, theme system, `dms` CLI, and IPC services)
 - [Quickshell](https://quickshell.outfoxxed.me/) — QML shell framework
 - Go 1.21+
-- `dms` CLI (optional, for clipboard, wallpaper, and Quick Capture annotations)
 
 ## Structure
 

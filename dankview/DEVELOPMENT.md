@@ -126,9 +126,10 @@ Always leverage components from `qs.DCommon.Widgets` before implementing custom 
 ## 5. Development & Testing Workflow
 
 ### Prerequisites
+- [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell) (required runtime environment)
 - Go 1.21+
 - `quickshell` (Wayland Qt 6 environment)
-- `gio` (for trash operations)
+- `dms` CLI / `gio` (for trash & system operations)
 
 ### Common Commands
 
