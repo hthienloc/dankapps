@@ -253,13 +253,13 @@ FloatingWindow {
                 Rectangle {
                     id: floatingLockBadge
                     anchors.centerIn: parent
-                    width: 40
-                    height: 40
-                    radius: 20
+                    width: Style.buttonHeightS
+                    height: Style.buttonHeightS
+                    radius: height / 2
                     color: lockBadgeMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
                     opacity: lockBadgeMouse.containsMouse ? 0.95 : 0.0
                     border.color: Theme.withAlpha(Theme.outlineVariant, 0.3)
-                    border.width: 1
+                    border.width: Style.outlineWidth
 
                     Behavior on opacity {
                         DAnim {
@@ -271,7 +271,7 @@ FloatingWindow {
                     DIcon {
                         anchors.centerIn: parent
                         name: "lock_open"
-                        size: 20
+                        size: Style.iconSizeMedium
                         color: Theme.primary
                     }
                 }

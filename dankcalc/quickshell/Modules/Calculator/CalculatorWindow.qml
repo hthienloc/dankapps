@@ -242,7 +242,7 @@ FloatingWindow {
                 // Mode & Action Row
                 Item {
                     Layout.fillWidth: true
-                    implicitHeight: 38
+                    implicitHeight: Style.buttonHeightS
 
                     RowLayout {
                         anchors.fill: parent
@@ -272,9 +272,9 @@ FloatingWindow {
                         // Converter Mode: Category Dropdown Button
                         Rectangle {
                             visible: CalculatorService.currentMode === "converter"
-                            implicitHeight: 30
-                            implicitWidth: catBtnRow.implicitWidth + Theme.spacingM * 1.5
-                            radius: 15
+                            implicitHeight: Style.buttonHeightXS
+                            implicitWidth: catBtnRow.implicitWidth + Style.spacingL
+                            radius: height / 2
                             color: catBtnMouse.containsMouse || CalculatorService.categoryMenuOpen
                                    ? Theme.surfaceContainerHighest
                                    : Theme.surfaceContainerHigh
@@ -284,11 +284,11 @@ FloatingWindow {
                             RowLayout {
                                 id: catBtnRow
                                 anchors.centerIn: parent
-                                spacing: 4
+                                spacing: Style.spacingXS
 
                                 DIcon {
                                     name: ConvLogic.getCategory(CalculatorService.converterCategory).icon
-                                    size: 15
+                                    size: Style.iconSizeSmall
                                     color: Theme.primary
                                 }
 
@@ -301,7 +301,7 @@ FloatingWindow {
 
                                 DIcon {
                                     name: "arrow_drop_down"
-                                    size: 16
+                                    size: Style.iconSizeSmall
                                     color: Theme.surfaceVariantText
                                 }
                             }
@@ -333,20 +333,20 @@ FloatingWindow {
                     // Scientific Drawer Toggle Row
                     Item {
                         Layout.fillWidth: true
-                        implicitHeight: 22
+                        implicitHeight: Style.iconSize
 
                         Rectangle {
                             anchors.centerIn: parent
-                            width: 44
-                            height: 20
-                            radius: 10
+                            width: Style.buttonHeightS
+                            height: Style.iconSizeMedium
+                            radius: height / 2
                             color: sciMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent"
 
                             DIcon {
                                 id: sciIcon
                                 anchors.centerIn: parent
                                 name: "expand_more"
-                                size: 20
+                                size: Style.iconSizeMedium
                                 color: Theme.surfaceVariantText
                                 rotation: window.scientificOpen ? 180 : 0
 
@@ -415,8 +415,8 @@ FloatingWindow {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: Theme.spacingL
             implicitWidth: toastRow.implicitWidth + Theme.spacingM * 2
-            implicitHeight: 34
-            radius: 17
+            implicitHeight: Style.buttonHeightXS
+            radius: height / 2
             color: Theme.inverseSurface
             visible: opacity > 0
             opacity: 0.0
@@ -435,7 +435,7 @@ FloatingWindow {
 
                 DIcon {
                     name: "check"
-                    size: 16
+                    size: Style.iconSizeSmall
                     color: Theme.inverseOnSurface
                 }
 

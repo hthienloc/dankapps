@@ -9,12 +9,12 @@ import qs.DCommon.Widgets
 Rectangle {
     id: root
 
-    implicitHeight: 40
-    implicitWidth: contentRow.implicitWidth + 16
+    implicitHeight: Style.buttonHeightM
+    implicitWidth: contentRow.implicitWidth + Style.spacingL
     radius: height / 2
-    color: Style.withAlpha(Theme.cardSurface, 0.92)
-    border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
-    border.width: 1
+    color: Style.withAlpha(Theme.cardSurface, 0.94)
+    border.color: Theme.withAlpha(Theme.outlineVariant, 0.28)
+    border.width: Style.outlineWidth
 
     ElevationShadow {
         anchors.fill: parent
@@ -29,11 +29,11 @@ Rectangle {
         property int segCount: 3
         property bool segActive: false
         readonly property real pillR: height / 2
-        readonly property real leftR: M3E.leftRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusXS)
-        readonly property real rightR: M3E.rightRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusXS)
+        readonly property real leftR: M3E.leftRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
+        readonly property real rightR: M3E.rightRadius(segIndex, segCount, pillR, pressed, hovered, segActive, M3E.pressRadiusS)
 
-        buttonSize: Style.buttonHeightXS
-        iconSize: 18
+        buttonSize: Style.buttonHeightS
+        iconSize: Style.iconSizeMedium
         topLeftRadius: leftR
         bottomLeftRadius: leftR
         topRightRadius: rightR
@@ -87,14 +87,14 @@ Rectangle {
         // Counter badge e.g. "2 / 5" if playlist has multiple files
         Rectangle {
             visible: VideoService.fileList.length > 1
-            implicitHeight: Style.buttonHeightXS - 4
-            implicitWidth: counterText.implicitWidth + 14
+            implicitHeight: Style.buttonHeightXS
+            implicitWidth: counterText.implicitWidth + Style.spacingL
             radius: height / 2
             color: Theme.surfaceContainerHighest
             border.color: Theme.withAlpha(Theme.outlineVariant, 0.2)
-            border.width: 1
+            border.width: Style.outlineWidth
             Layout.alignment: Qt.AlignVCenter
-            Layout.leftMargin: 4
+            Layout.leftMargin: Style.spacingXS
 
             StyledText {
                 id: counterText

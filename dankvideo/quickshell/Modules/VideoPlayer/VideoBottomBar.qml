@@ -129,17 +129,17 @@ Rectangle {
         // Control Buttons
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: 42
+            Layout.preferredHeight: Style.buttonHeightS
 
             // Left cluster: Volume
             RowLayout {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 8
+                spacing: Style.spacingS
 
                 DActionButton {
                     iconName: VideoService.isMuted || VideoService.volume === 0 ? "volume_off" : (VideoService.volume < 0.5 ? "volume_down" : "volume_up")
-                    iconSize: 20
+                    iconSize: Style.iconSizeMedium
                     buttonSize: Style.buttonHeightS
                     iconColor: Theme.surfaceText
                     tooltipText: VideoService.isMuted ? "Unmute (M)" : "Mute (M)"
@@ -199,12 +199,12 @@ Rectangle {
             // Playback cluster (strictly centered)
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 8
+                spacing: Style.spacingS
 
                 // Step Back 10s
                 DActionButton {
                     iconName: "replay_10"
-                    iconSize: 20
+                    iconSize: Style.iconSizeMedium
                     buttonSize: Style.buttonHeightS
                     iconColor: Theme.surfaceText
                     tooltipText: "Back 10s (Left)"
@@ -215,7 +215,7 @@ Rectangle {
                 // Prev Video
                 DActionButton {
                     iconName: "skip_previous"
-                    iconSize: 22
+                    iconSize: Style.iconSize
                     buttonSize: Style.buttonHeightS
                     iconColor: Theme.surfaceText
                     tooltipText: "Previous Video (PageUp)"
@@ -226,9 +226,9 @@ Rectangle {
 
                 // Play / Pause main button — M3E shape-morphing button (circle when paused -> squircle when playing/pressed)
                 Rectangle {
-                    width: 44
-                    height: 44
-                    radius: playMouse.pressed ? M3E.pressRadiusS : (VideoService.isPlaying && !playMouse.containsMouse ? M3E.pressRadiusM : 22)
+                    width: Style.buttonHeightS
+                    height: Style.buttonHeightS
+                    radius: playMouse.pressed ? M3E.pressRadiusS : (VideoService.isPlaying && !playMouse.containsMouse ? M3E.pressRadiusM : height / 2)
                     scale: playMouse.pressed ? M3E.iconBtnPressScale : (playMouse.containsMouse ? 1.05 : 1.0)
                     color: playMouse.containsMouse ? Theme.primaryContainer : Theme.primary
                     Layout.alignment: Qt.AlignVCenter
@@ -257,7 +257,7 @@ Rectangle {
                     DIcon {
                         anchors.centerIn: parent
                         name: VideoService.isPlaying ? "pause" : "play_arrow"
-                        size: 24
+                        size: Style.iconSize
                         filled: true
                         color: playMouse.containsMouse ? Theme.onPrimaryContainer : Theme.onPrimary
                     }
@@ -274,7 +274,7 @@ Rectangle {
                 // Next Video
                 DActionButton {
                     iconName: "skip_next"
-                    iconSize: 22
+                    iconSize: Style.iconSize
                     buttonSize: Style.buttonHeightS
                     iconColor: Theme.surfaceText
                     tooltipText: "Next Video (PageDown)"
@@ -286,7 +286,7 @@ Rectangle {
                 // Forward 10s
                 DActionButton {
                     iconName: "forward_10"
-                    iconSize: 20
+                    iconSize: Style.iconSizeMedium
                     buttonSize: Style.buttonHeightS
                     iconColor: Theme.surfaceText
                     tooltipText: "Forward 10s (Right)"
@@ -299,15 +299,15 @@ Rectangle {
             Rectangle {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                implicitHeight: Style.buttonHeightXS - 4
-                implicitWidth: Math.max(54, speedText.implicitWidth + 16)
+                implicitHeight: Style.buttonHeightXS
+                implicitWidth: Math.max(Style.buttonMinWidth, speedText.implicitWidth + Style.spacingL)
                 radius: speedMouse.pressed ? M3E.pressRadiusXS : height / 2
                 scale: speedMouse.pressed ? M3E.iconBtnPressScale : 1.0
                 color: VideoService.playbackRate !== 1.0
                     ? Theme.secondaryContainer
                     : (speedMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow)
                 border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
-                border.width: VideoService.playbackRate !== 1.0 ? 0 : 1
+                border.width: VideoService.playbackRate !== 1.0 ? 0 : Style.outlineWidth
 
                 Behavior on radius {
                     DAnim {

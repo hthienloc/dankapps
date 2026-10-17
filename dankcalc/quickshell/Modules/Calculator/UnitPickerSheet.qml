@@ -94,7 +94,7 @@ Item {
                 readonly property bool isOtherSelected: modelData.id === root.otherUnitId
 
                 width: unitList.width
-                height: 36
+                height: Style.menuItemHeight
                 radius: Theme.cornerRadiusSmall
                 opacity: isOtherSelected ? 0.45 : 1.0
                 color: isSelected
@@ -127,7 +127,7 @@ Item {
                     DIcon {
                         visible: unitDelegate.isSelected
                         name: "check"
-                        size: 14
+                        size: Style.iconSizeSmall
                         color: Theme.onSecondaryContainer
                     }
                 }

@@ -37,15 +37,15 @@ Item {
                     // Unit Picker Button
                     Rectangle {
                         id: fromUnitButton
-                        implicitHeight: 32
-                        implicitWidth: fromUnitRow.implicitWidth + Theme.spacingM * 1.5
-                        radius: 16
+                        implicitHeight: Style.buttonHeightXS
+                        implicitWidth: fromUnitRow.implicitWidth + Style.spacingL
+                        radius: height / 2
                         color: fromUnitMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLowest
 
                         RowLayout {
                             id: fromUnitRow
                             anchors.centerIn: parent
-                            spacing: 4
+                            spacing: Style.spacingXS
 
                             StyledText {
                                 text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterFromUnit)
@@ -58,7 +58,7 @@ Item {
 
                             DIcon {
                                 name: "arrow_drop_down"
-                                size: 16
+                                size: Style.iconSizeSmall
                                 color: Theme.primary
                                 rotation: CalculatorService.converterPickerTarget === "from" ? 180 : 0
                                 Behavior on rotation { NumberAnimation { duration: Theme.shortDuration } }
@@ -118,15 +118,15 @@ Item {
                     Rectangle {
                         id: toUnitButton
                         z: 2
-                        implicitHeight: 32
-                        implicitWidth: toUnitRow.implicitWidth + Theme.spacingM * 1.5
-                        radius: 16
+                        implicitHeight: Style.buttonHeightXS
+                        implicitWidth: toUnitRow.implicitWidth + Style.spacingL
+                        radius: height / 2
                         color: toUnitMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLowest
 
                         RowLayout {
                             id: toUnitRow
                             anchors.centerIn: parent
-                            spacing: 4
+                            spacing: Style.spacingXS
 
                             StyledText {
                                 text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterToUnit)
@@ -139,7 +139,7 @@ Item {
 
                             DIcon {
                                 name: "arrow_drop_down"
-                                size: 16
+                                size: Style.iconSizeSmall
                                 color: Theme.primary
                                 rotation: CalculatorService.converterPickerTarget === "to" ? 180 : 0
                                 Behavior on rotation { NumberAnimation { duration: Theme.shortDuration } }

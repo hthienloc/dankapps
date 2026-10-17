@@ -67,7 +67,7 @@ Rectangle {
             // Standard Calculator Option
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 38
+                implicitHeight: Style.menuItemHeight
                 radius: Theme.cornerRadiusSmall
                 color: CalculatorService.currentMode === "calculator"
                        ? Theme.secondaryContainer
@@ -80,7 +80,7 @@ Rectangle {
 
                     DIcon {
                         name: "calculate"
-                        size: 18
+                        size: Style.chipIconSize
                         color: CalculatorService.currentMode === "calculator" ? Theme.onSecondaryContainer : Theme.surfaceText
                     }
 
@@ -95,7 +95,7 @@ Rectangle {
                     DIcon {
                         visible: CalculatorService.currentMode === "calculator"
                         name: "check"
-                        size: 16
+                        size: Style.iconSizeSmall
                         color: Theme.onSecondaryContainer
                     }
                 }
@@ -114,7 +114,7 @@ Rectangle {
             // Unit Converter Option
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 38
+                implicitHeight: Style.menuItemHeight
                 radius: Theme.cornerRadiusSmall
                 color: CalculatorService.currentMode === "converter"
                        ? Theme.secondaryContainer
@@ -127,7 +127,7 @@ Rectangle {
 
                     DIcon {
                         name: "swap_horiz"
-                        size: 18
+                        size: Style.chipIconSize
                         color: CalculatorService.currentMode === "converter" ? Theme.onSecondaryContainer : Theme.surfaceText
                     }
 
@@ -142,7 +142,7 @@ Rectangle {
                     DIcon {
                         visible: CalculatorService.currentMode === "converter"
                         name: "check"
-                        size: 16
+                        size: Style.iconSizeSmall
                         color: Theme.onSecondaryContainer
                     }
                 }
@@ -176,7 +176,7 @@ Rectangle {
             // Angle unit toggle item
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: 38
+                implicitHeight: Style.menuItemHeight
                 radius: Theme.cornerRadiusSmall
                 color: angleHover.containsMouse ? Theme.surfaceContainerHighest : "transparent"
 
@@ -187,7 +187,7 @@ Rectangle {
 
                     DIcon {
                         name: "change_circle"
-                        size: 18
+                        size: Style.chipIconSize
                         color: Theme.surfaceText
                     }
 

@@ -58,7 +58,7 @@ Rectangle {
         scale: chipMouse.pressed ? M3E.rowPressScale : 1.0
         color: chipMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
         border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
-        border.width: 1
+        border.width: Style.outlineWidth
 
         Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
         Behavior on bottomLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
@@ -69,11 +69,11 @@ Rectangle {
 
         RowLayout {
             anchors.centerIn: parent
-            spacing: 6
+            spacing: Style.spacingS
 
             DIcon {
                 name: iconName
-                size: 16
+                size: Style.iconSizeSmall
                 color: Theme.primary
             }
 
@@ -99,11 +99,11 @@ Rectangle {
         property string iconName: ""
 
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Style.spacingS
 
         DIcon {
             name: iconName
-            size: 18
+            size: Style.chipIconSize
             color: Theme.primary
         }
 
@@ -123,7 +123,7 @@ Rectangle {
         visible: value !== ""
 
         Layout.fillWidth: true
-        spacing: 12
+        spacing: Style.spacingM
 
         StyledText {
             Layout.preferredWidth: 105
@@ -152,18 +152,18 @@ Rectangle {
         // Header
         Rectangle {
             Layout.fillWidth: true
-            height: 52
+            height: Style.buttonHeightM
             color: Theme.surfaceContainer
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 16
-                anchors.rightMargin: 10
-                spacing: 10
+                anchors.leftMargin: Style.spacingL
+                anchors.rightMargin: Style.spacingS
+                spacing: Style.spacingS
 
                 DIcon {
                     name: "info"
-                    size: 20
+                    size: Style.iconSizeMedium
                     color: Theme.primary
                 }
 

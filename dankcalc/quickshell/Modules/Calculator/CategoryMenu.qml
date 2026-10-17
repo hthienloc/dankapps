@@ -72,7 +72,7 @@ Rectangle {
                     id: catDelegate
                     required property var modelData
                     width: catList.width
-                    height: 38
+                    height: Style.menuItemHeight
                     radius: Theme.cornerRadiusSmall
                     color: modelData.key === CalculatorService.converterCategory
                            ? Theme.secondaryContainer
@@ -86,7 +86,7 @@ Rectangle {
 
                         DIcon {
                             name: modelData.icon
-                            size: 18
+                            size: Style.chipIconSize
                             color: modelData.key === CalculatorService.converterCategory ? Theme.onSecondaryContainer : Theme.surfaceVariantText
                         }
 
@@ -101,7 +101,7 @@ Rectangle {
                         DIcon {
                             visible: modelData.key === CalculatorService.converterCategory
                             name: "check"
-                            size: 16
+                            size: Style.iconSizeSmall
                             color: Theme.onSecondaryContainer
                         }
                     }

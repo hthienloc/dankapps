@@ -184,22 +184,22 @@ Item {
 
         Rectangle {
             anchors.left: parent.left
-            anchors.leftMargin: 12
+            anchors.leftMargin: Style.spacingM
             anchors.verticalCenter: parent.verticalCenter
-            width: 44
-            height: 44
-            radius: 22
+            width: Style.buttonHeightS
+            height: Style.buttonHeightS
+            radius: height / 2
             color: parent.containsMouse ? Theme.surfaceContainerHigh : "transparent"
             opacity: parent.containsMouse ? 0.9 : 0.0
 
             Behavior on opacity {
-                NumberAnimation { duration: 150 }
+                NumberAnimation { duration: M3E.effectsFastMs }
             }
 
             DIcon {
                 anchors.centerIn: parent
                 name: "chevron_left"
-                size: 28
+                size: Style.iconSize
                 color: Theme.surfaceText
             }
         }
@@ -217,22 +217,22 @@ Item {
 
         Rectangle {
             anchors.right: parent.right
-            anchors.rightMargin: 12
+            anchors.rightMargin: Style.spacingM
             anchors.verticalCenter: parent.verticalCenter
-            width: 44
-            height: 44
-            radius: 22
+            width: Style.buttonHeightS
+            height: Style.buttonHeightS
+            radius: height / 2
             color: parent.containsMouse ? Theme.surfaceContainerHigh : "transparent"
             opacity: parent.containsMouse ? 0.9 : 0.0
 
             Behavior on opacity {
-                NumberAnimation { duration: 150 }
+                NumberAnimation { duration: M3E.effectsFastMs }
             }
 
             DIcon {
                 anchors.centerIn: parent
                 name: "chevron_right"
-                size: 28
+                size: Style.iconSize
                 color: Theme.surfaceText
             }
         }
