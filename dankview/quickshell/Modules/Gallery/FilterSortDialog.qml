@@ -34,6 +34,182 @@ Item {
     property bool tempIncludeHidden: false
     property string activeDropdown: "" // tracks which dropdown is open
 
+    component FilterDropdown: Item {
+        id: ddItem
+        property string label: ""
+        property string currentValue: ""
+        property var options: []
+        property string dropdownKey: ""
+        property int maxPopupHeight: 220
+        signal selected(string value)
+
+        readonly property bool isOpen: root.activeDropdown === dropdownKey
+
+        Layout.fillWidth: true
+        implicitHeight: ddCol.implicitHeight
+
+        ColumnLayout {
+            id: ddCol
+            width: parent.width
+            spacing: 6
+
+            StyledText {
+                text: ddItem.label
+                font.pixelSize: Theme.fontSizeSmall
+                font.weight: Theme.fontWeightMedium
+                color: Theme.surfaceVariantText
+            }
+
+            Rectangle {
+                id: ddBox
+                Layout.fillWidth: true
+                height: 44
+                radius: 12
+                color: ddMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
+                border.color: ddItem.isOpen ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+                border.width: ddItem.isOpen ? 2 : 1
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Style.spacingM
+                    anchors.rightMargin: Style.spacingM
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: ddItem.currentValue
+                        font.pixelSize: Theme.fontSizeMedium
+                        color: Theme.surfaceText
+                        elide: Text.ElideRight
+                    }
+
+                    DIcon {
+                        name: ddItem.isOpen ? "keyboard_arrow_up" : "keyboard_arrow_down"
+                        size: Style.iconSizeSmall
+                        color: Theme.surfaceVariantText
+                    }
+                }
+
+                MouseArea {
+                    id: ddMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.activeDropdown = ddItem.isOpen ? "" : ddItem.dropdownKey
+                }
+            }
+        }
+
+        Rectangle {
+            visible: ddItem.isOpen
+            anchors.top: ddCol.bottom
+            anchors.topMargin: 4
+            anchors.left: parent.left
+            anchors.right: parent.right
+            radius: 12
+            color: Theme.surfaceContainerHighest
+            border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.45)
+            border.width: 1
+            implicitHeight: Math.min(ddItem.maxPopupHeight, ddList.implicitHeight + 8)
+            clip: true
+            z: 50
+
+            Flickable {
+                anchors.fill: parent
+                anchors.margins: 4
+                contentHeight: ddList.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+
+                Column {
+                    id: ddList
+                    width: parent.width
+                    spacing: 2
+
+                    Repeater {
+                        model: ddItem.options
+                        delegate: Rectangle {
+                            width: parent.width
+                            height: 36
+                            radius: 8
+                            color: optMouse.containsMouse ? Theme.surfaceContainerLow : (ddItem.currentValue === modelData ? Theme.primaryContainer : "transparent")
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 12
+                                anchors.rightMargin: 12
+
+                                StyledText {
+                                    Layout.fillWidth: true
+                                    text: modelData
+                                    font.pixelSize: Theme.fontSizeSmall + 1
+                                    color: ddItem.currentValue === modelData ? Theme.onPrimaryContainer : Theme.surfaceText
+                                    elide: Text.ElideRight
+                                }
+
+                                DIcon {
+                                    visible: ddItem.currentValue === modelData
+                                    name: "check"
+                                    size: 16
+                                    color: Theme.primary
+                                }
+                            }
+
+                            MouseArea {
+                                id: optMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    ddItem.selected(modelData)
+                                    root.activeDropdown = ""
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    component OptionCheckbox: RowLayout {
+        id: cb
+        property string text: ""
+        property bool checked: false
+        signal toggled
+
+        spacing: Style.spacingS
+
+        Rectangle {
+            width: 18
+            height: 18
+            radius: 4
+            color: cb.checked ? Theme.primary : "transparent"
+            border.color: cb.checked ? Theme.primary : Theme.outlineVariant
+            border.width: 1.5
+
+            DIcon {
+                anchors.centerIn: parent
+                name: "check"
+                size: 14
+                color: Theme.onPrimary
+                visible: cb.checked
+            }
+        }
+
+        StyledText {
+            text: cb.text
+            font.pixelSize: Theme.fontSizeSmall + 1
+            color: Theme.surfaceText
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: cb.toggled()
+        }
+    }
+
     visible: opacity > 0
     opacity: opened ? 1.0 : 0.0
 
@@ -114,506 +290,51 @@ Item {
             }
 
             // === Field 1: Media Type ===
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: mediaCol.implicitHeight
+            FilterDropdown {
+                label: "Media Type"
+                currentValue: root.tempMediaType
+                options: ["All Items", "Images only", "Videos only", "GIFs / Animations"]
+                dropdownKey: "media"
+                onSelected: (val) => root.tempMediaType = val
                 z: 40
-
-                ColumnLayout {
-                    id: mediaCol
-                    width: parent.width
-                    spacing: 6
-
-                    StyledText {
-                        text: "Media Type"
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Theme.fontWeightMedium
-                        color: Theme.surfaceVariantText
-                    }
-
-                    Rectangle {
-                        id: mediaBox
-                        Layout.fillWidth: true
-                        height: 44
-                        radius: 12
-                        color: mediaMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
-                        border.color: root.activeDropdown === "media" ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
-                        border.width: root.activeDropdown === "media" ? 2 : 1
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: Style.spacingM
-                            anchors.rightMargin: Style.spacingM
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: root.tempMediaType
-                                font.pixelSize: Theme.fontSizeMedium
-                                color: Theme.surfaceText
-                                elide: Text.ElideRight
-                            }
-
-                            DIcon {
-                                name: root.activeDropdown === "media" ? "keyboard_arrow_up" : "keyboard_arrow_down"
-                                size: Style.iconSizeSmall
-                                color: Theme.surfaceVariantText
-                            }
-                        }
-
-                        MouseArea {
-                            id: mediaMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.activeDropdown = root.activeDropdown === "media" ? "" : "media"
-                        }
-                    }
-                }
-
-                // Dropdown Menu Popout
-                Rectangle {
-                    visible: root.activeDropdown === "media"
-                    anchors.top: mediaCol.bottom
-                    anchors.topMargin: 4
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    radius: 12
-                    color: Theme.surfaceContainerHighest
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.45)
-                    border.width: 1
-                    implicitHeight: mediaList.implicitHeight + 8
-                    clip: true
-                    z: 50
-
-                    Column {
-                        id: mediaList
-                        anchors.fill: parent
-                        anchors.margins: 4
-                        spacing: 2
-
-                        Repeater {
-                            model: ["All Items", "Images only", "Videos only", "GIFs / Animations"]
-                            delegate: Rectangle {
-                                width: parent.width
-                                height: 36
-                                radius: 8
-                                color: optMouse.containsMouse ? Theme.surfaceContainerLow : (root.tempMediaType === modelData ? Theme.primaryContainer : "transparent")
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 12
-
-                                    StyledText {
-                                        Layout.fillWidth: true
-                                        text: modelData
-                                        font.pixelSize: Theme.fontSizeSmall + 1
-                                        color: root.tempMediaType === modelData ? Theme.onPrimaryContainer : Theme.surfaceText
-                                    }
-
-                                    DIcon {
-                                        visible: root.tempMediaType === modelData
-                                        name: "check"
-                                        size: 16
-                                        color: Theme.primary
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: optMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        root.tempMediaType = modelData
-                                        root.activeDropdown = ""
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             // === Field 2: Location / Album ===
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: locCol.implicitHeight
+            FilterDropdown {
+                label: "Location / Album"
+                currentValue: root.tempLocation
+                options: {
+                    const list = ["Anywhere", "Favorites"]
+                    const ma = ImageService.managedAlbums || []
+                    for (let i = 0; i < ma.length; i++) {
+                        const name = ma[i].name
+                        if (name && list.indexOf(name) === -1) list.push(name)
+                    }
+                    return list
+                }
+                dropdownKey: "loc"
+                onSelected: (val) => root.tempLocation = val
                 z: 30
-
-                ColumnLayout {
-                    id: locCol
-                    width: parent.width
-                    spacing: 6
-
-                    StyledText {
-                        text: "Location / Album"
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Theme.fontWeightMedium
-                        color: Theme.surfaceVariantText
-                    }
-
-                    Rectangle {
-                        id: locBox
-                        Layout.fillWidth: true
-                        height: 44
-                        radius: 12
-                        color: locMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
-                        border.color: root.activeDropdown === "loc" ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
-                        border.width: root.activeDropdown === "loc" ? 2 : 1
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: Style.spacingM
-                            anchors.rightMargin: Style.spacingM
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: root.tempLocation
-                                font.pixelSize: Theme.fontSizeMedium
-                                color: Theme.surfaceText
-                                elide: Text.ElideRight
-                            }
-
-                            DIcon {
-                                name: root.activeDropdown === "loc" ? "keyboard_arrow_up" : "keyboard_arrow_down"
-                                size: Style.iconSizeSmall
-                                color: Theme.surfaceVariantText
-                            }
-                        }
-
-                        MouseArea {
-                            id: locMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.activeDropdown = root.activeDropdown === "loc" ? "" : "loc"
-                        }
-                    }
-                }
-
-                // Dropdown Menu Popout
-                Rectangle {
-                    visible: root.activeDropdown === "loc"
-                    anchors.top: locCol.bottom
-                    anchors.topMargin: 4
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    radius: 12
-                    color: Theme.surfaceContainerHighest
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.45)
-                    border.width: 1
-                    implicitHeight: Math.min(220, locList.implicitHeight + 8)
-                    clip: true
-                    z: 50
-
-                    Flickable {
-                        anchors.fill: parent
-                        anchors.margins: 4
-                        contentHeight: locList.implicitHeight
-                        clip: true
-
-                        Column {
-                            id: locList
-                            width: parent.width
-                            spacing: 2
-
-                            Repeater {
-                                model: {
-                                    const list = ["Anywhere", "Favorites"]
-                                    const ma = ImageService.managedAlbums || []
-                                    for (let i = 0; i < ma.length; i++) {
-                                        const name = ma[i].name
-                                        if (name && list.indexOf(name) === -1) list.push(name)
-                                    }
-                                    return list
-                                }
-                                delegate: Rectangle {
-                                    width: parent.width
-                                    height: 36
-                                    radius: 8
-                                    color: locOptMouse.containsMouse ? Theme.surfaceContainerLow : (root.tempLocation === modelData ? Theme.primaryContainer : "transparent")
-
-                                    RowLayout {
-                                        anchors.fill: parent
-                                        anchors.leftMargin: 12
-                                        anchors.rightMargin: 12
-
-                                        StyledText {
-                                            Layout.fillWidth: true
-                                            text: modelData
-                                            font.pixelSize: Theme.fontSizeSmall + 1
-                                            color: root.tempLocation === modelData ? Theme.onPrimaryContainer : Theme.surfaceText
-                                            elide: Text.ElideRight
-                                        }
-
-                                        DIcon {
-                                            visible: root.tempLocation === modelData
-                                            name: "check"
-                                            size: 16
-                                            color: Theme.primary
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        id: locOptMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: {
-                                            root.tempLocation = modelData
-                                            root.activeDropdown = ""
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             // === Field 3: Date Added ===
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: dateCol.implicitHeight
+            FilterDropdown {
+                label: "Date Added"
+                currentValue: root.tempDateAdded
+                options: ["Any time", "Today", "Last 7 days", "Last 30 days", "This year"]
+                dropdownKey: "date"
+                onSelected: (val) => root.tempDateAdded = val
                 z: 20
-
-                ColumnLayout {
-                    id: dateCol
-                    width: parent.width
-                    spacing: 6
-
-                    StyledText {
-                        text: "Date Added"
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Theme.fontWeightMedium
-                        color: Theme.surfaceVariantText
-                    }
-
-                    Rectangle {
-                        id: dateBox
-                        Layout.fillWidth: true
-                        height: 44
-                        radius: 12
-                        color: dateMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
-                        border.color: root.activeDropdown === "date" ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
-                        border.width: root.activeDropdown === "date" ? 2 : 1
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: Style.spacingM
-                            anchors.rightMargin: Style.spacingM
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: root.tempDateAdded
-                                font.pixelSize: Theme.fontSizeMedium
-                                color: Theme.surfaceText
-                                elide: Text.ElideRight
-                            }
-
-                            DIcon {
-                                name: root.activeDropdown === "date" ? "keyboard_arrow_up" : "keyboard_arrow_down"
-                                size: Style.iconSizeSmall
-                                color: Theme.surfaceVariantText
-                            }
-                        }
-
-                        MouseArea {
-                            id: dateMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.activeDropdown = root.activeDropdown === "date" ? "" : "date"
-                        }
-                    }
-                }
-
-                // Dropdown Menu Popout
-                Rectangle {
-                    visible: root.activeDropdown === "date"
-                    anchors.top: dateCol.bottom
-                    anchors.topMargin: 4
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    radius: 12
-                    color: Theme.surfaceContainerHighest
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.45)
-                    border.width: 1
-                    implicitHeight: dateList.implicitHeight + 8
-                    clip: true
-                    z: 50
-
-                    Column {
-                        id: dateList
-                        anchors.fill: parent
-                        anchors.margins: 4
-                        spacing: 2
-
-                        Repeater {
-                            model: ["Any time", "Today", "Last 7 days", "Last 30 days", "This year"]
-                            delegate: Rectangle {
-                                width: parent.width
-                                height: 36
-                                radius: 8
-                                color: dateOptMouse.containsMouse ? Theme.surfaceContainerLow : (root.tempDateAdded === modelData ? Theme.primaryContainer : "transparent")
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 12
-
-                                    StyledText {
-                                        Layout.fillWidth: true
-                                        text: modelData
-                                        font.pixelSize: Theme.fontSizeSmall + 1
-                                        color: root.tempDateAdded === modelData ? Theme.onPrimaryContainer : Theme.surfaceText
-                                    }
-
-                                    DIcon {
-                                        visible: root.tempDateAdded === modelData
-                                        name: "check"
-                                        size: 16
-                                        color: Theme.primary
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: dateOptMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        root.tempDateAdded = modelData
-                                        root.activeDropdown = ""
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             // === Field 4: Sort Order ===
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: sortCol.implicitHeight
+            FilterDropdown {
+                label: "Sort Order"
+                currentValue: root.tempSortOrder
+                options: ["Newest first", "Oldest first", "Name (A-Z)", "Name (Z-A)"]
+                dropdownKey: "sort"
+                onSelected: (val) => root.tempSortOrder = val
                 z: 10
-
-                ColumnLayout {
-                    id: sortCol
-                    width: parent.width
-                    spacing: 6
-
-                    StyledText {
-                        text: "Sort Order"
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.weight: Theme.fontWeightMedium
-                        color: Theme.surfaceVariantText
-                    }
-
-                    Rectangle {
-                        id: sortBox
-                        Layout.fillWidth: true
-                        height: 44
-                        radius: 12
-                        color: sortMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
-                        border.color: root.activeDropdown === "sort" ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
-                        border.width: root.activeDropdown === "sort" ? 2 : 1
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: Style.spacingM
-                            anchors.rightMargin: Style.spacingM
-
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: root.tempSortOrder
-                                font.pixelSize: Theme.fontSizeMedium
-                                color: Theme.surfaceText
-                                elide: Text.ElideRight
-                            }
-
-                            DIcon {
-                                name: root.activeDropdown === "sort" ? "keyboard_arrow_up" : "keyboard_arrow_down"
-                                size: Style.iconSizeSmall
-                                color: Theme.surfaceVariantText
-                            }
-                        }
-
-                        MouseArea {
-                            id: sortMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.activeDropdown = root.activeDropdown === "sort" ? "" : "sort"
-                        }
-                    }
-                }
-
-                // Dropdown Menu Popout
-                Rectangle {
-                    visible: root.activeDropdown === "sort"
-                    anchors.top: sortCol.bottom
-                    anchors.topMargin: 4
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    radius: 12
-                    color: Theme.surfaceContainerHighest
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.45)
-                    border.width: 1
-                    implicitHeight: sortList.implicitHeight + 8
-                    clip: true
-                    z: 50
-
-                    Column {
-                        id: sortList
-                        anchors.fill: parent
-                        anchors.margins: 4
-                        spacing: 2
-
-                        Repeater {
-                            model: ["Newest first", "Oldest first", "Name (A-Z)", "Name (Z-A)"]
-                            delegate: Rectangle {
-                                width: parent.width
-                                height: 36
-                                radius: 8
-                                color: sortOptMouse.containsMouse ? Theme.surfaceContainerLow : (root.tempSortOrder === modelData ? Theme.primaryContainer : "transparent")
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 12
-
-                                    StyledText {
-                                        Layout.fillWidth: true
-                                        text: modelData
-                                        font.pixelSize: Theme.fontSizeSmall + 1
-                                        color: root.tempSortOrder === modelData ? Theme.onPrimaryContainer : Theme.surfaceText
-                                    }
-
-                                    DIcon {
-                                        visible: root.tempSortOrder === modelData
-                                        name: "check"
-                                        size: 16
-                                        color: Theme.primary
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: sortOptMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        root.tempSortOrder = modelData
-                                        root.activeDropdown = ""
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             // === Field 5: Options Checkboxes ===
@@ -631,74 +352,16 @@ Item {
                 RowLayout {
                     spacing: 20
 
-                    // Checkbox 1: Favorites only
-                    RowLayout {
-                        spacing: Style.spacingS
-
-                        Rectangle {
-                            width: 18
-                            height: 18
-                            radius: 4
-                            color: root.tempFavoritesOnly ? Theme.primary : "transparent"
-                            border.color: root.tempFavoritesOnly ? Theme.primary : Theme.outlineVariant
-                            border.width: 1.5
-
-                            DIcon {
-                                anchors.centerIn: parent
-                                name: "check"
-                                size: 14
-                                color: Theme.onPrimary
-                                visible: root.tempFavoritesOnly
-                            }
-                        }
-
-                        StyledText {
-                            text: "Favorites only"
-                            font.pixelSize: Theme.fontSizeSmall + 1
-                            color: Theme.surfaceText
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.tempFavoritesOnly = !root.tempFavoritesOnly
-                        }
+                    OptionCheckbox {
+                        text: "Favorites only"
+                        checked: root.tempFavoritesOnly
+                        onToggled: root.tempFavoritesOnly = !root.tempFavoritesOnly
                     }
 
-                    // Checkbox 2: Include hidden
-                    RowLayout {
-                        spacing: Style.spacingS
-
-                        Rectangle {
-                            width: 18
-                            height: 18
-                            radius: 4
-                            color: root.tempIncludeHidden ? Theme.primary : "transparent"
-                            border.color: root.tempIncludeHidden ? Theme.primary : Theme.outlineVariant
-                            border.width: 1.5
-
-                            DIcon {
-                                anchors.centerIn: parent
-                                name: "check"
-                                size: 14
-                                color: Theme.onPrimary
-                                visible: root.tempIncludeHidden
-                            }
-                        }
-
-                        StyledText {
-                            text: "Include hidden"
-                            font.pixelSize: Theme.fontSizeSmall + 1
-                            color: Theme.surfaceText
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.tempIncludeHidden = !root.tempIncludeHidden
-                        }
+                    OptionCheckbox {
+                        text: "Include hidden"
+                        checked: root.tempIncludeHidden
+                        onToggled: root.tempIncludeHidden = !root.tempIncludeHidden
                     }
                 }
             }
