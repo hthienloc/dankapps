@@ -146,60 +146,27 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 6
 
-                Text {
+                StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     text: "No Video Open"
-                    font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeXLarge
                     font.weight: Font.DemiBold
                     color: Theme.surfaceText
                 }
 
-                Text {
+                StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     text: "Drag and drop a video here, or browse files"
-                    font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeMedium
                     color: Theme.surfaceVariantText
                 }
             }
 
-            Rectangle {
+            DButton {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: openBtnRow.implicitWidth + 36
-                implicitHeight: 46
-                radius: 23
-                color: openBtnMouse.containsMouse
-                    ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.85)
-                    : Theme.primary
-
-                RowLayout {
-                    id: openBtnRow
-                    anchors.centerIn: parent
-                    spacing: 8
-
-                    DIcon {
-                        name: "folder_open"
-                        size: 20
-                        color: Theme.primaryText
-                    }
-
-                    Text {
-                        text: "Open Video (O)"
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeMedium
-                        font.weight: Font.DemiBold
-                        color: Theme.primaryText
-                    }
-                }
-
-                MouseArea {
-                    id: openBtnMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: VideoService.openFileDialog()
-                }
+                text: "Open Video (O)"
+                iconName: "folder_open"
+                onClicked: VideoService.openFileDialog()
             }
         }
     }

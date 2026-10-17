@@ -31,8 +31,6 @@ Singleton {
         VeryHigh
     }
 
-    property int animationSpeed: SettingsData.AnimationSpeed.Short
-    property bool enableRippleEffects: true
     property bool popoutElevationEnabled: true
     property int textRenderType: SettingsData.TextRenderType.Qt
     property int textRenderQuality: SettingsData.TextRenderQuality.Default
@@ -49,6 +47,16 @@ Singleton {
     property alias colorSource: adapter.colorSource
     property alias presetTheme: adapter.presetTheme
     property alias customThemeFile: adapter.customThemeFile
+    property alias radiusStrength: adapter.radiusStrength
+    property alias animationDuration: adapter.animationDuration
+    property alias reduceMotion: adapter.reduceMotion
+    property alias springBounce: adapter.springBounce
+    property alias enableRippleEffects: adapter.enableRippleEffects
+    property alias fontWeight: adapter.fontWeight
+    property alias fontScale: adapter.fontScale
+    property alias focusRingEnabled: adapter.focusRingEnabled
+    property alias focusRingWidth: adapter.focusRingWidth
+    property alias focusRingColor: adapter.focusRingColor
 
     // Viewer preferences
     property alias autoHideControls: adapter.autoHideControls
@@ -92,6 +100,16 @@ Singleton {
             property string colorSource: "auto"
             property string presetTheme: "blue"
             property string customThemeFile: ""
+            property int radiusStrength: 50
+            property int animationDuration: 250
+            property bool reduceMotion: false
+            property int springBounce: 1
+            property bool enableRippleEffects: true
+            property int fontWeight: 400
+            property real fontScale: 1.0
+            property bool focusRingEnabled: true
+            property real focusRingWidth: 1.5
+            property string focusRingColor: "primary"
             property bool autoHideControls: true
             property bool showCheckerboard: true
         }

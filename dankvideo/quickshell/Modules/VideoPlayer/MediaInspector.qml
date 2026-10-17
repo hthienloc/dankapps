@@ -3,15 +3,24 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 
 Rectangle {
     id: root
 
     width: 380
-    color: Qt.rgba(Theme.surfaceContainer.r, Theme.surfaceContainer.g, Theme.surfaceContainer.b, 0.96)
-    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+    color: Style.withAlpha(Theme.cardSurface, 0.96)
+    border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
     border.width: 1
+
+    ElevationShadow {
+        anchors.fill: parent
+        z: -1
+        targetRadius: parent.radius
+        targetColor: parent.color
+        level: Style.elevationLevel3
+    }
 
     MouseArea {
         anchors.fill: parent
@@ -23,9 +32,9 @@ Rectangle {
 
     component M3Card: Rectangle {
         Layout.fillWidth: true
-        radius: 12
+        radius: Style.cornerRadiusL
         color: Theme.surfaceContainerHigh
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.18)
+        border.color: Theme.withAlpha(Theme.outlineVariant, 0.20)
         border.width: 1
     }
 
@@ -35,10 +44,10 @@ Rectangle {
         signal clicked()
 
         Layout.fillWidth: true
-        implicitHeight: 34
-        radius: 8
+        implicitHeight: Style.buttonHeightXS
+        radius: Style.cornerRadiusSmall
         color: chipMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+        border.color: Theme.withAlpha(Theme.outlineVariant, 0.25)
         border.width: 1
 
         RowLayout {
@@ -51,10 +60,9 @@ Rectangle {
                 color: Theme.primary
             }
 
-            Text {
+            StyledText {
                 text: label
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSizeSmall
+                font.pixelSize: Style.fontSizeSmall
                 font.weight: Font.Medium
                 color: Theme.surfaceText
             }
@@ -82,10 +90,9 @@ Rectangle {
             color: Theme.primary
         }
 
-        Text {
+        StyledText {
             Layout.fillWidth: true
             text: title
-            font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeMedium
             font.weight: Font.DemiBold
             color: Theme.primary
@@ -101,20 +108,19 @@ Rectangle {
         Layout.fillWidth: true
         spacing: 12
 
-        Text {
+        StyledText {
             Layout.preferredWidth: 105
             text: label
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeSmall
+            font.pixelSize: Style.fontSizeSmall
             color: Theme.surfaceVariantText
             elide: Text.ElideRight
         }
 
-        Text {
+        StyledText {
             Layout.fillWidth: true
             text: value
             font.family: isMono ? Theme.monoFontFamily : Theme.fontFamily
-            font.pixelSize: Theme.fontSizeSmall
+            font.pixelSize: Style.fontSizeSmall
             font.weight: Font.Medium
             color: Theme.surfaceText
             wrapMode: Text.WrapAnywhere
@@ -144,10 +150,9 @@ Rectangle {
                     color: Theme.primary
                 }
 
-                Text {
+                StyledText {
                     Layout.fillWidth: true
                     text: "Media Details"
-                    font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeMedium
                     font.weight: Font.DemiBold
                     color: Theme.surfaceText
@@ -155,7 +160,8 @@ Rectangle {
 
                 DActionButton {
                     iconName: "close"
-                    iconSize: 18
+                    iconSize: Style.iconSizeSmall
+                    buttonSize: Style.buttonHeightXS
                     iconColor: Theme.surfaceText
                     tooltipText: "Close Panel (Esc)"
                     tooltipSide: "bottom"
@@ -172,7 +178,7 @@ Rectangle {
         }
 
         // Scrollable content
-        Flickable {
+        DFlickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
             contentWidth: width

@@ -96,22 +96,7 @@ Singleton {
         }
     }
 
-    Process {
-        id: openDialogProc
-        running: false
-        command: [
-            "sh", "-c",
-            "if command -v zenity >/dev/null 2>&1; then zenity --file-selection --title=\"Open Video\" --file-filter=\"Videos | *.mp4 *.mkv *.webm *.mov *.avi *.flv *.wmv *.ogg *.m4v *.ts *.m2ts\" 2>/dev/null; elif command -v kdialog >/dev/null 2>&1; then kdialog --getopenfilename . \"*.mp4 *.mkv *.webm *.mov *.avi *.flv *.wmv *.ogg *.m4v *.ts *.m2ts\" 2>/dev/null; fi"
-        ]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const picked = text.trim();
-                if (picked.length > 0) {
-                    root.loadDirectoryFor(picked);
-                }
-            }
-        }
-    }
+    signal openFileDialogRequested()
 
     Process {
         id: trashProc
@@ -163,7 +148,7 @@ Singleton {
     }
 
     function openFileDialog() {
-        openDialogProc.running = true;
+        openFileDialogRequested();
     }
 
     function toggleLockUI() {
