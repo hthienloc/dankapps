@@ -2,6 +2,9 @@
 
 A collection of Quickshell-based desktop apps for DankMaterialShell (DMS) and standalone use.
 
+> [!NOTE]
+> These applications are currently **experimental prototypes**. Features, UI design, and architecture are actively evolving and may change significantly in final releases.
+
 ## Apps
 
 | App | Description | Status | Binary |
