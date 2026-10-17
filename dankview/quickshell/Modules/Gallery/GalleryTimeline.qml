@@ -67,8 +67,8 @@ Item {
         }
     }
 
-    // Virtualized list of date groups — Grid is ~3× faster than Flow for fixed columns
-    ListView {
+    // Virtualized list of date groups — DListView provides DMS momentum and accelerated wheel/touchpad scrolling
+    DListView {
         id: list
         anchors.fill: parent
         anchors.leftMargin: 12
@@ -78,14 +78,18 @@ Item {
         spacing: 24
         cacheBuffer: 400
         topMargin: 8
-        bottomMargin: 80
         reuseItems: true
-        boundsBehavior: Flickable.StopAtBounds
-        maximumFlickVelocity: 2500
+        fadeEdges: false
+        showScrollBar: true
+
+        footer: Item {
+            width: 1
+            height: 80
+        }
 
         onModelChanged: {
             if (root.lastContentY > 0) {
-                contentY = Math.min(root.lastContentY, Math.max(-topMargin, contentHeight - height))
+                contentY = Math.min(root.lastContentY, Math.max(originY, contentHeight - height + originY))
             }
         }
 
