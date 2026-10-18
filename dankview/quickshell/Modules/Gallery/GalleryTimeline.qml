@@ -218,7 +218,7 @@ Item {
                         iconName: "chevron_left"
                         size: "s"
                         tooltipText: "Previous"
-                        enabled: recentCarousel.contentWidth > recentCarousel.width && (recentCarousel.stepAnimRunning ? recentCarousel.stepTargetX : recentCarousel.contentX) > recentCarousel.originX + 1
+                        enabled: recentCarousel.contentWidth > recentCarousel.width && (recentCarousel.stepAnimRunning ? recentCarousel.targetContentX : recentCarousel.contentX) > recentCarousel.originX + 1
                         onClicked: recentCarousel.scrollStep(-1)
                     }
 
@@ -226,7 +226,7 @@ Item {
                         iconName: "chevron_right"
                         size: "s"
                         tooltipText: "Next"
-                        enabled: recentCarousel.contentWidth > recentCarousel.width && (recentCarousel.stepAnimRunning ? recentCarousel.stepTargetX : recentCarousel.contentX) < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1)
+                        enabled: recentCarousel.contentWidth > recentCarousel.width && (recentCarousel.stepAnimRunning ? recentCarousel.targetContentX : recentCarousel.contentX) < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1)
                         onClicked: recentCarousel.scrollStep(1)
                     }
 
@@ -248,31 +248,41 @@ Item {
                         itemRadius: Style.cornerRadiusM
                         spacing: 10
                         interactive: false
+                        snapMode: ListView.NoSnap
+                        cacheBuffer: 2000
+                        reuseItems: true
                         model: ImageService.recentImages
 
+                        property real targetContentX: originX
                         readonly property bool stepAnimRunning: stepAnim.running
-                        readonly property real stepTargetX: stepAnim.to
 
                         function scrollBy(wheel) {
-                            wheel.accepted = false
+                            const dx = wheel.pixelDelta.x !== 0 ? wheel.pixelDelta.x : wheel.angleDelta.x;
+                            const dy = wheel.pixelDelta.y !== 0 ? wheel.pixelDelta.y : wheel.angleDelta.y;
+                            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+                                scrollStep(dx < 0 ? 1 : -1);
+                                wheel.accepted = true;
+                            } else {
+                                wheel.accepted = false;
+                            }
                         }
 
                         NumberAnimation {
                             id: stepAnim
                             target: recentCarousel
                             property: "contentX"
-                            duration: 250
-                            easing.type: Easing.OutCubic
+                            duration: 260
+                            easing.type: Easing.OutQuad
                         }
 
                         function scrollStep(dir) {
                             const step = itemWidth + spacing
                             const maxX = originX + Math.max(0, contentWidth - width)
-                            const currentTarget = stepAnim.running ? stepAnim.to : contentX
-                            const nextTarget = Math.max(originX, Math.min(maxX, currentTarget + dir * step))
+                            const base = stepAnim.running ? targetContentX : contentX
+                            targetContentX = Math.max(originX, Math.min(maxX, base + dir * step))
                             stepAnim.stop()
                             stepAnim.from = contentX
-                            stepAnim.to = nextTarget
+                            stepAnim.to = targetContentX
                             stepAnim.start()
                         }
 
