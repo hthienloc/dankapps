@@ -47,7 +47,8 @@ Singleton {
 
     // Gallery State
     property bool galleryMode: currentFilePath === ""
-    property string galleryTab: "gallery" // "gallery" (Timeline) | "albums" | "settings"
+    property string galleryTab: "gallery" // "gallery" (Timeline) | "albums"
+    property bool settingsOpen: false
     property bool sidebarCollapsed: true
     property bool albumsEditMode: false
     property var _albumsConfigSnapshot: null
@@ -96,6 +97,7 @@ Singleton {
     }
     onGalleryModeChanged: {
         if (!galleryMode && albumsEditMode) cancelEditAlbums();
+        if (!galleryMode) settingsOpen = false;
     }
 
     Timer {

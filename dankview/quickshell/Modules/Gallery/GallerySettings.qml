@@ -5,46 +5,52 @@ import qs.Services
 import qs.DCommon.Common
 import qs.DCommon.Widgets
 
-DFlickable {
+DDialog {
     id: root
 
-    contentWidth: width
-    contentHeight: settingsCol.implicitHeight + 72 + Style.spacingXL * 2
-    clip: true
+    title: "Settings"
+    supportingText: "Preferences, viewer controls and library management"
+    embedded: false
+    opened: ImageService.settingsOpen
+    maximumWidth: 680
+    maximumHeight: 720
+    surfaceColor: Theme.surfaceContainerHigh
+    surfaceRadius: Style.cornerRadiusXL
+    contentSpacing: Style.spacingXL
+    visible: active
 
-    ColumnLayout {
-        id: settingsCol
-        width: Math.min(parent.width - Style.spacingXL * 2, 680)
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        anchors.topMargin: 72
-        spacing: Style.spacingXL
+    signal closed()
 
-        // === Page Header ===
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: Style.spacingXXS
+    onRejected: {
+        ImageService.settingsOpen = false
+        closed()
+    }
+    onAccepted: {
+        ImageService.settingsOpen = false
+        closed()
+    }
 
-            StyledText {
-                text: "Settings"
-                font.pixelSize: Theme.fontSizeXXLarge + 2
-                font.weight: Theme.fontWeightBold
-                color: Theme.surfaceText
-            }
+    function open() {
+        ImageService.settingsOpen = true
+    }
 
-            StyledText {
-                text: "Preferences, viewer controls and library management"
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.surfaceVariantText
-            }
+    function close() {
+        ImageService.settingsOpen = false
+        closed()
+    }
+
+    onOpenedChanged: {
+        if (opened) {
+            forceActiveFocus()
         }
+    }
 
-        // =====================================================================
-        // 1. APPEARANCE SECTION
-        // =====================================================================
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: Style.spacingS
+    // =====================================================================
+    // 1. APPEARANCE SECTION
+    // =====================================================================
+    ColumnLayout {
+        width: parent.width
+        spacing: Style.spacingS
 
             StyledText {
                 text: "APPEARANCE"
@@ -60,7 +66,7 @@ DFlickable {
                 Layout.fillWidth: true
                 implicitHeight: appearanceCol.implicitHeight
                 radius: Style.cornerRadiusL
-                color: Theme.surfaceContainerHigh
+                color: Style.cardSurface
                 border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: 1
                 clip: true
@@ -344,6 +350,7 @@ DFlickable {
         // 2. IMAGE VIEWER SECTION
         // =====================================================================
         ColumnLayout {
+            width: parent.width
             Layout.fillWidth: true
             spacing: Style.spacingS
 
@@ -361,7 +368,7 @@ DFlickable {
                 Layout.fillWidth: true
                 implicitHeight: viewerCol.implicitHeight
                 radius: Style.cornerRadiusL
-                color: Theme.surfaceContainerHigh
+                color: Style.cardSurface
                 border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: 1
                 clip: true
@@ -496,6 +503,7 @@ DFlickable {
         // 3. LIBRARY & FOLDERS SECTION
         // =====================================================================
         ColumnLayout {
+            width: parent.width
             Layout.fillWidth: true
             spacing: Style.spacingS
 
@@ -513,7 +521,7 @@ DFlickable {
                 Layout.fillWidth: true
                 implicitHeight: libraryCol.implicitHeight
                 radius: Style.cornerRadiusL
-                color: Theme.surfaceContainerHigh
+                color: Style.cardSurface
                 border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: 1
                 clip: true
@@ -706,6 +714,7 @@ DFlickable {
         // 4. ABOUT SECTION
         // =====================================================================
         ColumnLayout {
+            width: parent.width
             Layout.fillWidth: true
             spacing: Style.spacingS
 
@@ -723,7 +732,7 @@ DFlickable {
                 Layout.fillWidth: true
                 implicitHeight: aboutRow.implicitHeight + Style.spacingL * 2
                 radius: Style.cornerRadiusL
-                color: Theme.surfaceContainerHigh
+                color: Style.cardSurface
                 border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: 1
 
@@ -795,8 +804,8 @@ DFlickable {
             }
         }
 
-        Item {
-            Layout.preferredHeight: Style.spacingXL
-        }
+    Item {
+        width: parent.width
+        height: Style.spacingS
     }
 }

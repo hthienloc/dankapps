@@ -15,6 +15,11 @@ Item {
     Keys.onPressed: event => {
         if (!ImageService.galleryMode) return
         if (event.key === Qt.Key_Escape) {
+            if (settingsDialog.opened) {
+                settingsDialog.close()
+                event.accepted = true
+                return
+            }
             if (filterDialog.opened) {
                 filterDialog.close()
                 event.accepted = true
@@ -316,10 +321,6 @@ Item {
                 visible: ImageService.galleryTab === "albums"
             }
 
-            GallerySettings {
-                anchors.fill: parent
-                visible: ImageService.galleryTab === "settings"
-            }
         }
 
         // Floating Contextual Actions Dock (Selection toolbar & Album edit actions)
@@ -337,5 +338,14 @@ Item {
         id: filterDialog
         anchors.fill: parent
         z: 100
+    }
+
+    // Settings Modal Dialog
+    GallerySettings {
+        id: settingsDialog
+        anchors.fill: parent
+        z: 110
+        opened: ImageService.settingsOpen
+        onClosed: ImageService.settingsOpen = false
     }
 }

@@ -27,6 +27,9 @@ Item {
                 return (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline")
                     && ImageService.selectedCategory === "Favorites"
             }
+            if (itemKey === "settings") {
+                return ImageService.settingsOpen
+            }
             if (itemKey.startsWith("qa:")) {
                 const catName = itemKey.substring(3);
                 return (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline")
@@ -136,7 +139,9 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                if (navItem.itemKey === "gallery") {
+                if (navItem.itemKey === "settings") {
+                    ImageService.settingsOpen = !ImageService.settingsOpen
+                } else if (navItem.itemKey === "gallery") {
                     ImageService.selectedCategory = "All"
                     ImageService.galleryTab = "gallery"
                 } else if (navItem.itemKey === "favorites") {
