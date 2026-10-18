@@ -1,0 +1,11 @@
+bin/
+*.exe
+*.o
+*.a
+*.so
+.cache/
+.DS_Store
+*.swp
+*~
+*.log
+core/bin/

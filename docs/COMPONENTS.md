@@ -1,6 +1,6 @@
 # DankApps Shared Components Reference
 
-This catalog documents the shared reusable QML components available in **`dank-qml-common`** (`qs.DCommon.Widgets` and `qs.DCommon.Common`) for all DankApps (`dankview`, `dankvideo`, `dankcalc`).
+This catalog documents the shared reusable QML components available in **`dank-qml-common`** (`qs.DCommon.Widgets` and `qs.DCommon.Common`) for all DankApps (`dankview`, `dankvideo`, `dankcalc`, `duzzle`).
 
 ---
 

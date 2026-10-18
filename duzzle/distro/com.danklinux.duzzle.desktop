@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Duzzle
+GenericName=Puzzle Hub
+Comment=Material 3 Puzzle Hub & Daily Games for Linux and DankMaterialShell
+Exec=duzzle %u
+Icon=extension
+Terminal=false
+Type=Application
+Categories=Game;LogicGame;Qt;
+Keywords=puzzle;minesweeper;daily;game;dank;
+StartupNotify=true
+StartupWMClass=com.danklinux.duzzle

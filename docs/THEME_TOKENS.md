@@ -1,6 +1,6 @@
 # Material 3 Expressive Design Tokens & Theming Guide
 
-This document defines the unified styling conventions, elevation hierarchy, opacity/alpha standards, and token references across all applications in **DankApps** (`dankview`, `dankvideo`, `dankcalc`).
+This document defines the unified styling conventions, elevation hierarchy, opacity/alpha standards, and token references across all applications in **DankApps** (`dankview`, `dankvideo`, `dankcalc`, `duzzle`).
 
 ---
 
