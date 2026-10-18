@@ -808,6 +808,9 @@ Singleton {
                 const list = root.gallerySelectedList.slice();
                 root.removeFavorites(list);
                 root.removePathsFromGalleryData(list);
+                for (let i = 0; i < list.length; i++) {
+                    root.removeRecentImage(list[i]);
+                }
                 root.showToast(`Moved ${list.length} to trash`);
                 root.clearSelection();
                 root.loadGallery();
@@ -947,6 +950,17 @@ Singleton {
                 }
             }
         }
+        onExited: exitCode => {
+            if (exitCode !== 0 && root.currentFilePath) {
+                const deadPath = root.currentFilePath;
+                root.removeRecentImage(deadPath);
+                root.showToast("File no longer exists", true);
+                root.removeCurrentFromList();
+                if (!root.currentFilePath) {
+                    root.galleryMode = true;
+                }
+            }
+        }
     }
 
     Process {
@@ -1015,6 +1029,7 @@ Singleton {
                 root.showToast("Moved to trash (Ctrl+Z to undo)");
                 if (root.lastTrashedPath) {
                     root.removePathsFromGalleryData([root.lastTrashedPath]);
+                    root.removeRecentImage(root.lastTrashedPath);
                 }
                 removeCurrentFromList();
             } else {
@@ -1032,6 +1047,7 @@ Singleton {
                 const restored = text.trim();
                 if (restored.length > 0) {
                     root.showToast("Restored from trash");
+                    root.recordRecentImage(restored, "");
                     root.loadDirectoryFor(restored);
                     if (root.galleryMode) {
                         root.loadGallery();
@@ -1394,6 +1410,7 @@ Singleton {
         if (!currentFilePath) return;
         lastTrashedPath = currentFilePath;
         removeFavorites([currentFilePath]);
+        removeRecentImage(currentFilePath);
         trashProc.command = ["dms", "trash", "put", currentFilePath];
         trashProc.running = true;
     }

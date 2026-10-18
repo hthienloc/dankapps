@@ -169,6 +169,11 @@ Item {
                     if (status === Image.Ready) {
                         ImageService.frameCount = frameCount;
                         ImageService.isAnimated = frameCount > 1;
+                    } else if (status === Image.Error) {
+                        ImageService.isPlaying = false;
+                        ImageService.isAnimated = false;
+                        ImageService.frameCount = 1;
+                        currentFrame = 0;
                     }
                 }
 
