@@ -25,7 +25,7 @@ Item {
                 implicitHeight: 64
                 radius: Theme.cornerRadiusSmall
                 color: Theme.surfaceContainerHigh
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                 border.width: 1
 
                 RowLayout {
@@ -94,7 +94,7 @@ Item {
                 implicitHeight: 64
                 radius: Theme.cornerRadiusSmall
                 color: toCardMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainer
-                border.color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.4)
+                border.color: M3E.stroke(Theme.primary, M3E.strokePopup)
                 border.width: 1
 
                 MouseArea {

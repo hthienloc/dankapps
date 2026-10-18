@@ -55,6 +55,40 @@ Singleton {
     readonly property real iconBtnPressScale: 0.93
 
     // -------------------------------------------------------------------------
+    // Unified Opacity & Alpha Design Tokens
+    // -------------------------------------------------------------------------
+
+    // Stroke / Border Alphas
+    readonly property real strokeFaint: 0.12     // Hairlines, inner subtle separators
+    readonly property real strokeDivider: 0.20   // List item dividers, group card dividers
+    readonly property real strokeControl: 0.25   // Unfocused input borders, button outlines
+    readonly property real strokeSurface: 0.28   // Search pills, chips, secondary cards
+    readonly property real strokeCard: 0.35      // Elevated cards, floating dock/action bars, sheets
+    readonly property real strokePopup: 0.40     // Menus, dropdowns, floating dialog popups
+
+    // Backdrop / Scrim Alphas
+    readonly property real scrimSubtle: 0.30     // Ambient sheet fade
+    readonly property real scrimModal: 0.45      // Standard bottom sheets, menus, dialog backdrops
+    readonly property real scrimOverlay: 0.55    // Heavy masks, crop overlay dimming
+    readonly property real scrimHeavy: 0.70      // Deep modal focus masks
+
+    // State Layer Alphas (Material 3 Standard)
+    readonly property real stateHover: 0.08      // Hover overlay
+    readonly property real stateFocus: 0.10      // Focus indicator overlay
+    readonly property real statePressed: 0.12    // Active press state
+    readonly property real stateSelected: 0.15   // Selected row/item container
+    readonly property real stateDragged: 0.16    // Drag ghost / reordering state
+
+    /**
+     * Helper to compute an RGBA color with a standard or custom stroke alpha.
+     */
+    function stroke(baseColor, alpha) {
+        var a = alpha !== undefined ? alpha : strokeCard;
+        if (!baseColor) return Qt.rgba(0, 0, 0, a);
+        return Qt.rgba(baseColor.r, baseColor.g, baseColor.b, a);
+    }
+
+    // -------------------------------------------------------------------------
     // Shape Morphing Helpers
     // -------------------------------------------------------------------------
 

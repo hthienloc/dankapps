@@ -59,7 +59,7 @@ Item {
                         : (chipMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh)
                     border.color: isSelected
                         ? (isFavChip ? Theme.error : Theme.primary)
-                        : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.22)
+                        : M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
                     border.width: isSelected ? Style.outlineWidth : 0
 
                     Behavior on topLeftRadius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }

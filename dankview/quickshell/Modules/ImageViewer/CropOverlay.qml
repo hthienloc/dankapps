@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 
 // Crop overlay drawn over the image viewport.
@@ -314,21 +315,21 @@ Item {
     // Dark scrim outside the crop rect (4 rectangles)
     Rectangle { // top
         x: 0; y: 0; width: parent.width; height: cropY
-        color: Qt.rgba(0, 0, 0, 0.55)
+        color: Qt.rgba(0, 0, 0, M3E.scrimOverlay)
     }
     Rectangle { // bottom
         x: 0; y: cropY + cropH; width: parent.width
         height: parent.height - (cropY + cropH)
-        color: Qt.rgba(0, 0, 0, 0.55)
+        color: Qt.rgba(0, 0, 0, M3E.scrimOverlay)
     }
     Rectangle { // left
         x: 0; y: cropY; width: cropX; height: cropH
-        color: Qt.rgba(0, 0, 0, 0.55)
+        color: Qt.rgba(0, 0, 0, M3E.scrimOverlay)
     }
     Rectangle { // right
         x: cropX + cropW; y: cropY
         width: parent.width - (cropX + cropW); height: cropH
-        color: Qt.rgba(0, 0, 0, 0.55)
+        color: Qt.rgba(0, 0, 0, M3E.scrimOverlay)
     }
 
     // Crop rect border
@@ -519,7 +520,7 @@ Item {
             height: doneMenuCol.implicitHeight + 24
             radius: 16
             color: Theme.surfaceContainerHigh
-            border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+            border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
             border.width: 1
 
             // Swallow clicks inside the card

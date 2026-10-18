@@ -227,7 +227,7 @@ FloatingWindow {
             anchors.fill: parent
             radius: window.maximized ? 0 : Theme.windowRadius
             color: Theme.surfaceContainerLowest
-            border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+            border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
             border.width: window.maximized ? 0 : 1
 
             ColumnLayout {
@@ -286,7 +286,7 @@ FloatingWindow {
                             color: catBtnMouse.containsMouse || CalculatorService.categoryMenuOpen
                                    ? Theme.surfaceContainerHighest
                                    : Theme.surfaceContainerHigh
-                            border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                            border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                             border.width: 1
 
                             RowLayout {

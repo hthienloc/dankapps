@@ -282,7 +282,7 @@ Item {
                     implicitWidth: restoreRow.implicitWidth + Style.spacingL
                     radius: height / 2
                     color: restoreMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                    border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                     border.width: 1
 
                     RowLayout {
@@ -321,7 +321,7 @@ Item {
                     implicitWidth: editBtnRow.implicitWidth + Style.spacingL
                     radius: M3E.tileRadius(editBtnMouse.pressed, editBtnMouse.containsMouse, false)
                     color: editBtnMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                    border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                     border.width: 1
 
                     Behavior on radius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
@@ -454,7 +454,7 @@ Item {
                                     : Theme.surfaceContainerHigh
                                 border.color: addCardHover.hovered
                                     ? Theme.primary
-                                    : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                                    : M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                                 border.width: addCardHover.hovered ? Style.outlineWidth : 1
 
                                 scale: addCardMouse.pressed ? M3E.tilePressScale : (addCardHover.hovered ? 1.02 : 1.0)
@@ -473,7 +473,7 @@ Item {
                                     height: 48
                                     radius: 0
                                     color: addCardHover.hovered ? Theme.primaryContainer : Theme.surfaceContainerLowest
-                                    border.color: addCardHover.hovered ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+                                    border.color: addCardHover.hovered ? Theme.primary : M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                                     border.width: 1
 
                                     DIcon {

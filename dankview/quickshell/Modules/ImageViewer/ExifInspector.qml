@@ -13,7 +13,7 @@ Rectangle {
     height: 480
     radius: Style.cornerRadiusL
     color: Theme.withAlpha(Theme.cardSurface, 0.97)
-    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.28)
+    border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
     border.width: 1
 
     // Grab handle indicator for bottom sheet (Click to dismiss/close)
@@ -50,7 +50,7 @@ Rectangle {
         Layout.fillWidth: true
         radius: Style.cornerRadiusM
         color: Theme.surfaceContainerHigh
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.20)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
         border.width: 1
     }
 
@@ -118,7 +118,7 @@ Rectangle {
         implicitWidth: chipRow.implicitWidth + Style.spacingL
         radius: Style.cornerRadiusS
         color: chipMouse.containsMouse ? Theme.surfaceContainerHighest : (Theme.surfaceContainerLow || Theme.surfaceContainerHigh)
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.28)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeSurface)
         border.width: 1
 
         RowLayout {
@@ -179,7 +179,7 @@ Rectangle {
         implicitHeight: 48
         radius: Style.cornerRadiusS
         color: Theme.surfaceContainerLow || Theme.surfaceContainerHigh
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.16)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeFaint)
         border.width: 1
 
         ColumnLayout {

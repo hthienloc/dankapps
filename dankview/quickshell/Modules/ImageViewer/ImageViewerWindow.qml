@@ -252,7 +252,7 @@ FloatingWindow {
             anchors.fill: parent
             radius: window.maximized ? 0 : Theme.windowRadius
             color: ImageService.galleryMode ? Theme.surface : Theme.surfaceContainerLowest
-            border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.4)
+            border.color: M3E.stroke(Theme.outlineVariant, M3E.strokePopup)
             border.width: window.maximized ? 0 : 1
             clip: !window.maximized
 
@@ -313,7 +313,7 @@ FloatingWindow {
                 color: Theme.surfaceContainerLowest
                 clip: true
                 visible: !ImageService.galleryMode
-                border.color: ImageService.uiLocked ? "transparent" : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.2)
+                border.color: ImageService.uiLocked ? "transparent" : M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
                 border.width: ImageService.uiLocked ? 0 : 1
 
                 ImageCanvas {
@@ -380,7 +380,7 @@ FloatingWindow {
                     radius: height / 2
                     color: lockBadgeMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
                     opacity: lockBadgeMouse.containsMouse ? 0.95 : 0.0
-                    border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                    border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                     border.width: Style.outlineWidth
 
                     Behavior on opacity {
@@ -452,7 +452,7 @@ FloatingWindow {
 
                 border.color: ImageService.editMode
                     ? Theme.primary
-                    : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+                    : M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: Style.outlineWidth
 
                 Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }
@@ -504,7 +504,7 @@ FloatingWindow {
                 opacity: shouldShow ? (isDimmed ? 0.35 : 1.0) : 0.0
                 scale: shouldShow ? 1.0 : 0.8
                 color: Theme.withAlpha(Theme.chipSurface, 0.95)
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: Style.outlineWidth
 
                 Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }
@@ -611,7 +611,7 @@ FloatingWindow {
                     ? Qt.darker(Theme.chipSurface, 1.15)
                     : (zoomMouse.containsMouse ? Qt.lighter(Theme.chipSurface, 1.08) : Theme.withAlpha(Theme.chipSurface, 0.95))
 
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: Style.outlineWidth
 
                 Behavior on opacity { DAnim { duration: M3E.effectsMs; easing.bezierCurve: M3E.curveEffects } }

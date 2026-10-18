@@ -62,7 +62,7 @@ Item {
         height: Math.min(unitList.contentHeight + Theme.spacingS * 2, 260)
         radius: Theme.cornerRadiusSmall
         color: Theme.surfaceContainer
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokePopup)
         border.width: 1
 
         scale: root.isOpen ? 1.0 : 0.95

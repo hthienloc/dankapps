@@ -59,7 +59,7 @@ Item {
                 implicitHeight: Math.max(18, Math.min(24, root.height * 0.26))
                 radius: height / 2
                 color: radMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeSurface)
                 border.width: 1
 
                 Behavior on color { DColorAnim { duration: Theme.shortDuration } }

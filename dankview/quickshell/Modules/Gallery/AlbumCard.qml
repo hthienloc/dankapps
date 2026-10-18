@@ -44,7 +44,7 @@ Item {
                 ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.65)
                 : (cardHover.hovered
                     ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.5)
-                    : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25))
+                    : M3E.stroke(Theme.outlineVariant, M3E.strokeControl))
             border.width: root.canEditCard ? Style.outlineWidth : 1
 
             scale: cardMouse.pressed && !root.canEditCard ? M3E.tilePressScale : (cardHover.hovered && !root.canEditCard ? 1.02 : 1.0)

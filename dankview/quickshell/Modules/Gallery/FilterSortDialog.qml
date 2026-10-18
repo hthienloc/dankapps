@@ -66,7 +66,7 @@ Item {
                 height: 44
                 radius: 12
                 color: ddMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
-                border.color: ddItem.isOpen ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+                border.color: ddItem.isOpen ? Theme.primary : M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                 border.width: ddItem.isOpen ? 2 : 1
 
                 RowLayout {
@@ -107,7 +107,7 @@ Item {
             anchors.right: parent.right
             radius: 12
             color: Theme.surfaceContainerHighest
-            border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.45)
+            border.color: M3E.stroke(Theme.outlineVariant, M3E.strokePopup)
             border.width: 1
             implicitHeight: Math.min(ddItem.maxPopupHeight, ddList.implicitHeight + 8)
             clip: true
@@ -247,7 +247,7 @@ Item {
         anchors.centerIn: parent
         radius: Style.cornerRadiusXL
         color: Theme.surfaceContainerHigh
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
         border.width: Style.outlineWidth
         implicitHeight: cardContent.implicitHeight + 48
 

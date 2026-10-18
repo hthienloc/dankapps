@@ -41,7 +41,7 @@ Rectangle {
         width: 420
         radius: Style.cornerRadiusL
         color: Theme.surfaceContainerHigh
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokePopup)
         border.width: 1
         implicitHeight: sheetCol.implicitHeight + 32
 
@@ -94,7 +94,7 @@ Rectangle {
                 implicitHeight: Style.buttonHeightS
                 radius: Style.cornerRadiusS
                 color: Theme.surfaceContainerLow
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                 border.width: 1
 
                 RowLayout {
@@ -145,7 +145,7 @@ Rectangle {
                             : (fmtMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow)
                         border.color: formatSelector.currentFormat === modelData
                             ? Theme.primary
-                            : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.35)
+                            : M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                         border.width: 1
 
                         StyledText {

@@ -4,6 +4,7 @@ import QtMultimedia
 import Quickshell
 import qs.Common
 import qs.Services
+import qs.DCommon.Common
 import qs.DCommon.Widgets
 
 Item {
@@ -131,7 +132,7 @@ Item {
                 height: 88
                 radius: 44
                 color: Theme.surfaceContainerHigh
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                 border.width: 1
 
                 DIcon {

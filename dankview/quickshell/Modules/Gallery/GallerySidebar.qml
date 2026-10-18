@@ -204,7 +204,7 @@ Item {
                     anchors.centerIn: parent
                     width: 32
                     height: 1
-                    color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                    color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
                 }
             }
 

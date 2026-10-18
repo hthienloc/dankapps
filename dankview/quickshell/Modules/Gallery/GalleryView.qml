@@ -71,7 +71,7 @@ Item {
         anchors.bottomMargin: Style.spacingM
         radius: Style.cornerRadiusL
         color: Theme.surfaceContainer
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.22)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
         border.width: Style.outlineWidth
         clip: true
 
@@ -92,7 +92,7 @@ Item {
             z: 30
             visible: ImageService.galleryTab !== "settings"
                 color: searchInput.activeFocus ? Theme.surfaceContainerHighest : (isCollapsed && collapsedMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh)
-                border.color: searchInput.activeFocus ? Theme.primary : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.28)
+                border.color: searchInput.activeFocus ? Theme.primary : M3E.stroke(Theme.outlineVariant, M3E.strokeSurface)
                 border.width: searchInput.activeFocus ? 2 : 1
                 clip: true
 
@@ -227,7 +227,7 @@ Item {
                         Rectangle {
                             width: 1
                             height: 18
-                            color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+                            color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
                         }
 
                         // Filter & Sort Button (tune icon as in Google Photos reference)

@@ -13,7 +13,7 @@ Rectangle {
     width: Math.min(680, parent.width - 48)
     radius: Style.cornerRadiusXL
     color: Style.withAlpha(Style.surfaceContainerHigh, 0.95)
-    border.color: Qt.rgba(Style.outlineVariant.r, Style.outlineVariant.g, Style.outlineVariant.b, 0.30)
+    border.color: M3E.stroke(Style.outlineVariant, M3E.strokeCard)
     border.width: 1
 
     ElevationShadow {

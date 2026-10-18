@@ -11,7 +11,7 @@ Rectangle {
     property bool open: CalculatorService.menuOpen
 
     anchors.fill: parent
-    color: Qt.rgba(0, 0, 0, 0.45)
+    color: Qt.rgba(0, 0, 0, M3E.scrimModal)
     visible: opacity > 0
     opacity: open ? 1.0 : 0.0
 
@@ -35,7 +35,7 @@ Rectangle {
         implicitHeight: menuCol.implicitHeight + Theme.spacingM * 2
         radius: Theme.cornerRadius
         color: Theme.surfaceContainer
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokePopup)
         border.width: 1
 
         scale: root.open ? 1.0 : 0.95

@@ -60,8 +60,8 @@ DFlickable {
                 Layout.fillWidth: true
                 implicitHeight: appearanceCol.implicitHeight
                 radius: Style.cornerRadiusL
-                color: Theme.surfaceContainer
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.18)
+                color: Theme.surfaceContainerHigh
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: 1
                 clip: true
 
@@ -124,7 +124,7 @@ DFlickable {
                                 implicitWidth: segRow.implicitWidth + 4
                                 radius: height / 2
                                 color: Theme.surfaceContainerHighest
-                                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+                                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                                 border.width: 1
 
                                 Row {
@@ -189,7 +189,7 @@ DFlickable {
                         Layout.leftMargin: 64
                         Layout.rightMargin: Style.spacingM
                         height: 1
-                        color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.12)
+                        color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
                     }
 
                     // Row 2: Corner Radius Slider
@@ -279,7 +279,7 @@ DFlickable {
                         Layout.leftMargin: 64
                         Layout.rightMargin: Style.spacingM
                         height: 1
-                        color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.12)
+                        color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
                     }
 
                     // Row 3: Reduce Motion Toggle
@@ -361,8 +361,8 @@ DFlickable {
                 Layout.fillWidth: true
                 implicitHeight: viewerCol.implicitHeight
                 radius: Style.cornerRadiusL
-                color: Theme.surfaceContainer
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.18)
+                color: Theme.surfaceContainerHigh
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: 1
                 clip: true
 
@@ -432,7 +432,7 @@ DFlickable {
                         Layout.leftMargin: 64
                         Layout.rightMargin: Style.spacingM
                         height: 1
-                        color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.12)
+                        color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
                     }
 
                     // Row 2: Transparent Checkerboard
@@ -513,8 +513,8 @@ DFlickable {
                 Layout.fillWidth: true
                 implicitHeight: libraryCol.implicitHeight
                 radius: Style.cornerRadiusL
-                color: Theme.surfaceContainer
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.18)
+                color: Theme.surfaceContainerHigh
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: 1
                 clip: true
 
@@ -576,8 +576,8 @@ DFlickable {
                                 implicitHeight: Style.buttonHeightS
                                 implicitWidth: restoreBtnRow.implicitWidth + Style.spacingL
                                 radius: height / 2
-                                color: restoreMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
-                                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.25)
+                                color: restoreMouse.containsMouse ? Theme.surfaceBright : Theme.surfaceContainerHighest
+                                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
                                 border.width: 1
                                 scale: restoreMouse.pressed ? M3E.rowPressScale : 1.0
 
@@ -620,7 +620,7 @@ DFlickable {
                         Layout.leftMargin: 64
                         Layout.rightMargin: Style.spacingM
                         height: 1
-                        color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.12)
+                        color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
                     }
 
                     // Row 2: Quick Access Summary
@@ -723,8 +723,8 @@ DFlickable {
                 Layout.fillWidth: true
                 implicitHeight: aboutRow.implicitHeight + Style.spacingL * 2
                 radius: Style.cornerRadiusL
-                color: Theme.surfaceContainer
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.18)
+                color: Theme.surfaceContainerHigh
+                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
                 border.width: 1
 
                 RowLayout {

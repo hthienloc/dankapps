@@ -11,7 +11,7 @@ Rectangle {
     property bool open: CalculatorService.historyOpen
 
     anchors.fill: parent
-    color: Qt.rgba(0, 0, 0, 0.45)
+    color: Qt.rgba(0, 0, 0, M3E.scrimModal)
     visible: opacity > 0
     opacity: open ? 1.0 : 0.0
 
@@ -34,7 +34,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         width: Math.min(300, parent.width * 0.85)
         color: Theme.surfaceContainer
-        border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokePopup)
         border.width: 1
         clip: true
 
