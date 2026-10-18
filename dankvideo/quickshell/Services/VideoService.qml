@@ -33,17 +33,24 @@ Singleton {
 
     readonly property string dplayBin: Quickshell.env("DPLAY_BIN") || "dplay"
 
-    onCurrentFilePathChanged: {
-        if (currentFilePath) {
+    onInspectorOpenChanged: {
+        if (inspectorOpen && currentFilePath && (!currentMeta || currentMeta.filePath !== currentFilePath)) {
             fetchMetadata();
-        } else {
-            currentMeta = ({});
+        }
+    }
+
+    onCurrentFilePathChanged: {
+        currentMeta = ({});
+        if (inspectorOpen && currentFilePath) {
+            fetchMetadata();
         }
     }
 
     Component.onCompleted: {
         const initVid = Quickshell.env("DPLAY_INITIAL_VIDEO");
         if (initVid) {
+            root.fileList = [initVid];
+            root.currentIndex = 0;
             loadDirectoryFor(initVid);
         }
     }
@@ -68,8 +75,19 @@ Singleton {
                 try {
                     const data = JSON.parse(text);
                     if (data && data.files && data.files.length > 0) {
+                        const current = root.currentFilePath;
                         root.fileList = data.files;
-                        root.currentIndex = data.currentIndex >= 0 && data.currentIndex < data.files.length ? data.currentIndex : 0;
+                        let foundIdx = -1;
+                        if (current) {
+                            foundIdx = data.files.indexOf(current);
+                        }
+                        if (foundIdx >= 0) {
+                            root.currentIndex = foundIdx;
+                        } else if (data.currentIndex >= 0 && data.currentIndex < data.files.length) {
+                            root.currentIndex = data.currentIndex;
+                        } else {
+                            root.currentIndex = 0;
+                        }
                     }
                 } catch (e) {
                     console.warn("Failed to parse video list JSON:", e);

@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 
 	"github.com/AvengeMedia/dankvideo/core/internal/fs"
 	"github.com/AvengeMedia/dankvideo/core/internal/probe"
@@ -104,7 +103,6 @@ func main() {
 	}
 
 	var initialVideo string
-	var videoList *fs.VideoList
 
 	if flag.NArg() > 0 {
 		targetPath := flag.Arg(0)
@@ -138,19 +136,16 @@ func main() {
 			return
 		}
 
-		var scanErr error
-		videoList, scanErr = fs.ScanDirectory(absPath)
-		if scanErr != nil {
-			videoList = &fs.VideoList{
-				Directory:    filepath.Dir(absPath),
-				Files:        []string{absPath},
-				CurrentIndex: 0,
+		fi, err := os.Stat(absPath)
+		if err == nil && fi.IsDir() {
+			vList, err := fs.ScanDirectory(absPath)
+			if err == nil && len(vList.Files) > 0 {
+				initialVideo = vList.Files[0]
+			} else {
+				initialVideo = absPath
 			}
-		}
-
-		initialVideo = absPath
-		if len(videoList.Files) > 0 && videoList.CurrentIndex < len(videoList.Files) {
-			initialVideo = videoList.Files[videoList.CurrentIndex]
+		} else {
+			initialVideo = absPath
 		}
 	} else if *printInfo || *printList {
 		fmt.Fprintf(os.Stderr, "Error: no video path provided\n")
@@ -171,12 +166,7 @@ func main() {
 
 	if initialVideo != "" {
 		env = append(env, "DPLAY_INITIAL_VIDEO="+initialVideo)
-	}
-	if videoList != nil {
-		env = append(env,
-			"DPLAY_DIR="+videoList.Directory,
-			"DPLAY_INDEX="+strconv.Itoa(videoList.CurrentIndex),
-		)
+		env = append(env, "DPLAY_DIR="+filepath.Dir(initialVideo))
 	}
 
 	fontCfg := theme.GetSystemFontSettings()
