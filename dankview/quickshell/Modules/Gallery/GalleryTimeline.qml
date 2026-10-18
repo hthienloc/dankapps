@@ -213,16 +213,18 @@ Item {
                     Item { Layout.fillWidth: true }
 
                     DIconButton {
-                        iconName: "chevron-left"
+                        iconName: "chevron_left"
                         size: "s"
-                        enabled: recentCarousel.contentX > recentCarousel.originX + 1
+                        tooltipText: "Previous"
+                        enabled: recentCarousel.contentWidth > recentCarousel.width && (recentCarousel.stepAnimRunning ? recentCarousel.stepTargetX : recentCarousel.contentX) > recentCarousel.originX + 1
                         onClicked: recentCarousel.scrollStep(-1)
                     }
 
                     DIconButton {
-                        iconName: "chevron-right"
+                        iconName: "chevron_right"
                         size: "s"
-                        enabled: recentCarousel.contentX < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1)
+                        tooltipText: "Next"
+                        enabled: recentCarousel.contentWidth > recentCarousel.width && (recentCarousel.stepAnimRunning ? recentCarousel.stepTargetX : recentCarousel.contentX) < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1)
                         onClicked: recentCarousel.scrollStep(1)
                     }
 
@@ -239,125 +241,102 @@ Item {
                     id: recentCarousel
                     Layout.fillWidth: true
                     height: 140
-                    preferredItemWidth: Math.min(220, Math.max(160, width * 0.35))
-                    smallItemWidth: Style.listItemHeight
-                    itemRadius: Style.cornerRadiusM
-                    spacing: 10
-                    model: ImageService.recentImages
+                        preferredItemWidth: Math.min(220, Math.max(160, width * 0.35))
+                        smallItemWidth: Style.listItemHeight
+                        itemRadius: Style.cornerRadiusM
+                        spacing: 10
+                        interactive: false
+                        model: ImageService.recentImages
 
-                    property real targetContentX: originX
-                    property bool isSmoothScrolling: false
+                        readonly property bool stepAnimRunning: stepAnim.running
+                        readonly property real stepTargetX: stepAnim.to
 
-                    onOriginXChanged: targetContentX = originX
-
-                    NumberAnimation {
-                        id: smoothScrollAnim
-                        target: recentCarousel
-                        property: "contentX"
-                        duration: 260
-                        easing.type: Easing.OutCubic
-                        onFinished: {
-                            recentCarousel.isSmoothScrolling = false
-                        }
-                    }
-
-                    function scrollBy(wheel) {
-                        const isPad = wheel.phase !== Qt.NoScrollPhase && (wheel.pixelDelta.x !== 0 || wheel.pixelDelta.y !== 0);
-                        const delta = isPad
-                            ? (Math.abs(wheel.pixelDelta.x) > Math.abs(wheel.pixelDelta.y) ? wheel.pixelDelta.x : wheel.pixelDelta.y)
-                            : (Math.abs(wheel.angleDelta.x) > Math.abs(wheel.angleDelta.y) ? wheel.angleDelta.x : wheel.angleDelta.y) / 120 * (itemWidth + spacing);
-                        const maxX = originX + Math.max(0, contentWidth - width);
-
-                        if (isPad) {
-                            smoothScrollAnim.stop();
-                            isSmoothScrolling = false;
-                            contentX = Math.max(originX, Math.min(maxX, contentX - delta));
-                            targetContentX = contentX;
-                        } else {
-                            const startX = isSmoothScrolling ? targetContentX : contentX;
-                            targetContentX = Math.max(originX, Math.min(maxX, startX - delta));
-                            smoothScrollAnim.stop();
-                            smoothScrollAnim.from = contentX;
-                            smoothScrollAnim.to = targetContentX;
-                            isSmoothScrolling = true;
-                            smoothScrollAnim.start();
-                        }
-                    }
-
-                    function scrollStep(dir) {
-                        const maxX = originX + Math.max(0, contentWidth - width);
-                        const startX = isSmoothScrolling ? targetContentX : contentX;
-                        targetContentX = Math.max(originX, Math.min(maxX, startX + dir * (itemWidth + spacing)));
-                        smoothScrollAnim.stop();
-                        smoothScrollAnim.from = contentX;
-                        smoothScrollAnim.to = targetContentX;
-                        isSmoothScrolling = true;
-                        smoothScrollAnim.start();
-                    }
-
-                    delegate: DCarouselItem {
-                        id: tile
-
-                        required property var modelData
-                        required property int index
-
-                        readonly property var itemData: modelData !== undefined ? modelData : (ImageService.recentImages && ImageService.recentImages[index] ? ImageService.recentImages[index] : null)
-
-                        tooltipText: tile.itemData?.name || ""
-                        onClicked: {
-                            if (tile.itemData && tile.itemData.path) {
-                                const path = tile.itemData.path
-                                const thumb = tile.itemData.thumbnail || ""
-                                Qt.callLater(() => {
-                                    ImageService.openImageFromGallery(path, thumb)
-                                })
-                            }
+                        function scrollBy(wheel) {
+                            wheel.accepted = false
                         }
 
-                        Rectangle {
-                            anchors.fill: parent
-                            color: Theme.surfaceContainerHigh
+                        NumberAnimation {
+                            id: stepAnim
+                            target: recentCarousel
+                            property: "contentX"
+                            duration: 250
+                            easing.type: Easing.OutCubic
+                        }
 
-                            Image {
-                                anchors.fill: parent
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                cache: true
-                                source: {
-                                    if (!tile.itemData) return ""
-                                    if (tile.itemData.thumbnail) return "file://" + tile.itemData.thumbnail
-                                    return "file://" + tile.itemData.path
+                        function scrollStep(dir) {
+                            const step = itemWidth + spacing
+                            const maxX = originX + Math.max(0, contentWidth - width)
+                            const currentTarget = stepAnim.running ? stepAnim.to : contentX
+                            const nextTarget = Math.max(originX, Math.min(maxX, currentTarget + dir * step))
+                            stepAnim.stop()
+                            stepAnim.from = contentX
+                            stepAnim.to = nextTarget
+                            stepAnim.start()
+                        }
+
+                        delegate: DCarouselItem {
+                            id: tile
+
+                            required property var modelData
+                            required property int index
+
+                            readonly property var itemData: modelData !== undefined ? modelData : (ImageService.recentImages && ImageService.recentImages[index] ? ImageService.recentImages[index] : null)
+
+                            tooltipText: tile.itemData?.name || ""
+                            onClicked: {
+                                if (tile.itemData && tile.itemData.path) {
+                                    const path = tile.itemData.path
+                                    const thumb = tile.itemData.thumbnail || ""
+                                    Qt.callLater(() => {
+                                        ImageService.openImageFromGallery(path, thumb)
+                                    })
                                 }
-                                sourceSize.width: 320
-                                sourceSize.height: 320
                             }
 
                             Rectangle {
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.bottom: parent.bottom
-                                height: 38
-                                gradient: Gradient {
-                                    GradientStop { position: 0.0; color: "transparent" }
-                                    GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.72) }
-                                }
-                            }
+                                anchors.fill: parent
+                                color: Theme.surfaceContainerHigh
 
-                            StyledText {
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.bottom: parent.bottom
-                                anchors.margins: 8
-                                text: tile.itemData?.name || ""
-                                elide: Text.ElideRight
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.weight: Theme.fontWeightMedium
-                                color: "#FFFFFF"
-                                visible: tile.maskWidth > 64
+                                Image {
+                                    anchors.fill: parent
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    cache: true
+                                    source: {
+                                        if (!tile.itemData) return ""
+                                        if (tile.itemData.thumbnail) return "file://" + tile.itemData.thumbnail
+                                        return "file://" + tile.itemData.path
+                                    }
+                                    sourceSize.width: 320
+                                    sourceSize.height: 320
+                                }
+
+                                Rectangle {
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.bottom: parent.bottom
+                                    height: 38
+                                    gradient: Gradient {
+                                        GradientStop { position: 0.0; color: "transparent" }
+                                        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.72) }
+                                    }
+                                }
+
+                                StyledText {
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.bottom: parent.bottom
+                                    anchors.margins: 8
+                                    text: tile.itemData?.name || ""
+                                    elide: Text.ElideRight
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    font.weight: Theme.fontWeightMedium
+                                    color: "#FFFFFF"
+                                    visible: tile.maskWidth > 64
+                                }
                             }
                         }
                     }
-                }
 
                 Item {
                     Layout.fillWidth: true
