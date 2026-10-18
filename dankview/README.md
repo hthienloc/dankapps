@@ -86,6 +86,21 @@ make install-user
 sudo make install
 ```
 
+## Performance & Benchmarks
+
+Measured on Linux (Wayland / Niri) opening a 4K image (3839×2159 PNG, 345 KB), averaging 3 consecutive runs from command invocation to window surface mapping:
+
+| Image Viewer | Tech Stack | Avg Startup | Min Startup | Steady RAM (RSS) |
+|---|---|---|---|---|
+| **Gwenview** | C++ / Qt 6 / KDE Frameworks | **713 ms** | **610 ms** | ~209 MB |
+| **DankView (`dview`)** | Go wrapper + Quickshell (Qt 6 / QML) | **2,509 ms** | **1,876 ms** | ~253 MB |
+| **Loupe** | Rust / GTK 4 / Libadwaita (GNOME) | **3,802 ms** | **3,255 ms** | ~188 MB |
+
+> [!NOTE]
+> - **Gwenview** leads in startup speed thanks to precompiled native C++ binaries and preloaded system Qt/KDE shared libraries.
+> - **DankView** outperforms modern GTK4/Libadwaita viewers (Loupe) by ~1.3s while offering native Material 3 Expressive styling and DMS Matugen palette integration.
+> - **Loupe** incurs additional overhead from its Glycin sandboxed IPC decoding architecture.
+
 ## Credits & Acknowledgements
 
 Special thanks to the community members who helped shape the design and conception of DankView:

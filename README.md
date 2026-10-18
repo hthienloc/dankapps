@@ -16,6 +16,16 @@ Each app uses a Go launcher (`~4 MB`) that spawns a dedicated [Quickshell](https
 > [!NOTE]
 > ~150 MB idle RAM is baseline Qt 6 / Quickshell runtime (Wayland buffers, Vulkan/OpenGL, QML engine). The Go CLI wrapper uses ~3 MB.
 
+### Startup Benchmark (Image Viewers on Wayland)
+
+Measured opening a 4K image (3839×2159 PNG, 345 KB) on Wayland (Niri session), averaging 3 consecutive runs from command execution to window surface mapping:
+
+| Viewer | Tech Stack | Avg Startup | Min Startup | Steady RAM (RSS) |
+|---|---|---|---|---|
+| **Gwenview** | C++ / Qt 6 / KDE | **713 ms** | **610 ms** | ~209 MB |
+| **DankView (`dview`)** | Go wrapper + Quickshell (Qt 6 / QML) | **2,509 ms** | **1,876 ms** | ~253 MB |
+| **Loupe** | Rust / GTK 4 / Libadwaita | **3,802 ms** | **3,255 ms** | ~188 MB |
+
 ## Install
 
 ### AUR (Arch Linux)
