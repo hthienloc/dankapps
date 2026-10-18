@@ -64,13 +64,12 @@ func findQuickshellDir(specified string) (string, error) {
 
 func main() {
 	configDir := flag.String("c", "", "path to quickshell configuration directory")
-	game := flag.String("g", "", "launch specific puzzle game directly (e.g. minesweeper)")
-	daily := flag.Bool("daily", false, "launch directly in daily challenge mode")
+	game := flag.String("g", "", "launch specific puzzle game directly (e.g. minesweeper, 2048, snake)")
 	showVersion := flag.Bool("v", false, "show version")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: duzzle [options]\n\n")
-		fmt.Fprintf(os.Stderr, "Duzzle - Standalone Material 3 Puzzle Hub & Daily Games\n\nOptions:\n")
+		fmt.Fprintf(os.Stderr, "Duzzle - Experimental Material 3 Puzzle & Arcade Hub\n\nOptions:\n")
 		flag.PrintDefaults()
 	}
 
@@ -95,9 +94,6 @@ func main() {
 
 	if *game != "" {
 		env = append(env, "DUZZLE_INITIAL_GAME="+*game)
-	}
-	if *daily {
-		env = append(env, "DUZZLE_INITIAL_DAILY=1")
 	}
 
 	fontCfg := theme.GetSystemFontSettings()

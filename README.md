@@ -10,7 +10,7 @@ Each app uses a Go launcher (`~4 MB`) that spawns a dedicated [Quickshell](https
 |-----|--------|---------------------|-----|--------|-------------|
 | [dankview](./dankview/) | `dview` (~4 MB) | ~150 MB / ~220 MB | 0% | Active | Image viewer (EXIF, crop, zoom, annotation) |
 | [dankcalc](./dankcalc/) | `dcalc` (~4 MB) | ~150 MB / ~160 MB | 0% | Active | Calculator (scientific, unit converter, history) |
-| [duzzle](./duzzle/) | `duzzle` (~4 MB) | ~150 MB / ~165 MB | 0% | Active | Puzzle hub & daily challenge (Minesweeper) |
+| [duzzle](./duzzle/) | `duzzle` (~4 MB) | ~150 MB / ~165 MB | 0% | Experimental | Puzzle & arcade hub (Minesweeper, 2048, Snake) |
 | [dankvideo](./dankvideo/) | `dplay` (~4 MB) | ~150 MB / ~250 MB | 0% / HW decode | On hold | Video player (inspector, auto-queue) |
 
 > [!NOTE]
@@ -42,7 +42,7 @@ dankapps/
 ├── dankview/      # Image viewer
 ├── dankvideo/     # Video player
 ├── dankcalc/      # Calculator
-└── duzzle/        # Puzzle hub & daily games
+└── duzzle/        # Experimental puzzle & arcade hub
 ```
 
 ## Credits

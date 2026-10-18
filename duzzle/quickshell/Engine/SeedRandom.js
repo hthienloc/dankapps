@@ -21,15 +21,6 @@ function hashString(str) {
     return hash >>> 0;
 }
 
-// Get current date string formatted as YYYY-MM-DD
-function getDailySeedString() {
-    var now = new Date();
-    var y = now.getFullYear();
-    var m = String(now.getMonth() + 1).padStart(2, '0');
-    var d = String(now.getDate()).padStart(2, '0');
-    return y + "-" + m + "-" + d;
-}
-
 // Create PRNG from seed (string or number)
 function createRng(seed) {
     var numSeed = (typeof seed === "string") ? hashString(seed) : (typeof seed === "number" ? (seed >>> 0) : Math.floor(Math.random() * 0xFFFFFFFF));

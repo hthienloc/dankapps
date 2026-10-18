@@ -12,8 +12,6 @@ Singleton {
     readonly property string configDir: SettingsData.configDir
     readonly property string statsPath: configDir + "/stats.json"
 
-    property int streak: adapter.streak
-    property string lastCompletedDate: adapter.lastCompletedDate
     property int totalPlayed: adapter.totalPlayed
     property int totalWon: adapter.totalWon
     property var gameStats: adapter.gameStats
@@ -59,8 +57,6 @@ Singleton {
 
         JsonAdapter {
             id: adapter
-            property int streak: 0
-            property string lastCompletedDate: ""
             property int totalPlayed: 0
             property int totalWon: 0
             property var gameStats: ({})
