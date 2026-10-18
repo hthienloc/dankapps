@@ -912,7 +912,6 @@ Singleton {
         if (initImg) {
             recordRecentImage(initImg, "");
             loadDirectoryFor(initImg);
-            loadGallery();
         } else {
             loadGallery();
         }
@@ -978,33 +977,6 @@ Singleton {
                     try {
                         const data = JSON.parse(text);
                         if (data) {
-                            // Precompute lowercased fields for fast search (avoid per-keystroke toLowerCase)
-                            if (data.allImages) {
-                                for (let i = 0; i < data.allImages.length; i++) {
-                                    const img = data.allImages[i]
-                                    img._lowerName = (img.name || "").toLowerCase()
-                                    img._lowerPath = (img.path || "").toLowerCase()
-                                    img._lowerCategory = (img.category || "").toLowerCase()
-                                }
-                            }
-                            if (data.albums) {
-                                for (let i = 0; i < data.albums.length; i++) {
-                                    const a = data.albums[i]
-                                    a._lowerName = (a.name || "").toLowerCase()
-                                }
-                            }
-                            if (data.groups) {
-                                for (let gi = 0; gi < data.groups.length; gi++) {
-                                    const g = data.groups[gi]
-                                    if (g.images) {
-                                        for (let ii = 0; ii < g.images.length; ii++) {
-                                            const img = g.images[ii]
-                                            if (!img._lowerName) img._lowerName = (img.name || "").toLowerCase()
-                                            if (!img._lowerPath) img._lowerPath = (img.path || "").toLowerCase()
-                                        }
-                                    }
-                                }
-                            }
                             root.galleryData = data;
                             if (root.recentImages && root.recentImages.length > 0 && data.allImages) {
                                 let updated = false;
@@ -1045,9 +1017,6 @@ Singleton {
                     root.removePathsFromGalleryData([root.lastTrashedPath]);
                 }
                 removeCurrentFromList();
-                if (root.currentFilePath) {
-                    root.loadGallery();
-                }
             } else {
                 root.showToast("Failed to move image to trash", true);
             }
@@ -1064,7 +1033,9 @@ Singleton {
                 if (restored.length > 0) {
                     root.showToast("Restored from trash");
                     root.loadDirectoryFor(restored);
-                    root.loadGallery();
+                    if (root.galleryMode) {
+                        root.loadGallery();
+                    }
                 } else {
                     root.showToast("Nothing to undo", true);
                 }
