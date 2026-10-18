@@ -923,9 +923,15 @@ Singleton {
     Component.onCompleted: {
         const initImg = Quickshell.env("DVIEW_INITIAL_IMAGE");
         if (initImg) {
+            _navToken++;
+            fileList = [initImg];
+            currentIndex = 0;
+            galleryMode = false;
             recordRecentImage(initImg, "");
             loadDirectoryFor(initImg);
+            fetchMetadata();
         } else {
+            galleryMode = true;
             loadGallery();
         }
     }
@@ -952,14 +958,15 @@ Singleton {
         command: []
         stdout: StdioCollector {
             onStreamFinished: {
-                if (root.galleryMode || root._activeListToken !== root._navToken || !text || text.trim() === "") {
+                if (root._activeListToken !== root._navToken || !text || text.trim() === "") {
                     return;
                 }
                 try {
                     const data = JSON.parse(text);
-                    if (data && data.files && data.files.length > 0 && !root.galleryMode && root._activeListToken === root._navToken) {
+                    if (data && data.files && data.files.length > 0 && root._activeListToken === root._navToken) {
                         root.fileList = data.files;
                         root.currentIndex = data.currentIndex >= 0 && data.currentIndex < data.files.length ? data.currentIndex : 0;
+                        root.galleryMode = false;
                     }
                 } catch (e) {
                     console.warn("Failed to parse image list JSON:", e);
@@ -967,7 +974,7 @@ Singleton {
             }
         }
         onExited: exitCode => {
-            if (root.galleryMode || root._activeListToken !== root._navToken) return;
+            if (root._activeListToken !== root._navToken) return;
             if (exitCode !== 0 && root.currentFilePath) {
                 const deadPath = root.currentFilePath;
                 root.removeRecentImage(deadPath);

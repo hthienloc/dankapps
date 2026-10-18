@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/hthienloc/dankview/core/internal/exif"
 	"github.com/hthienloc/dankview/core/internal/fs"
@@ -129,6 +131,17 @@ func main() {
 
 	if flag.NArg() > 0 {
 		targetPath := flag.Arg(0)
+		if strings.HasPrefix(targetPath, "file://") {
+			if u, err := url.Parse(targetPath); err == nil {
+				targetPath = u.Path
+			} else {
+				targetPath = strings.TrimPrefix(targetPath, "file://")
+			}
+		}
+		if unescaped, err := url.PathUnescape(targetPath); err == nil {
+			targetPath = unescaped
+		}
+
 		absPath, err := filepath.Abs(targetPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error resolving path: %v\n", err)
