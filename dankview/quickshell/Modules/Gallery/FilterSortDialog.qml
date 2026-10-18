@@ -26,7 +26,7 @@ Item {
         opened = false
     }
 
-    property string tempMediaType: "All Items"
+    property string tempMediaType: "All"
     property string tempLocation: "Anywhere"
     property string tempDateAdded: "Any time"
     property string tempSortOrder: "Newest first"
@@ -292,14 +292,37 @@ Item {
                 }
             }
 
-            // === Field 1: Media Type ===
-            FilterDropdown {
-                label: "Media Type"
-                currentValue: root.tempMediaType
-                options: ["All Items", "Images only", "Videos only", "GIFs / Animations"]
-                dropdownKey: "media"
-                onSelected: (val) => root.tempMediaType = val
-                z: 40
+            // === Field 1: Media Type (Segmented ButtonGroup) ===
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 6
+
+                StyledText {
+                    text: "Media Type"
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Theme.fontWeightMedium
+                    color: Theme.surfaceVariantText
+                }
+
+                DButtonGroup {
+                    id: mediaGroup
+                    Layout.fillWidth: true
+                    width: parent.width
+                    fillWidth: true
+                    size: "small"
+                    model: ["All", "Images", "GIFs"]
+                    currentIndex: {
+                        if (root.tempMediaType === "Images" || root.tempMediaType === "Images only") return 1
+                        if (root.tempMediaType === "GIFs" || root.tempMediaType === "GIFs / Animations") return 2
+                        return 0
+                    }
+                    onSelectionChanged: (index, selected) => {
+                        if (!selected) return
+                        if (index === 1) root.tempMediaType = "Images"
+                        else if (index === 2) root.tempMediaType = "GIFs"
+                        else root.tempMediaType = "All"
+                    }
+                }
             }
 
             // === Field 2: Location / Album ===
@@ -330,14 +353,39 @@ Item {
                 z: 20
             }
 
-            // === Field 4: Sort Order ===
-            FilterDropdown {
-                label: "Sort Order"
-                currentValue: root.tempSortOrder
-                options: ["Newest first", "Oldest first", "Name (A-Z)", "Name (Z-A)"]
-                dropdownKey: "sort"
-                onSelected: (val) => root.tempSortOrder = val
-                z: 10
+            // === Field 4: Sort Order (Segmented ButtonGroup) ===
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 6
+
+                StyledText {
+                    text: "Sort Order"
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Theme.fontWeightMedium
+                    color: Theme.surfaceVariantText
+                }
+
+                DButtonGroup {
+                    id: sortGroup
+                    Layout.fillWidth: true
+                    width: parent.width
+                    fillWidth: true
+                    size: "small"
+                    model: ["Newest", "Oldest", "A-Z", "Z-A"]
+                    currentIndex: {
+                        if (root.tempSortOrder.indexOf("Oldest") !== -1) return 1
+                        if (root.tempSortOrder.indexOf("A-Z") !== -1 && root.tempSortOrder.indexOf("Z-A") === -1) return 2
+                        if (root.tempSortOrder.indexOf("Z-A") !== -1) return 3
+                        return 0
+                    }
+                    onSelectionChanged: (index, selected) => {
+                        if (!selected) return
+                        if (index === 1) root.tempSortOrder = "Oldest first"
+                        else if (index === 2) root.tempSortOrder = "Name (A-Z)"
+                        else if (index === 3) root.tempSortOrder = "Name (Z-A)"
+                        else root.tempSortOrder = "Newest first"
+                    }
+                }
             }
 
             // === Field 5: Options Checkboxes ===
@@ -384,7 +432,7 @@ Item {
                     backgroundColor: "transparent"
                     textColor: Theme.primary
                     onClicked: {
-                        root.tempMediaType = "All Items"
+                        root.tempMediaType = "All"
                         root.tempLocation = "Anywhere"
                         root.tempDateAdded = "Any time"
                         root.tempSortOrder = "Newest first"

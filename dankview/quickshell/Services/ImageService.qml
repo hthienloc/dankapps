@@ -63,7 +63,7 @@ Singleton {
     property int _activeInfoToken: 0
 
     // Filter & Sort Settings
-    property string filterMediaType: "All Items"
+    property string filterMediaType: "All"
     property string filterLocation: "Anywhere"
     property string filterDateAdded: "Any time"
     property string filterSortOrder: "Newest first"
@@ -71,7 +71,7 @@ Singleton {
     property bool filterIncludeHidden: false
 
     readonly property bool hasActiveFilters: {
-        return filterMediaType !== "All Items" ||
+        return (filterMediaType !== "All" && filterMediaType !== "All Items") ||
                filterLocation !== "Anywhere" ||
                filterDateAdded !== "Any time" ||
                filterSortOrder !== "Newest first" ||
@@ -80,7 +80,7 @@ Singleton {
     }
 
     function resetFilters() {
-        filterMediaType = "All Items";
+        filterMediaType = "All";
         filterLocation = "Anywhere";
         filterDateAdded = "Any time";
         filterSortOrder = "Newest first";

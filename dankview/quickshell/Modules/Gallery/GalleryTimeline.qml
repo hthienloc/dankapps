@@ -19,11 +19,9 @@ Item {
     }
 
     function matchesFilters(img) {
-        if (ImageService.filterMediaType === "Images only") {
-            if (/\.(mp4|mkv|webm|avi|mov|m4v)$/i.test(img.path) || /\.gif$/i.test(img.path)) return false
-        } else if (ImageService.filterMediaType === "Videos only") {
-            if (!/\.(mp4|mkv|webm|avi|mov|m4v)$/i.test(img.path)) return false
-        } else if (ImageService.filterMediaType === "GIFs / Animations") {
+        if (ImageService.filterMediaType === "Images only" || ImageService.filterMediaType === "Images") {
+            if (/\.gif$/i.test(img.path)) return false
+        } else if (ImageService.filterMediaType === "GIFs / Animations" || ImageService.filterMediaType === "GIFs") {
             if (!/\.gif$/i.test(img.path)) return false
         }
 
