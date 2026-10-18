@@ -12,164 +12,22 @@ Item {
 
     function open() {
         tempMediaType = ImageService.filterMediaType
-        tempLocation = ImageService.filterLocation
         tempDateAdded = ImageService.filterDateAdded
         tempSortOrder = ImageService.filterSortOrder
-        tempFavoritesOnly = ImageService.filterFavoritesOnly
+        tempZoomLevel = ImageService.galleryZoomLevel || 3
         tempIncludeHidden = ImageService.filterIncludeHidden
-        activeDropdown = ""
         opened = true
     }
 
     function close() {
-        activeDropdown = ""
         opened = false
     }
 
     property string tempMediaType: "All"
-    property string tempLocation: "Anywhere"
-    property string tempDateAdded: "Any time"
+    property string tempDateAdded: "All"
     property string tempSortOrder: "Newest first"
-    property bool tempFavoritesOnly: false
+    property int tempZoomLevel: 3
     property bool tempIncludeHidden: false
-    property string activeDropdown: "" // tracks which dropdown is open
-
-    component FilterDropdown: Item {
-        id: ddItem
-        property string label: ""
-        property string currentValue: ""
-        property var options: []
-        property string dropdownKey: ""
-        property int maxPopupHeight: 220
-        signal selected(string value)
-
-        readonly property bool isOpen: root.activeDropdown === dropdownKey
-
-        Layout.fillWidth: true
-        implicitHeight: ddCol.implicitHeight
-
-        ColumnLayout {
-            id: ddCol
-            width: parent.width
-            spacing: 6
-
-            StyledText {
-                text: ddItem.label
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Theme.fontWeightMedium
-                color: Theme.surfaceVariantText
-            }
-
-            Rectangle {
-                id: ddBox
-                Layout.fillWidth: true
-                height: 44
-                radius: 12
-                color: ddMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLow
-                border.color: ddItem.isOpen ? Theme.primary : M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
-                border.width: ddItem.isOpen ? 2 : 1
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: Style.spacingM
-                    anchors.rightMargin: Style.spacingM
-
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: ddItem.currentValue
-                        font.pixelSize: Theme.fontSizeMedium
-                        color: Theme.surfaceText
-                        elide: Text.ElideRight
-                    }
-
-                    DIcon {
-                        name: ddItem.isOpen ? "keyboard_arrow_up" : "keyboard_arrow_down"
-                        size: Style.iconSizeSmall
-                        color: Theme.surfaceVariantText
-                    }
-                }
-
-                MouseArea {
-                    id: ddMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.activeDropdown = ddItem.isOpen ? "" : ddItem.dropdownKey
-                }
-            }
-        }
-
-        Rectangle {
-            visible: ddItem.isOpen
-            anchors.top: ddCol.bottom
-            anchors.topMargin: 4
-            anchors.left: parent.left
-            anchors.right: parent.right
-            radius: 12
-            color: Theme.surfaceContainerHighest
-            border.color: M3E.stroke(Theme.outlineVariant, M3E.strokePopup)
-            border.width: 1
-            implicitHeight: Math.min(ddItem.maxPopupHeight, ddList.implicitHeight + 8)
-            clip: true
-            z: 50
-
-            Flickable {
-                anchors.fill: parent
-                anchors.margins: 4
-                contentHeight: ddList.implicitHeight
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-
-                Column {
-                    id: ddList
-                    width: parent.width
-                    spacing: 2
-
-                    Repeater {
-                        model: ddItem.options
-                        delegate: Rectangle {
-                            width: parent.width
-                            height: 36
-                            radius: 8
-                            color: optMouse.containsMouse ? Theme.surfaceContainerLow : (ddItem.currentValue === modelData ? Theme.primaryContainer : "transparent")
-
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: 12
-                                anchors.rightMargin: 12
-
-                                StyledText {
-                                    Layout.fillWidth: true
-                                    text: modelData
-                                    font.pixelSize: Theme.fontSizeSmall + 1
-                                    color: ddItem.currentValue === modelData ? Theme.onPrimaryContainer : Theme.surfaceText
-                                    elide: Text.ElideRight
-                                }
-
-                                DIcon {
-                                    visible: ddItem.currentValue === modelData
-                                    name: "check"
-                                    size: 16
-                                    color: Theme.primary
-                                }
-                            }
-
-                            MouseArea {
-                                id: optMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    ddItem.selected(modelData)
-                                    root.activeDropdown = ""
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     component OptionCheckbox: MouseArea {
         id: cb
@@ -231,13 +89,7 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: {
-                if (root.activeDropdown !== "") {
-                    root.activeDropdown = ""
-                } else {
-                    root.close()
-                }
-            }
+            onClicked: root.close()
         }
     }
 
@@ -264,7 +116,6 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: root.activeDropdown = ""
         }
 
         ColumnLayout {
@@ -325,35 +176,44 @@ Item {
                 }
             }
 
-            // === Field 2: Location / Album ===
-            FilterDropdown {
-                label: "Location / Album"
-                currentValue: root.tempLocation
-                options: {
-                    const list = ["Anywhere", "Favorites"]
-                    const ma = ImageService.managedAlbums || []
-                    for (let i = 0; i < ma.length; i++) {
-                        const name = ma[i].name
-                        if (name && list.indexOf(name) === -1) list.push(name)
-                    }
-                    return list
+            // === Field 2: Date Added (Segmented ButtonGroup) ===
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 6
+
+                StyledText {
+                    text: "Date Added"
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Theme.fontWeightMedium
+                    color: Theme.surfaceVariantText
                 }
-                dropdownKey: "loc"
-                onSelected: (val) => root.tempLocation = val
-                z: 30
+
+                DButtonGroup {
+                    id: dateGroup
+                    Layout.fillWidth: true
+                    width: parent.width
+                    fillWidth: true
+                    size: "small"
+                    model: ["All", "Today", "7 days", "30 days", "1 year"]
+                    currentIndex: {
+                        if (root.tempDateAdded === "Today") return 1
+                        if (root.tempDateAdded === "7 days" || root.tempDateAdded === "Last 7 days") return 2
+                        if (root.tempDateAdded === "30 days" || root.tempDateAdded === "Last 30 days") return 3
+                        if (root.tempDateAdded === "1 year" || root.tempDateAdded === "This year") return 4
+                        return 0
+                    }
+                    onSelectionChanged: (index, selected) => {
+                        if (!selected) return
+                        if (index === 1) root.tempDateAdded = "Today"
+                        else if (index === 2) root.tempDateAdded = "7 days"
+                        else if (index === 3) root.tempDateAdded = "30 days"
+                        else if (index === 4) root.tempDateAdded = "1 year"
+                        else root.tempDateAdded = "All"
+                    }
+                }
             }
 
-            // === Field 3: Date Added ===
-            FilterDropdown {
-                label: "Date Added"
-                currentValue: root.tempDateAdded
-                options: ["Any time", "Today", "Last 7 days", "Last 30 days", "This year"]
-                dropdownKey: "date"
-                onSelected: (val) => root.tempDateAdded = val
-                z: 20
-            }
-
-            // === Field 4: Sort Order (Segmented ButtonGroup) ===
+            // === Field 3: Sort Order (Segmented ButtonGroup) ===
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 6
@@ -388,7 +248,49 @@ Item {
                 }
             }
 
-            // === Field 5: Options Checkboxes ===
+            // === Field 4: Thumbnail Size (Zoom Slider with 5 steps) ===
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 6
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    StyledText {
+                        text: "Photo Size"
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.weight: Theme.fontWeightMedium
+                        color: Theme.surfaceVariantText
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    StyledText {
+                        text: {
+                            const labels = ["Extra Small", "Small", "Medium", "Large", "Extra Large"]
+                            return labels[Math.max(0, Math.min(4, root.tempZoomLevel - 1))]
+                        }
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.primary
+                        font.weight: Theme.fontWeightMedium
+                    }
+                }
+
+                DSlider {
+                    Layout.fillWidth: true
+                    width: parent.width
+                    minimum: 1
+                    maximum: 5
+                    step: 1
+                    value: root.tempZoomLevel
+                    showValue: false
+                    startIcon: "photo_size_select_small"
+                    endIcon: "photo_size_select_large"
+                    onValueChanged: root.tempZoomLevel = value
+                }
+            }
+
+            // === Field 5: Options Checkbox ===
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 8
@@ -400,20 +302,10 @@ Item {
                     color: Theme.surfaceVariantText
                 }
 
-                RowLayout {
-                    spacing: 20
-
-                    OptionCheckbox {
-                        text: "Favorites only"
-                        checked: root.tempFavoritesOnly
-                        onToggled: root.tempFavoritesOnly = !root.tempFavoritesOnly
-                    }
-
-                    OptionCheckbox {
-                        text: "Include hidden"
-                        checked: root.tempIncludeHidden
-                        onToggled: root.tempIncludeHidden = !root.tempIncludeHidden
-                    }
+                OptionCheckbox {
+                    text: "Include hidden"
+                    checked: root.tempIncludeHidden
+                    onToggled: root.tempIncludeHidden = !root.tempIncludeHidden
                 }
             }
 
@@ -433,12 +325,10 @@ Item {
                     textColor: Theme.primary
                     onClicked: {
                         root.tempMediaType = "All"
-                        root.tempLocation = "Anywhere"
-                        root.tempDateAdded = "Any time"
+                        root.tempDateAdded = "All"
                         root.tempSortOrder = "Newest first"
-                        root.tempFavoritesOnly = false
+                        root.tempZoomLevel = 3
                         root.tempIncludeHidden = false
-                        root.activeDropdown = ""
                     }
                 }
 
@@ -449,11 +339,10 @@ Item {
                     textColor: Theme.onPrimary
                     onClicked: {
                         ImageService.filterMediaType = root.tempMediaType
-                        ImageService.filterLocation = root.tempLocation
                         ImageService.filterDateAdded = root.tempDateAdded
                         ImageService.filterSortOrder = root.tempSortOrder
-                        ImageService.filterFavoritesOnly = root.tempFavoritesOnly
                         ImageService.filterIncludeHidden = root.tempIncludeHidden
+                        ImageService.galleryZoomLevel = root.tempZoomLevel
                         root.close()
                     }
                 }

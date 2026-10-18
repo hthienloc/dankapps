@@ -65,27 +65,27 @@ Singleton {
     // Filter & Sort Settings
     property string filterMediaType: "All"
     property string filterLocation: "Anywhere"
-    property string filterDateAdded: "Any time"
+    property string filterDateAdded: "All"
     property string filterSortOrder: "Newest first"
     property bool filterFavoritesOnly: false
     property bool filterIncludeHidden: false
+    property int galleryZoomLevel: 3
 
     readonly property bool hasActiveFilters: {
         return (filterMediaType !== "All" && filterMediaType !== "All Items") ||
-               filterLocation !== "Anywhere" ||
-               filterDateAdded !== "Any time" ||
+               (filterDateAdded !== "All" && filterDateAdded !== "Any time") ||
                filterSortOrder !== "Newest first" ||
-               filterFavoritesOnly ||
                filterIncludeHidden;
     }
 
     function resetFilters() {
         filterMediaType = "All";
         filterLocation = "Anywhere";
-        filterDateAdded = "Any time";
+        filterDateAdded = "All";
         filterSortOrder = "Newest first";
         filterFavoritesOnly = false;
         filterIncludeHidden = false;
+        galleryZoomLevel = 3;
     }
 
     property var galleryData: null

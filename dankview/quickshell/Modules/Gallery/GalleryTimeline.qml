@@ -25,29 +25,17 @@ Item {
             if (!/\.gif$/i.test(img.path)) return false
         }
 
-        if (ImageService.filterLocation !== "Anywhere") {
-            if (ImageService.filterLocation === "Favorites") {
-                if (!ImageService.isFavorite(img.path)) return false
-            } else if (img.category !== ImageService.filterLocation) {
-                return false
-            }
-        }
-
-        if (ImageService.filterFavoritesOnly && !ImageService.isFavorite(img.path)) {
-            return false
-        }
-
         if (!ImageService.filterIncludeHidden && (img.name || "").startsWith(".")) {
             return false
         }
 
-        if (ImageService.filterDateAdded !== "Any time" && img.modTime > 0) {
+        if (ImageService.filterDateAdded !== "Any time" && ImageService.filterDateAdded !== "All" && img.modTime > 0) {
             const nowSec = Date.now() / 1000
             const diffSec = nowSec - img.modTime
             if (ImageService.filterDateAdded === "Today" && diffSec > 86400) return false
-            if (ImageService.filterDateAdded === "Last 7 days" && diffSec > 7 * 86400) return false
-            if (ImageService.filterDateAdded === "Last 30 days" && diffSec > 30 * 86400) return false
-            if (ImageService.filterDateAdded === "This year" && diffSec > 365 * 86400) return false
+            if ((ImageService.filterDateAdded === "7 days" || ImageService.filterDateAdded === "Last 7 days") && diffSec > 7 * 86400) return false
+            if ((ImageService.filterDateAdded === "30 days" || ImageService.filterDateAdded === "Last 30 days") && diffSec > 30 * 86400) return false
+            if ((ImageService.filterDateAdded === "1 year" || ImageService.filterDateAdded === "This year") && diffSec > 365 * 86400) return false
         }
 
         return true
@@ -101,8 +89,24 @@ Item {
         return result
     }
 
-    readonly property int columns: Math.max(3, Math.min(6, Math.floor((width - 40) / 168)))
+    readonly property var targetTileSizes: [100, 135, 170, 230, 320]
+    readonly property int zoomIdx: Math.max(0, Math.min(4, (ImageService.galleryZoomLevel || 3) - 1))
+    readonly property int targetTileSize: targetTileSizes[zoomIdx]
+    readonly property int columns: Math.max(1, Math.floor((width - 40) / targetTileSize))
     readonly property real tileWidth: Math.floor((width - 40 - (columns - 1) * 10) / columns)
+
+    WheelHandler {
+        target: null
+        acceptedModifiers: Qt.ControlModifier
+        onWheel: (event) => {
+            if (event.angleDelta.y > 0) {
+                ImageService.galleryZoomLevel = Math.min(5, (ImageService.galleryZoomLevel || 3) + 1)
+            } else if (event.angleDelta.y < 0) {
+                ImageService.galleryZoomLevel = Math.max(1, (ImageService.galleryZoomLevel || 3) - 1)
+            }
+            event.accepted = true
+        }
+    }
 
     property real lastContentY: -72
     property string lastCategory: ImageService.selectedCategory
