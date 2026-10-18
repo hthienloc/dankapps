@@ -171,42 +171,45 @@ Item {
         }
     }
 
-    component OptionCheckbox: RowLayout {
+    component OptionCheckbox: MouseArea {
         id: cb
         property string text: ""
         property bool checked: false
         signal toggled
 
-        spacing: Style.spacingS
+        implicitWidth: cbRow.implicitWidth
+        implicitHeight: Math.max(20, cbRow.implicitHeight)
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: cb.toggled()
 
-        Rectangle {
-            width: 18
-            height: 18
-            radius: 4
-            color: cb.checked ? Theme.primary : "transparent"
-            border.color: cb.checked ? Theme.primary : Theme.outlineVariant
-            border.width: 1.5
-
-            DIcon {
-                anchors.centerIn: parent
-                name: "check"
-                size: 14
-                color: Theme.onPrimary
-                visible: cb.checked
-            }
-        }
-
-        StyledText {
-            text: cb.text
-            font.pixelSize: Theme.fontSizeSmall + 1
-            color: Theme.surfaceText
-        }
-
-        MouseArea {
+        RowLayout {
+            id: cbRow
             anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: cb.toggled()
+            spacing: Style.spacingS
+
+            Rectangle {
+                width: 18
+                height: 18
+                radius: 4
+                color: cb.checked ? Theme.primary : "transparent"
+                border.color: cb.checked ? Theme.primary : Theme.outlineVariant
+                border.width: 1.5
+
+                DIcon {
+                    anchors.centerIn: parent
+                    name: "check"
+                    size: 14
+                    color: Theme.onPrimary
+                    visible: cb.checked
+                }
+            }
+
+            StyledText {
+                text: cb.text
+                font.pixelSize: Theme.fontSizeSmall + 1
+                color: Theme.surfaceText
+            }
         }
     }
 
