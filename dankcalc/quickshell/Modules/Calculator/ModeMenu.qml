@@ -157,59 +157,6 @@ Rectangle {
                     }
                 }
             }
-
-            // Divider
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: 1
-                color: Theme.outlineVariant
-                opacity: 0.4
-            }
-
-            StyledText {
-                text: "Preferences"
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Font.Medium
-                color: Theme.surfaceVariantText
-            }
-
-            // Angle unit toggle item
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: Style.menuItemHeight
-                radius: Theme.cornerRadiusSmall
-                color: angleHover.containsMouse ? Theme.surfaceContainerHighest : "transparent"
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.spacingS
-                    spacing: Theme.spacingS
-
-                    DIcon {
-                        name: "change_circle"
-                        size: Style.chipIconSize
-                        color: Theme.surfaceText
-                    }
-
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: CalculatorService.isRad ? "Mode: Radians" : "Mode: Degrees"
-                        font.pixelSize: Theme.fontSizeMedium
-                        color: Theme.surfaceText
-                    }
-                }
-
-                MouseArea {
-                    id: angleHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        CalculatorService.toggleRad();
-                        CalculatorService.menuOpen = false;
-                    }
-                }
-            }
         }
     }
 }

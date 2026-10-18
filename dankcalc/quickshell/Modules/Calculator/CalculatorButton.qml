@@ -44,6 +44,14 @@ Item {
         radius: stateLayer.pressed ? M3E.pressRadiusM : (root.activeState ? M3E.outerR : root.cornerRadius)
         color: root.activeState ? Theme.primaryContainer : root.backgroundColor
         scale: stateLayer.pressed ? M3E.iconBtnPressScale : 1.0
+        opacity: root.enabled ? 1.0 : 0.28
+
+        Behavior on opacity {
+            DAnim {
+                duration: M3E.effectsFastMs
+                easing.bezierCurve: M3E.curveFastEffects
+            }
+        }
 
         Behavior on color {
             DColorAnim {

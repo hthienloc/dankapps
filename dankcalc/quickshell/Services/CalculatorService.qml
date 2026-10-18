@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.Common
 import "../Modules/Calculator/CalculatorLogic.js" as Logic
 import "../Modules/Calculator/UnitConverterLogic.js" as ConvLogic
@@ -208,6 +209,7 @@ Singleton {
             };
             const newHistory = [entry].concat(history).slice(0, 50);
             history = newHistory;
+            saveHistory();
 
             expression = evaluated;
             liveResult = evaluated;
@@ -228,6 +230,55 @@ Singleton {
 
     function clearHistory() {
         history = [];
+        saveHistory();
+    }
+
+    FileView {
+        id: historyFileView
+        path: SettingsData.configDir + "/history.json"
+        blockLoading: false
+        printErrors: false
+        onLoaded: {
+            try {
+                const text = historyFileView.text();
+                if (text && text.trim() !== "") {
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) {
+                        root.history = data;
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to parse history.json:", e);
+            }
+        }
+    }
+
+    Process {
+        id: saveHistoryProc
+        running: false
+        command: []
+    }
+
+    Timer {
+        id: saveHistoryDebounce
+        interval: 200
+        repeat: false
+        onTriggered: {
+            if (!saveHistoryProc.running) {
+                saveHistoryProc.command = [
+                    "sh", "-c",
+                    'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
+                    "saveHistory",
+                    SettingsData.configDir + "/history.json",
+                    JSON.stringify(root.history, null, 2)
+                ];
+                saveHistoryProc.running = true;
+            }
+        }
+    }
+
+    function saveHistory() {
+        saveHistoryDebounce.restart();
     }
 
     // ── Converter Methods ──────────────────────────────────────────────────
@@ -325,5 +376,39 @@ Singleton {
         if (!text) return;
         Quickshell.execDetached(["wl-copy", text]);
         showToast("Copied to clipboard: " + text, false);
+    }
+
+    function paste() {
+        let text = Quickshell.clipboardText;
+        if (!text || typeof text !== "string") return;
+        text = text.trim();
+        if (!text) return;
+
+        let clean = text
+            .replace(/,/g, ".")
+            .replace(/\*/g, "×")
+            .replace(/\//g, "÷")
+            .replace(/-/g, "−");
+
+        const allowed = /^[0-9+\−×÷%^!()\s.πeEsqrtlnlogasincostan]+$/;
+        if (allowed.test(clean)) {
+            if (justEvaluated) {
+                expression = "";
+                justEvaluated = false;
+            }
+            expression += clean.replace(/\s+/g, "");
+            updateLiveEval();
+        }
+    }
+
+    function pasteConverter() {
+        let text = Quickshell.clipboardText;
+        if (!text || typeof text !== "string") return;
+        text = text.trim().replace(/,/g, ".");
+        const clean = text.replace(/[^0-9.]/g, "");
+        if (clean !== "") {
+            converterFromValue = clean;
+            updateConverterConversion();
+        }
     }
 }

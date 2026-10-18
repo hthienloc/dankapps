@@ -59,6 +59,14 @@ FloatingWindow {
                     }
                     event.accepted = true;
                     return;
+                case Qt.Key_V:
+                    if (CalculatorService.currentMode === "converter") {
+                        CalculatorService.pasteConverter();
+                    } else {
+                        CalculatorService.paste();
+                    }
+                    event.accepted = true;
+                    return;
                 case Qt.Key_H:
                     if (CalculatorService.currentMode === "calculator") {
                         CalculatorService.historyOpen = !CalculatorService.historyOpen;
