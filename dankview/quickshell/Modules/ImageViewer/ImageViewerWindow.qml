@@ -254,6 +254,7 @@ FloatingWindow {
             color: ImageService.galleryMode ? Theme.surface : Theme.surfaceContainerLowest
             border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.4)
             border.width: window.maximized ? 0 : 1
+            clip: !window.maximized
 
             // Top Header Bar — thin DankWindowHeader with centered title, expand & close
             Rectangle {
@@ -300,20 +301,20 @@ FloatingWindow {
             // Main Image Canvas Container (Rounded Viewport with Checkerboard)
             Rectangle {
                 id: canvasContainer
-                anchors.top: headerBarBg.bottom
-                anchors.topMargin: 8
+                anchors.top: ImageService.uiLocked ? parent.top : headerBarBg.bottom
+                anchors.topMargin: ImageService.uiLocked ? 0 : 8
                 anchors.left: parent.left
-                anchors.leftMargin: 16
+                anchors.leftMargin: ImageService.uiLocked ? 0 : 16
                 anchors.right: parent.right
-                anchors.rightMargin: 16
+                anchors.rightMargin: ImageService.uiLocked ? 0 : 16
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 16
-                radius: 16
+                anchors.bottomMargin: ImageService.uiLocked ? 0 : 16
+                radius: ImageService.uiLocked || window.maximized ? 0 : 16
                 color: Theme.surfaceContainerLowest
                 clip: true
                 visible: !ImageService.galleryMode
-                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.2)
-                border.width: 1
+                border.color: ImageService.uiLocked ? "transparent" : Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.2)
+                border.width: ImageService.uiLocked ? 0 : 1
 
                 ImageCanvas {
                     anchors.fill: parent
