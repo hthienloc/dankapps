@@ -1,6 +1,6 @@
 # dankapps
 
-Quickshell desktop apps built for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell). Requires an active DMS session.
+Third-party Quickshell desktop apps for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell). These are unofficial community projects (unlike [dankcalendar](https://github.com/AvengeMedia/dankcalendar)). Requires an active DMS session.
 
 ## Apps & Resource Consumption
 
