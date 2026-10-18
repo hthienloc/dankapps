@@ -219,7 +219,7 @@ Item {
                         size: "s"
                         tooltipText: "Previous"
                         enabled: recentCarousel.contentWidth > recentCarousel.width && (recentCarousel.stepAnimRunning ? recentCarousel.targetContentX : recentCarousel.contentX) > recentCarousel.originX + 1
-                        onClicked: recentCarousel.scrollStep(-1)
+                        onClicked: recentCarousel.scrollBatch(-1)
                     }
 
                     DIconButton {
@@ -227,7 +227,7 @@ Item {
                         size: "s"
                         tooltipText: "Next"
                         enabled: recentCarousel.contentWidth > recentCarousel.width && (recentCarousel.stepAnimRunning ? recentCarousel.targetContentX : recentCarousel.contentX) < (recentCarousel.originX + recentCarousel.contentWidth - recentCarousel.width - 1)
-                        onClicked: recentCarousel.scrollStep(1)
+                        onClicked: recentCarousel.scrollBatch(1)
                     }
 
                     DButton {
@@ -254,17 +254,38 @@ Item {
                         model: ImageService.recentImages
 
                         property real targetContentX: originX
+                        property real wheelAccumulator: 0
                         readonly property bool stepAnimRunning: stepAnim.running
 
                         function scrollBy(wheel) {
-                            const dx = wheel.pixelDelta.x !== 0 ? wheel.pixelDelta.x : wheel.angleDelta.x;
-                            const dy = wheel.pixelDelta.y !== 0 ? wheel.pixelDelta.y : wheel.angleDelta.y;
-                            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
-                                scrollStep(dx < 0 ? 1 : -1);
-                                wheel.accepted = true;
-                            } else {
+                            const isHoriz = Math.abs(wheel.angleDelta.x) > Math.abs(wheel.angleDelta.y) || Math.abs(wheel.pixelDelta.x) > Math.abs(wheel.pixelDelta.y);
+                            const rawDelta = isHoriz
+                                ? (wheel.angleDelta.x !== 0 ? wheel.angleDelta.x : wheel.pixelDelta.x * 6)
+                                : (wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y * 6);
+
+                            if (rawDelta === 0) {
                                 wheel.accepted = false;
+                                return;
                             }
+
+                            const maxX = originX + Math.max(0, contentWidth - width);
+                            const currentTarget = stepAnim.running ? targetContentX : contentX;
+                            const scrollDir = rawDelta < 0 ? 1 : -1;
+
+                            // Allow vertical wheel to scroll timeline list when hitting edges
+                            if (!isHoriz && ((scrollDir < 0 && currentTarget <= originX + 1) || (scrollDir > 0 && currentTarget >= maxX - 1))) {
+                                wheelAccumulator = 0;
+                                wheel.accepted = false;
+                                return;
+                            }
+
+                            wheelAccumulator += rawDelta;
+                            if (Math.abs(wheelAccumulator) >= 60) {
+                                const stepDir = wheelAccumulator < 0 ? 1 : -1;
+                                wheelAccumulator = 0;
+                                scrollSingleItem(stepDir);
+                            }
+                            wheel.accepted = true;
                         }
 
                         NumberAnimation {
@@ -275,15 +296,29 @@ Item {
                             easing.type: Easing.OutQuad
                         }
 
-                        function scrollStep(dir) {
-                            const step = itemWidth + spacing
-                            const maxX = originX + Math.max(0, contentWidth - width)
-                            const base = stepAnim.running ? targetContentX : contentX
-                            targetContentX = Math.max(originX, Math.min(maxX, base + dir * step))
-                            stepAnim.stop()
-                            stepAnim.from = contentX
-                            stepAnim.to = targetContentX
-                            stepAnim.start()
+                        function scrollSingleItem(dir) {
+                            const step = itemWidth + spacing;
+                            const maxX = originX + Math.max(0, contentWidth - width);
+                            const base = stepAnim.running ? targetContentX : contentX;
+                            targetContentX = Math.max(originX, Math.min(maxX, base + dir * step));
+                            stepAnim.stop();
+                            stepAnim.duration = 220;
+                            stepAnim.from = contentX;
+                            stepAnim.to = targetContentX;
+                            stepAnim.start();
+                        }
+
+                        function scrollBatch(dir) {
+                            const batchCount = Math.max(1, arrangement?.large ?? Math.floor(width / (itemWidth + spacing)));
+                            const batchStep = batchCount * (itemWidth + spacing);
+                            const maxX = originX + Math.max(0, contentWidth - width);
+                            const base = stepAnim.running ? targetContentX : contentX;
+                            targetContentX = Math.max(originX, Math.min(maxX, base + dir * batchStep));
+                            stepAnim.stop();
+                            stepAnim.duration = 280;
+                            stepAnim.from = contentX;
+                            stepAnim.to = targetContentX;
+                            stepAnim.start();
                         }
 
                         delegate: DCarouselItem {
