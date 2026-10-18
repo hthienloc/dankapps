@@ -298,23 +298,13 @@ FloatingWindow {
                 z: 35
             }
 
-            // Main Image Canvas Container (Rounded Viewport with Checkerboard)
+            // Main Image Canvas Container (Edge-to-edge Viewport)
             Rectangle {
                 id: canvasContainer
-                anchors.top: ImageService.uiLocked ? parent.top : headerBarBg.bottom
-                anchors.topMargin: ImageService.uiLocked ? 0 : 8
-                anchors.left: parent.left
-                anchors.leftMargin: ImageService.uiLocked ? 0 : 16
-                anchors.right: parent.right
-                anchors.rightMargin: ImageService.uiLocked ? 0 : 16
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: ImageService.uiLocked ? 0 : 16
-                radius: ImageService.uiLocked || window.maximized ? 0 : 16
+                anchors.fill: parent
                 color: Theme.surfaceContainerLowest
                 clip: true
                 visible: !ImageService.galleryMode
-                border.color: ImageService.uiLocked ? "transparent" : M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
-                border.width: ImageService.uiLocked ? 0 : 1
 
                 ImageCanvas {
                     anchors.fill: parent
@@ -668,14 +658,20 @@ FloatingWindow {
             ExifInspector {
                 id: inspector
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: ImageService.inspectorOpen ? 16 : -height - 30
+                anchors.bottomMargin: 16
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: Math.min(760, parent.width - 32)
-                height: Math.min(480, Math.max(380, parent.height * 0.60))
-                visible: anchors.bottomMargin > -height || ImageService.inspectorOpen
+                height: Math.min(Math.min(540, parent.height * 0.85), inspector.implicitHeight)
+                property real openProgress: ImageService.inspectorOpen ? 1.0 : 0.0
+                visible: openProgress > 0
+                opacity: openProgress
                 z: 95
 
-                Behavior on anchors.bottomMargin {
+                transform: Translate {
+                    y: (1.0 - inspector.openProgress) * (inspector.height + 32)
+                }
+
+                Behavior on openProgress {
                     NumberAnimation {
                         duration: Theme.shortDuration
                         easing.type: Theme.standardEasing

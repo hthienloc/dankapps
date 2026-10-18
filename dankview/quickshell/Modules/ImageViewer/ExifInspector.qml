@@ -10,45 +10,17 @@ Rectangle {
     id: root
 
     width: 760
-    height: 480
-    radius: Style.cornerRadiusL
-    color: Theme.withAlpha(Theme.cardSurface, 0.97)
+    readonly property real contentHeight: headerRow.implicitHeight + Theme.spacingL + contentCol.implicitHeight + Theme.spacingL * 2
+    implicitHeight: Math.min(540, contentHeight)
+
+    radius: Theme.cornerRadiusXL
+    color: Theme.withAlpha(Theme.surfaceContainerLow, 0.96)
     border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
-    border.width: 1
-
-    // Grab handle indicator for bottom sheet (Click to dismiss/close)
-    Item {
-        id: grabHandleArea
-        anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: 120
-        height: Style.iconSize
-        z: 10
-
-        Rectangle {
-            id: grabHandleBar
-            anchors.centerIn: parent
-            width: grabHandleMouse.containsMouse ? 48 : 36
-            height: 4
-            radius: Style.cornerRadiusXXS
-            color: grabHandleMouse.containsMouse ? Theme.primary : Qt.rgba(1, 1, 1, 0.38)
-
-            Behavior on width { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
-            Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
-        }
-
-        MouseArea {
-            id: grabHandleMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: ImageService.inspectorOpen = false
-        }
-    }
+    border.width: Theme.layerOutlineWidth
 
     component M3Card: Rectangle {
         Layout.fillWidth: true
-        radius: Style.cornerRadiusM
+        radius: Theme.cornerRadiusL
         color: Theme.surfaceContainerHigh
         border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
         border.width: 1
@@ -71,22 +43,33 @@ Rectangle {
             Layout.fillWidth: true
             text: title
             font.pixelSize: Theme.fontSizeMedium
-            font.weight: Theme.fontWeightBold
+            font.weight: Theme.fontWeightMedium
             color: Theme.primary
         }
     }
 
-    component DetailRow: RowLayout {
+    component InfoRow: RowLayout {
+        id: infoRowRoot
+        property string iconName: ""
         property string label: ""
         property string value: ""
         property bool isMono: false
+        property bool clickable: false
+        signal clicked()
         visible: value !== ""
 
         Layout.fillWidth: true
-        spacing: Style.spacingM
+        spacing: Theme.spacingM
+
+        DIcon {
+            name: iconName
+            size: Style.chipIconSize
+            color: Theme.primary
+            visible: iconName !== ""
+        }
 
         StyledText {
-            Layout.preferredWidth: 110
+            Layout.preferredWidth: 80
             text: label
             font.pixelSize: Theme.fontSizeSmall
             font.weight: Theme.fontWeightMedium
@@ -99,53 +82,20 @@ Rectangle {
             text: value
             font.family: isMono ? Theme.monoFontFamily : Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
-            font.weight: Theme.fontWeightMedium
-            color: Theme.surfaceText
-            wrapMode: Text.WrapAnywhere
-            elide: Text.ElideRight
-        }
-    }
+            font.weight: Font.Normal
+            color: infoRowMouse.containsMouse && clickable ? Theme.primary : Theme.surfaceText
+            elide: Text.ElideMiddle
 
-    component ActionChip: Rectangle {
-        id: chip
-        property string iconName: ""
-        property string label: ""
-        property color iconColor: Theme.primary
-        property color labelColor: Theme.surfaceText
-        signal clicked()
-
-        implicitHeight: Style.buttonHeightXS
-        implicitWidth: chipRow.implicitWidth + Style.spacingL
-        radius: Style.cornerRadiusS
-        color: chipMouse.containsMouse ? Theme.surfaceContainerHighest : (Theme.surfaceContainerLow || Theme.surfaceContainerHigh)
-        border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeSurface)
-        border.width: 1
-
-        RowLayout {
-            id: chipRow
-            anchors.centerIn: parent
-            spacing: Style.spacingXS
-
-            DIcon {
-                name: chip.iconName
-                size: Style.iconSizeSmall
-                color: chip.iconColor
-            }
-
-            StyledText {
-                text: chip.label
-                font.pixelSize: Theme.fontSizeSmall
-                font.weight: Theme.fontWeightMedium
-                color: chip.labelColor
-            }
+            Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
         }
 
         MouseArea {
-            id: chipMouse
+            id: infoRowMouse
             anchors.fill: parent
+            enabled: infoRowRoot.clickable
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: chip.clicked()
+            onClicked: infoRowRoot.clicked()
         }
     }
 
@@ -157,7 +107,7 @@ Rectangle {
 
         implicitHeight: Style.iconSize
         implicitWidth: badgeText.implicitWidth + Style.spacingM
-        radius: Style.cornerRadiusS
+        radius: Style.fullRadius(width, height)
         color: bgColor
         border.color: borderColor
         border.width: borderColor !== "transparent" ? 1 : 0
@@ -165,7 +115,7 @@ Rectangle {
         StyledText {
             id: badgeText
             anchors.centerIn: parent
-            font.pixelSize: Theme.fontSizeSmall
+            font.pixelSize: Theme.fontSizeSmall - 1
             font.weight: Theme.fontWeightMedium
             color: textColor
         }
@@ -176,20 +126,20 @@ Rectangle {
         property string value: "—"
 
         Layout.fillWidth: true
-        implicitHeight: 48
-        radius: Style.cornerRadiusS
-        color: Theme.surfaceContainerLow || Theme.surfaceContainerHigh
+        implicitHeight: 52
+        radius: Theme.cornerRadiusM
+        color: Theme.surfaceContainer
         border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeFaint)
         border.width: 1
 
         ColumnLayout {
             anchors.centerIn: parent
-            spacing: Style.spacingXXS
+            spacing: 2
 
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
                 text: label
-                font.pixelSize: Theme.fontSizeSmall
+                font.pixelSize: Theme.fontSizeSmall - 2
                 font.weight: Font.Normal
                 color: Theme.surfaceVariantText
             }
@@ -197,9 +147,9 @@ Rectangle {
             StyledText {
                 Layout.alignment: Qt.AlignHCenter
                 text: value
-                font.pixelSize: Theme.fontSizeSmall
+                font.pixelSize: Theme.fontSizeMedium
                 font.weight: Theme.fontWeightBold
-                color: Theme.surfaceText
+                color: Theme.primary
             }
         }
     }
@@ -222,24 +172,33 @@ Rectangle {
 
         // Header
         RowLayout {
+            id: headerRow
             Layout.fillWidth: true
-            Layout.topMargin: Style.spacingL
-            Layout.bottomMargin: Style.spacingS
-            Layout.leftMargin: Style.spacingL
-            Layout.rightMargin: Style.spacingL
-            spacing: Style.spacingS
+            Layout.topMargin: Theme.spacingL
+            Layout.bottomMargin: Theme.spacingS
+            Layout.leftMargin: Theme.spacingL
+            Layout.rightMargin: Theme.spacingL
+            spacing: Theme.spacingM
 
-            DIcon {
-                name: "info"
-                size: Style.iconSizeMedium
-                color: Theme.primary
+            Rectangle {
+                width: 38
+                height: 38
+                radius: Theme.cornerRadiusS
+                color: Theme.primaryContainer
+
+                DIcon {
+                    anchors.centerIn: parent
+                    name: "info"
+                    size: 20
+                    color: Theme.onPrimaryContainer
+                }
             }
 
             StyledText {
                 Layout.fillWidth: true
                 text: "Image Details"
                 font.pixelSize: Theme.fontSizeLarge
-                font.weight: Theme.fontWeightBold
+                font.weight: Theme.fontWeightMedium
                 color: Theme.surfaceText
             }
 
@@ -257,17 +216,10 @@ Rectangle {
             }
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.outlineVariant
-            opacity: 0.22
-        }
-
         DFlickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            contentHeight: contentCol.implicitHeight + 28
+            contentHeight: contentCol.implicitHeight + Theme.spacingL * 2
             clip: true
 
             ColumnLayout {
@@ -275,45 +227,45 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
-                anchors.margins: 16
-                spacing: 16
+                anchors.margins: Theme.spacingL
+                spacing: Theme.spacingL
 
                 // Hero File Card
                 M3Card {
-                    implicitHeight: heroCol.implicitHeight + 28
+                    implicitHeight: heroCol.implicitHeight + Theme.spacingL * 2
 
                     ColumnLayout {
                         id: heroCol
                         anchors.fill: parent
-                        anchors.margins: 14
-                        spacing: 12
+                        anchors.margins: Theme.spacingL
+                        spacing: Theme.spacingM
 
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: Style.spacingM
+                            spacing: Theme.spacingM
 
                             Rectangle {
-                                width: Style.buttonHeightS
-                                height: Style.buttonHeightS
-                                radius: Style.cornerRadiusS
+                                width: 44
+                                height: 44
+                                radius: Theme.cornerRadiusM
                                 color: Theme.primaryContainer
 
                                 DIcon {
                                     anchors.centerIn: parent
                                     name: "image"
-                                    size: Style.iconSize
-                                    color: Theme.primaryText
+                                    size: 24
+                                    color: Theme.onPrimaryContainer
                                 }
                             }
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                spacing: Style.spacingXXS
+                                spacing: 2
 
                                 StyledText {
                                     Layout.fillWidth: true
                                     text: ImageService.currentFileName || "Image"
-                                    font.pixelSize: Theme.fontSizeMedium
+                                    font.pixelSize: Theme.fontSizeLarge
                                     font.weight: Theme.fontWeightBold
                                     color: Theme.surfaceText
                                     elide: Text.ElideMiddle
@@ -332,14 +284,13 @@ Rectangle {
                         // Badges Row
                         Flow {
                             Layout.fillWidth: true
-                            spacing: 6
+                            spacing: Theme.spacingXS
 
                             PillBadge {
                                 visible: ImageService.currentMeta.format !== undefined && ImageService.currentMeta.format !== ""
                                 text: ImageService.currentMeta.format || ""
-                                bgColor: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.22)
-                                textColor: Theme.primary
-                                borderColor: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.6)
+                                bgColor: Theme.secondaryContainer
+                                textColor: Theme.onSecondaryContainer
                             }
 
                             PillBadge {
@@ -353,7 +304,11 @@ Rectangle {
                             }
 
                             PillBadge {
-                                visible: ImageService.currentMeta.aspectRatio !== undefined && ImageService.currentMeta.aspectRatio !== ""
+                                visible: {
+                                    const r = ImageService.currentMeta.aspectRatio;
+                                    if (!r || r === "") return false;
+                                    return ["16:9", "4:3", "3:2", "1:1", "21:9", "9:16", "3:4", "2:3"].indexOf(r) !== -1;
+                                }
                                 text: ImageService.currentMeta.aspectRatio || ""
                             }
                         }
@@ -362,149 +317,110 @@ Rectangle {
                             Layout.fillWidth: true
                             height: 1
                             color: Theme.outlineVariant
-                            opacity: 0.2
+                            opacity: 0.15
                         }
 
                         // Quick Action Buttons
                         Flow {
                             Layout.fillWidth: true
-                            spacing: 8
+                            spacing: Theme.spacingS
 
-                            ActionChip {
+                            DButton {
                                 iconName: "content_copy"
-                                label: "Copy Image"
+                                text: "Copy Image"
+                                shape: "round"
+                                buttonHeight: Style.buttonHeightXS
+                                backgroundColor: Theme.surfaceContainer
+                                textColor: Theme.surfaceText
                                 onClicked: ImageService.copyToClipboard()
                             }
 
-                            ActionChip {
+                            DButton {
                                 iconName: "link"
-                                label: "Copy Path"
+                                text: "Copy Path"
+                                shape: "round"
+                                buttonHeight: Style.buttonHeightXS
+                                backgroundColor: Theme.surfaceContainer
+                                textColor: Theme.surfaceText
                                 onClicked: ImageService.copyPathToClipboard()
                             }
 
-                            ActionChip {
+                            DButton {
                                 iconName: "folder_open"
-                                label: "Open Folder"
+                                text: "Open Folder"
+                                shape: "round"
+                                buttonHeight: Style.buttonHeightXS
+                                backgroundColor: Theme.surfaceContainer
+                                textColor: Theme.surfaceText
                                 onClicked: ImageService.openContainingFolder()
                             }
 
-                            ActionChip {
+                            DButton {
                                 iconName: "wallpaper"
-                                label: "Set as Wallpaper"
+                                text: "Set as Wallpaper"
+                                shape: "round"
+                                buttonHeight: Style.buttonHeightXS
+                                backgroundColor: Theme.surfaceContainer
+                                textColor: Theme.surfaceText
                                 onClicked: ImageService.setAsWallpaper()
                             }
 
-                            ActionChip {
+                            DButton {
                                 iconName: "print"
-                                label: "Print"
+                                text: "Print"
+                                shape: "round"
+                                buttonHeight: Style.buttonHeightXS
+                                backgroundColor: Theme.surfaceContainer
+                                textColor: Theme.surfaceText
                                 onClicked: ImageService.printImage()
                             }
                         }
                     }
                 }
 
-                // Section 1 & 3: Image Attributes and Location side-by-side (2 columns)
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 16
-                    Layout.alignment: Qt.AlignTop
+                // File Location & Timestamp Card
+                M3Card {
+                    visible: (ImageService.currentMeta.directory !== undefined && ImageService.currentMeta.directory !== "") ||
+                             (ImageService.currentMeta.modTimeText !== undefined && ImageService.currentMeta.modTimeText !== "")
+                    implicitHeight: locCol.implicitHeight + Theme.spacingL * 2
 
-                    // Column 1: Image Attributes
                     ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        Layout.preferredWidth: 1
-                        Layout.alignment: Qt.AlignTop
-                        spacing: 8
+                        id: locCol
+                        anchors.fill: parent
+                        anchors.margins: Theme.spacingL
+                        spacing: Theme.spacingM
 
-                        SectionHeader {
-                            title: "Attributes"
-                            iconName: "photo_size_select_actual"
-                        }
-
-                        M3Card {
-                            Layout.fillHeight: true
-                            implicitHeight: attrCol.implicitHeight + 28
-
-                            ColumnLayout {
-                                id: attrCol
-                                anchors.fill: parent
-                                anchors.margins: 14
-                                spacing: 10
-
-                                DetailRow {
-                                    label: "Dimensions"
-                                    value: ImageService.currentMeta.width > 0 ? (ImageService.currentMeta.width + " × " + ImageService.currentMeta.height + " px") : ""
-                                }
-                                DetailRow {
-                                    label: "Megapixels"
-                                    value: ImageService.currentMeta.megapixels || ""
-                                }
-                                DetailRow {
-                                    label: "Aspect Ratio"
-                                    value: ImageService.currentMeta.aspectRatio || ""
-                                }
-                                DetailRow {
-                                    label: "File Size"
-                                    value: ImageService.currentMeta.fileSizeText || ""
-                                }
-                                DetailRow {
-                                    label: "Format"
-                                    value: ImageService.currentMeta.format || ""
-                                }
-                                DetailRow {
-                                    label: "Modified"
-                                    value: ImageService.currentMeta.modTimeText || ""
-                                }
-                            }
-                        }
-                    }
-
-                    // Column 2: Location
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        Layout.preferredWidth: 1
-                        Layout.alignment: Qt.AlignTop
-                        spacing: 8
-
-                        SectionHeader {
-                            title: "Location"
+                        InfoRow {
                             iconName: "folder"
+                            label: "Folder"
+                            value: ImageService.currentMeta.directory || ""
+                            isMono: true
+                            clickable: true
+                            onClicked: ImageService.openContainingFolder()
                         }
 
-                        M3Card {
-                            Layout.fillHeight: true
-                            implicitHeight: locCol.implicitHeight + 28
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 1
+                            color: Theme.outlineVariant
+                            opacity: 0.12
+                            visible: ImageService.currentMeta.modTimeText !== undefined && ImageService.currentMeta.modTimeText !== ""
+                        }
 
-                            ColumnLayout {
-                                id: locCol
-                                anchors.fill: parent
-                                anchors.margins: 14
-                                spacing: 10
-
-                                DetailRow {
-                                    label: "Folder"
-                                    value: ImageService.currentMeta.directory || ""
-                                    isMono: true
-                                }
-
-                                DetailRow {
-                                    label: "Full Path"
-                                    value: ImageService.currentFilePath
-                                    isMono: true
-                                }
-                            }
+                        InfoRow {
+                            iconName: "schedule"
+                            label: "Modified"
+                            value: ImageService.currentMeta.modTimeText || ""
                         }
                     }
                 }
 
-                // Section 2: Camera & Optics (EXIF)
+                // Section: Camera & Optics (EXIF)
                 ColumnLayout {
                     visible: (ImageService.currentMeta.cameraModel !== undefined && ImageService.currentMeta.cameraModel !== "") ||
                              (ImageService.currentMeta.fNumber !== undefined && ImageService.currentMeta.fNumber !== "")
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: Theme.spacingS
 
                     SectionHeader {
                         title: "Camera & Optics"
@@ -512,13 +428,13 @@ Rectangle {
                     }
 
                     M3Card {
-                        implicitHeight: cameraCol.implicitHeight + 28
+                        implicitHeight: cameraCol.implicitHeight + Theme.spacingL * 2
 
                         ColumnLayout {
                             id: cameraCol
                             anchors.fill: parent
-                            anchors.margins: 14
-                            spacing: 12
+                            anchors.margins: Theme.spacingL
+                            spacing: Theme.spacingM
 
                             StyledText {
                                 Layout.fillWidth: true
@@ -532,7 +448,7 @@ Rectangle {
                             // 4-cell Photography Quick Spec Grid (Loupe style)
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 6
+                                spacing: Theme.spacingS
 
                                 SpecCell { label: "Aperture"; value: ImageService.currentMeta.fNumber || "—" }
                                 SpecCell { label: "Shutter"; value: ImageService.currentMeta.exposureTime || "—" }
@@ -540,7 +456,8 @@ Rectangle {
                                 SpecCell { label: "ISO"; value: ImageService.currentMeta.iso || "—" }
                             }
 
-                            DetailRow {
+                            InfoRow {
+                                iconName: "event"
                                 label: "Date Taken"
                                 value: ImageService.currentMeta.dateTaken || ""
                             }
@@ -548,11 +465,11 @@ Rectangle {
                     }
                 }
 
-                // Section 4: GPS Coordinates (if available in EXIF)
+                // Section: GPS Coordinates (if available in EXIF)
                 ColumnLayout {
                     visible: ImageService.currentMeta.gpsPosition !== undefined && ImageService.currentMeta.gpsPosition !== ""
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: Theme.spacingS
 
                     SectionHeader {
                         title: "GPS Location"
@@ -560,15 +477,16 @@ Rectangle {
                     }
 
                     M3Card {
-                        implicitHeight: gpsCol.implicitHeight + 28
+                        implicitHeight: gpsCol.implicitHeight + Theme.spacingL * 2
 
                         ColumnLayout {
                             id: gpsCol
                             anchors.fill: parent
-                            anchors.margins: 14
-                            spacing: 12
+                            anchors.margins: Theme.spacingL
+                            spacing: Theme.spacingM
 
-                            DetailRow {
+                            InfoRow {
+                                iconName: "pin_drop"
                                 label: "Coordinates"
                                 value: ImageService.currentMeta.gpsPosition || ""
                                 isMono: true
@@ -576,11 +494,15 @@ Rectangle {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 8
+                                spacing: Theme.spacingS
 
-                                ActionChip {
+                                DButton {
                                     iconName: "map"
-                                    label: "Open in Maps"
+                                    text: "Open in Maps"
+                                    shape: "round"
+                                    buttonHeight: Style.buttonHeightXS
+                                    backgroundColor: Theme.surfaceContainer
+                                    textColor: Theme.surfaceText
                                     onClicked: {
                                         if (ImageService.currentMeta.mapsUrl) {
                                             Quickshell.execDetached(["xdg-open", ImageService.currentMeta.mapsUrl]);
@@ -588,9 +510,13 @@ Rectangle {
                                     }
                                 }
 
-                                ActionChip {
+                                DButton {
                                     iconName: "content_copy"
-                                    label: "Copy Coordinates"
+                                    text: "Copy Coordinates"
+                                    shape: "round"
+                                    buttonHeight: Style.buttonHeightXS
+                                    backgroundColor: Theme.surfaceContainer
+                                    textColor: Theme.surfaceText
                                     onClicked: {
                                         if (ImageService.currentMeta.gpsPosition) {
                                             Quickshell.execDetached([
