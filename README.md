@@ -1,57 +1,37 @@
 # dankapps
 
-A collection of Quickshell-based desktop apps designed exclusively to run alongside [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell). These applications require an active DMS environment and are not intended for standalone use.
+Quickshell desktop apps built for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell). Requires an active DMS session.
 
-> [!IMPORTANT]
-> **DMS Dependency**: All apps in this repository rely directly on DMS design tokens, `dms` CLI utilities (trash, wallpaper, notifications), and IPC services (such as Quick Capture annotation). They must be run within a DMS session.
+## Apps & Resource Consumption
+
+Each app uses a Go launcher (`~4 MB`) that spawns a dedicated [Quickshell](https://quickshell.outfoxxed.me/) Qt 6 / QML window. Zero background daemons when closed.
+
+| App | Binary | RAM (Idle / Active) | CPU | Status | Description |
+|-----|--------|---------------------|-----|--------|-------------|
+| [dankview](./dankview/) | `dview` (~4 MB) | ~150 MB / ~220 MB | 0% | Active | Image viewer (EXIF, crop, zoom, annotation) |
+| [dankcalc](./dankcalc/) | `dcalc` (~4 MB) | ~150 MB / ~160 MB | 0% | Active | Calculator (scientific, unit converter, history) |
+| [dankvideo](./dankvideo/) | `dplay` (~4 MB) | ~150 MB / ~250 MB | 0% / HW decode | On hold | Video player (inspector, auto-queue) |
 
 > [!NOTE]
-> These applications are currently **experimental prototypes**. Features, UI design, and architecture are actively evolving and may change significantly in final releases.
+> ~150 MB idle RAM is baseline Qt 6 / Quickshell runtime (Wayland buffers, Vulkan/OpenGL, QML engine). The Go CLI wrapper uses ~3 MB.
 
-## Apps
+## Install
 
-| App | Description | Status | Binary |
-|-----|-------------|--------|--------|
-| [dankview](./dankview/) | Image viewer with EXIF inspector, crop, zoom, and Quick Capture annotation | Active development | `dview` |
-| [dankvideo](./dankvideo/) | Video player with media inspector | On hold | `dplay` |
-| [dankcalc](./dankcalc/) | Calculator with scientific mode, unit converter, and history | Active development | `dcalc` |
-
-## Install an app
-
-### Arch Linux (AUR)
-
-Packages are available on the AUR for Arch-based distributions:
-
+### AUR (Arch Linux)
 ```bash
-# Install dankview
-yay -S dankview-git
-
-# Install dankvideo
-yay -S dankvideo-git
+yay -S dankview-git dankvideo-git
 ```
 
 ### From Source
-
-Each app is self-contained. Clone the repo and install only what you need:
-
 ```bash
 git clone https://github.com/hthienloc/dankapps.git
-cd dankapps
-
-# Install dankview
-cd dankview && make install-user
-
-# Or install dankvideo
-cd dankvideo && make install-user
-
-# Or install dankcalc
-cd dankcalc && make install-user
+cd dankapps/<app> && make install-user
 ```
 
 ## Requirements
 
-- [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell) (required: runtime shell, theme system, `dms` CLI, and IPC services)
-- [Quickshell](https://quickshell.outfoxxed.me/) — QML shell framework
+- [DMS](https://github.com/AvengeMedia/DankMaterialShell) (theme, CLI, IPC)
+- [Quickshell](https://quickshell.outfoxxed.me/)
 - Go 1.21+
 
 ## Structure
@@ -60,16 +40,13 @@ cd dankcalc && make install-user
 dankapps/
 ├── dankview/      # Image viewer
 ├── dankvideo/     # Video player
-├── dankcalc/      # Calculator
-└── go.work        # Go workspace (dev only)
+└── dankcalc/      # Calculator
 ```
 
-## Credits & Acknowledgements
+## Credits
 
-Special thanks to the community members who helped shape the design and conception of the apps:
-
-- **Zurvan** (Discord) — Core design inspiration and UI concepts.
-- **Stumbling** (Discord) & **bbedward** — Invaluable feedback, critique, and quality insights.
+- **Zurvan** — Core design inspiration and UI concepts.
+- **Stumbling** & **bbedward** — Feedback and quality insights.
 
 ## License
 
