@@ -41,7 +41,7 @@ function formatResult(n) {
     return s;
 }
 
-function transformExpression(expr, isRad) {
+function transformExpression(expr) {
     if (!expr) return "";
 
     // Close any unclosed parentheses automatically for evaluation
@@ -56,38 +56,12 @@ function transformExpression(expr, isRad) {
         .replace(/×/g, "*")
         .replace(/÷/g, "/")
         .replace(/−/g, "-")
-        .replace(/π/g, "Math.PI")
-        .replace(/(?<![a-zA-Z0-9_.])e(?![a-zA-Z0-9_(])/g, "Math.E")
-        .replace(/√\(/g, "Math.sqrt(")
+        .replace(/π/g, "pi")
+        .replace(/(?<![a-zA-Z0-9_.])e(?![a-zA-Z0-9_(])/g, "E")
+        .replace(/√\(/g, "sqrt(")
         .replace(/\^/g, "**")
         .replace(/(\d+(\.\d+)?)!/g, "factorial($1)")
         .replace(/%/g, "*0.01");
-
-    // Trigonometry conversions based on Rad/Deg mode
-    if (isRad) {
-        res = res
-            .replace(/\basin\(/g, "Math.asin(")
-            .replace(/\bacos\(/g, "Math.acos(")
-            .replace(/\batan\(/g, "Math.atan(")
-            .replace(/\bsin\(/g, "Math.sin(")
-            .replace(/\bcos\(/g, "Math.cos(")
-            .replace(/\btan\(/g, "Math.tan(");
-    } else {
-        // Degree mode
-        res = res
-            .replace(/\basin\(([^)]+)\)/g, "(radToDeg(Math.asin($1)))")
-            .replace(/\bacos\(([^)]+)\)/g, "(radToDeg(Math.acos($1)))")
-            .replace(/\batan\(([^)]+)\)/g, "(radToDeg(Math.atan($1)))")
-            .replace(/\bsin\(([^)]+)\)/g, "(Math.sin(degToRad($1)))")
-            .replace(/\bcos\(([^)]+)\)/g, "(Math.cos(degToRad($1)))")
-            .replace(/\btan\(([^)]+)\)/g, "(Math.tan(degToRad($1)))");
-    }
-
-    // Logarithmic & exponential functions
-    res = res
-        .replace(/\bln\(/g, "Math.log(")
-        .replace(/\blog\(/g, "Math.log10(")
-        .replace(/\bexp\(/g, "Math.exp(");
 
     return res;
 }
@@ -95,7 +69,7 @@ function transformExpression(expr, isRad) {
 function evaluateExpression(expr, isRad) {
     if (!expr || expr.trim() === "") return "";
 
-    const transformed = transformExpression(expr.trim(), isRad);
+    const transformed = transformExpression(expr.trim());
 
     // Guard against incomplete expressions ending in operator
     if (/[+\-*/%^.(]$/.test(expr.trim())) {
@@ -103,10 +77,28 @@ function evaluateExpression(expr, isRad) {
     }
 
     try {
-        const fn = new Function("factorial", "degToRad", "radToDeg", "Math",
+        const radConv = degToRad;
+        const degConv = radToDeg;
+        const sin = isRad ? Math.sin : x => Math.sin(radConv(x));
+        const cos = isRad ? Math.cos : x => Math.cos(radConv(x));
+        const tan = isRad ? Math.tan : x => Math.tan(radConv(x));
+        const asin = isRad ? Math.asin : x => degConv(Math.asin(x));
+        const acos = isRad ? Math.acos : x => degConv(Math.acos(x));
+        const atan = isRad ? Math.atan : x => degConv(Math.atan(x));
+        const sqrt = Math.sqrt;
+        const ln = Math.log;
+        const log = Math.log10;
+        const exp = Math.exp;
+        const pi = Math.PI;
+        const PI = Math.PI;
+        const E = Math.E;
+
+        const fn = new Function(
+            "sin", "cos", "tan", "asin", "acos", "atan",
+            "sqrt", "ln", "log", "exp", "factorial", "pi", "PI", "E", "Math",
             `"use strict"; return (${transformed});`
         );
-        const val = fn(factorial, degToRad, radToDeg, Math);
+        const val = fn(sin, cos, tan, asin, acos, atan, sqrt, ln, log, exp, factorial, pi, PI, E, Math);
         return formatResult(val);
     } catch (e) {
         return null;

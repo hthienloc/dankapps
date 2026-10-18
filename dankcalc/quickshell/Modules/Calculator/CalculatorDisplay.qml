@@ -29,21 +29,69 @@ Item {
         }
     }
 
+    MouseArea {
+        id: displayMouse
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+            CalculatorService.copyResult();
+        }
+    }
+
     ColumnLayout {
+        z: 1
         anchors.fill: parent
         anchors.leftMargin: Math.max(Theme.spacingM, root.width * 0.04)
         anchors.rightMargin: Math.max(Theme.spacingM, root.width * 0.04)
         spacing: Theme.spacingXXS
 
-        // Expression line
-        StyledText {
+        // Top line: RAD/DEG badge + Expression
+        RowLayout {
             Layout.fillWidth: true
-            text: root.expression !== "" ? root.expression : " "
-            font.pixelSize: Math.max(12, Math.min(20, root.height * 0.22))
-            color: Theme.surfaceVariantText
-            horizontalAlignment: Text.AlignRight
-            elide: Text.ElideLeft
-            wrapMode: Text.NoWrap
+            spacing: Theme.spacingS
+
+            // Rad / Deg Badge (clickable)
+            Rectangle {
+                id: radBadge
+                z: 5
+                implicitWidth: radText.implicitWidth + 14
+                implicitHeight: Math.max(18, Math.min(24, root.height * 0.26))
+                radius: height / 2
+                color: radMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
+                border.color: Qt.rgba(Theme.outlineVariant.r, Theme.outlineVariant.g, Theme.outlineVariant.b, 0.3)
+                border.width: 1
+
+                Behavior on color { DColorAnim { duration: Theme.shortDuration } }
+
+                StyledText {
+                    id: radText
+                    anchors.centerIn: parent
+                    text: CalculatorService.isRad ? "RAD" : "DEG"
+                    font.pixelSize: Math.max(10, Math.min(13, root.height * 0.16))
+                    font.weight: Font.DemiBold
+                    color: Theme.primary
+                }
+
+                MouseArea {
+                    id: radMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: CalculatorService.toggleRad()
+                }
+            }
+
+            // Expression line
+            StyledText {
+                Layout.fillWidth: true
+                text: root.expression !== "" ? root.expression : " "
+                font.pixelSize: Math.max(12, Math.min(20, root.height * 0.22))
+                color: Theme.surfaceVariantText
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideLeft
+                wrapMode: Text.NoWrap
+            }
         }
 
         // Main Result line
@@ -64,16 +112,6 @@ Item {
                     easing.bezierCurve: Theme.expressiveCurves.standard
                 }
             }
-        }
-    }
-
-    MouseArea {
-        id: displayMouse
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: {
-            CalculatorService.copyResult();
         }
     }
 }
