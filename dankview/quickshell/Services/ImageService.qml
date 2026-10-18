@@ -57,6 +57,11 @@ Singleton {
     property bool searchActive: false
     property bool searchBarCollapsed: false
 
+    // Process Execution & Navigation Lifecycle Guards
+    property int _navToken: 0
+    property int _activeListToken: 0
+    property int _activeInfoToken: 0
+
     // Filter & Sort Settings
     property string filterMediaType: "All Items"
     property string filterLocation: "Anywhere"
@@ -821,6 +826,7 @@ Singleton {
     }
 
     function loadGallery(dirPath) {
+        if (galleryProc.running || isGalleryLoading) return;
         isGalleryLoading = true;
         const cmd = [dviewBin, "-gallery", dirPath || ""];
         const added = (albumsConfig && Array.isArray(albumsConfig.addedFolders)) ? albumsConfig.addedFolders : [];
@@ -832,6 +838,7 @@ Singleton {
     }
 
     function openImageFromGallery(filePath, thumbPath) {
+        _navToken++;
         previewThumbnail = thumbPath || "";
         fileList = [filePath];
         currentIndex = 0;
@@ -843,11 +850,12 @@ Singleton {
     }
 
     function backToGallery() {
+        _navToken++;
         galleryMode = true;
         editMode = false;
         cropMode = false;
         previewThumbnail = "";
-        if (!galleryData) {
+        if (!galleryData && !isGalleryLoading && !galleryProc.running) {
             loadGallery();
         }
     }
@@ -906,7 +914,9 @@ Singleton {
         } else {
             galleryMode = true;
             currentMeta = ({});
-            loadGallery();
+            if (!galleryData && !isGalleryLoading && !galleryProc.running) {
+                loadGallery();
+            }
         }
     }
 
@@ -923,12 +933,15 @@ Singleton {
     readonly property string dviewBin: Quickshell.env("DVIEW_BIN") || "dview"
 
     function loadDirectoryFor(filePath) {
+        _navToken++;
+        _activeListToken = _navToken;
         listProc.command = [dviewBin, "-list", filePath];
         listProc.running = true;
     }
 
     function fetchMetadata() {
-        if (!currentFilePath) return;
+        if (!currentFilePath || galleryMode) return;
+        _activeInfoToken = _navToken;
         infoProc.command = [dviewBin, "-info", currentFilePath];
         infoProc.running = true;
     }
@@ -939,9 +952,12 @@ Singleton {
         command: []
         stdout: StdioCollector {
             onStreamFinished: {
+                if (root.galleryMode || root._activeListToken !== root._navToken || !text || text.trim() === "") {
+                    return;
+                }
                 try {
                     const data = JSON.parse(text);
-                    if (data && data.files && data.files.length > 0) {
+                    if (data && data.files && data.files.length > 0 && !root.galleryMode && root._activeListToken === root._navToken) {
                         root.fileList = data.files;
                         root.currentIndex = data.currentIndex >= 0 && data.currentIndex < data.files.length ? data.currentIndex : 0;
                     }
@@ -951,6 +967,7 @@ Singleton {
             }
         }
         onExited: exitCode => {
+            if (root.galleryMode || root._activeListToken !== root._navToken) return;
             if (exitCode !== 0 && root.currentFilePath) {
                 const deadPath = root.currentFilePath;
                 root.removeRecentImage(deadPath);
@@ -969,9 +986,12 @@ Singleton {
         command: []
         stdout: StdioCollector {
             onStreamFinished: {
+                if (root.galleryMode || root._activeInfoToken !== root._navToken || !text || text.trim() === "") {
+                    return;
+                }
                 try {
                     const data = JSON.parse(text);
-                    if (data) {
+                    if (data && !root.galleryMode && root._activeInfoToken === root._navToken) {
                         root.currentMeta = data;
                     }
                 } catch (e) {
@@ -986,39 +1006,44 @@ Singleton {
         running: false
         command: []
         stdout: StdioCollector {
-                onStreamFinished: {
-                    root.isGalleryLoading = false;
-                    try {
-                        const data = JSON.parse(text);
-                        if (data) {
-                            root.galleryData = data;
-                            if (root.recentImages && root.recentImages.length > 0 && data.allImages) {
-                                let updated = false;
-                                const list = root.recentImages.map(item => {
-                                    if (!item.thumbnail) {
-                                        const found = data.allImages.find(img => img.path === item.path);
-                                        if (found && found.thumbnail) {
-                                            updated = true;
-                                            return { path: item.path, thumbnail: found.thumbnail, name: item.name };
-                                        }
-                                    }
-                                    return item;
-                                });
-                                if (updated) {
-                                    root.recentImages = list;
-                                    root.saveRecents();
+            onStreamFinished: {
+                root.isGalleryLoading = false;
+                if (!text || text.trim() === "") return;
+                try {
+                    const data = JSON.parse(text);
+                    if (data) {
+                        root.galleryData = data;
+                        if (root.recentImages && root.recentImages.length > 0 && data.allImages) {
+                            const thumbMap = {};
+                            for (let i = 0; i < data.allImages.length; i++) {
+                                const img = data.allImages[i];
+                                if (img.path && img.thumbnail) {
+                                    thumbMap[img.path] = img.thumbnail;
                                 }
                             }
+                            let updated = false;
+                            const list = root.recentImages.map(item => {
+                                if (!item.thumbnail && thumbMap[item.path]) {
+                                    updated = true;
+                                    return { path: item.path, thumbnail: thumbMap[item.path], name: item.name };
+                                }
+                                return item;
+                            });
+                            if (updated) {
+                                root.recentImages = list;
+                                root.saveRecents();
+                            }
                         }
-                    } catch (e) {
-                        console.warn("Failed to parse gallery JSON:", e);
                     }
+                } catch (e) {
+                    console.warn("Failed to parse gallery JSON:", e);
                 }
             }
-            onExited: exitCode => {
-                root.isGalleryLoading = false;
-            }
         }
+        onExited: exitCode => {
+            root.isGalleryLoading = false;
+        }
+    }
 
         Process {
             id: trashProc
