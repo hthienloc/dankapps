@@ -613,7 +613,6 @@ Singleton {
         const added = (albumsConfig.addedFolders || []).filter(p => p !== cleanPath);
         const removed = (albumsConfig.removedFolders || []).slice();
         if (cleanPath && removed.indexOf(cleanPath) === -1) removed.push(cleanPath);
-        if (folderName && removed.indexOf(folderName) === -1) removed.push(folderName);
 
         let qa = Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : [];
         qa = qa.filter(n => n !== folderName);
