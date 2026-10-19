@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -27,6 +28,12 @@ func getFileID(fi os.FileInfo) (fileID, bool) {
 	return fileID{}, false
 }
 
+var exifBufPool = sync.Pool{
+	New: func() interface{} {
+		b := make([]byte, 65536)
+		return &b
+	},
+}
 
 // GalleryImage represents a single image with metadata for the gallery.
 type GalleryImage struct {
@@ -34,6 +41,7 @@ type GalleryImage struct {
 	Thumbnail string `json:"thumbnail"`
 	Name      string `json:"name"`
 	ModTime   int64  `json:"modTime"`
+	SortTime  int64  `json:"sortTime"`
 	DateGroup string `json:"dateGroup"`
 	Category  string `json:"category"`
 }
@@ -199,7 +207,7 @@ func parseTiffExifDate(data []byte) (time.Time, bool) {
 		if subTags != nil {
 			if val, ok := subTags[0x9003]; ok { // DateTimeOriginal
 				origDate := strings.TrimRight(string(val), "\x00")
-				if t, err := time.Parse("2006:01:02 15:04:05", origDate); err == nil {
+				if t, err := time.ParseInLocation("2006:01:02 15:04:05", origDate, time.Local); err == nil {
 					return t, true
 				}
 			}
@@ -207,7 +215,7 @@ func parseTiffExifDate(data []byte) (time.Time, bool) {
 	}
 
 	if ifd0Date != "" {
-		if t, err := time.Parse("2006:01:02 15:04:05", ifd0Date); err == nil {
+		if t, err := time.ParseInLocation("2006:01:02 15:04:05", ifd0Date, time.Local); err == nil {
 			return t, true
 		}
 	}
@@ -228,7 +236,10 @@ func extractExifDate(path string, fallback time.Time) time.Time {
 	}
 	defer f.Close()
 
-	header := make([]byte, 65536)
+	bufPtr := exifBufPool.Get().(*[]byte)
+	defer exifBufPool.Put(bufPtr)
+	header := *bufPtr
+
 	n, err := f.Read(header)
 	if err != nil || n < 16 {
 		return fallback
@@ -278,6 +289,7 @@ func extractExifDate(path string, fallback time.Time) time.Time {
 func addGalleryImage(
 	path, absRoot, thumbDir, name string,
 	modTime time.Time,
+	actualTime time.Time,
 	today, yesterday time.Time,
 	albumMap map[string]*GalleryAlbum,
 	categorySet map[string]bool,
@@ -314,7 +326,8 @@ func addGalleryImage(
 		Thumbnail: thumbPath,
 		Name:      name,
 		ModTime:   modTime.Unix(),
-		DateGroup: computeDateGroup(modTime, today, yesterday),
+		SortTime:  actualTime.Unix(),
+		DateGroup: computeDateGroup(actualTime, today, yesterday),
 		Category:  category,
 	}
 
@@ -394,7 +407,7 @@ func tryScanWithDsearch(
 
 		seenCanonical[canon] = true
 		actualTime := extractExifDate(p, fi.ModTime())
-		img := addGalleryImage(p, absRoot, thumbDir, fi.Name(), actualTime, today, yesterday, albumMap, categorySet)
+		img := addGalleryImage(p, absRoot, thumbDir, fi.Name(), fi.ModTime(), actualTime, today, yesterday, albumMap, categorySet)
 		allImages = append(allImages, img)
 	}
 
@@ -420,8 +433,11 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 
 	var canonicalExcludes []string
 	for _, ex := range excludedDirs {
-		if strings.TrimSpace(ex) != "" {
-			canonicalExcludes = append(canonicalExcludes, canonicalPath(ex))
+		trimmed := strings.TrimSpace(ex)
+		if trimmed != "" {
+			if abs, err := filepath.Abs(trimmed); err == nil {
+				canonicalExcludes = append(canonicalExcludes, canonicalPath(abs))
+			}
 		}
 	}
 
@@ -509,7 +525,7 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 						seenInodes[id] = true
 					}
 
-					if path != absRoot {
+					if path != absRoot && filepath.Dir(path) == absRoot {
 						albumName := info.Name()
 						isPinned := strings.EqualFold(albumName, "Screenshots") || strings.EqualFold(albumName, "Wallpapers")
 						if _, exists := albumMap[path]; !exists {
@@ -541,7 +557,7 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 				seenCanonical[canon] = true
 
 				actualTime := extractExifDate(path, info.ModTime())
-				img := addGalleryImage(path, absRoot, thumbDir, info.Name(), actualTime, today, yesterday, albumMap, categorySet)
+				img := addGalleryImage(path, absRoot, thumbDir, info.Name(), info.ModTime(), actualTime, today, yesterday, albumMap, categorySet)
 				allImages = append(allImages, img)
 				return nil
 			})
@@ -582,14 +598,16 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 
 		if id, ok := getFileID(fi); ok {
 			if seenInodes[id] {
-				// Already walked under absRoot or another directory; populate previews and count
-				canonExtra := canonicalPath(absExtra)
-				for _, img := range allImages {
-					canonImg := canonicalPath(img.Path)
-					if canonImg == canonExtra || strings.HasPrefix(canonImg, canonExtra+string(os.PathSeparator)) {
-						alb.TotalCount++
-						if len(alb.Previews) < 4 {
-							alb.Previews = append(alb.Previews, img.Path)
+				// Already walked under absRoot or another directory; populate previews and count if not yet populated
+				if alb.TotalCount == 0 {
+					canonExtra := canonicalPath(absExtra)
+					for _, img := range allImages {
+						canonImg := canonicalPath(img.Path)
+						if canonImg == canonExtra || strings.HasPrefix(canonImg, canonExtra+string(os.PathSeparator)) {
+							alb.TotalCount++
+							if len(alb.Previews) < 4 {
+								alb.Previews = append(alb.Previews, img.Path)
+							}
 						}
 					}
 				}
@@ -658,7 +676,8 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 				Path:      path,
 				Thumbnail: thumbPath,
 				Name:      info.Name(),
-				ModTime:   actualTime.Unix(),
+				ModTime:   info.ModTime().Unix(),
+				SortTime:  actualTime.Unix(),
 				DateGroup: computeDateGroup(actualTime, today, yesterday),
 				Category:  albumName,
 			}
@@ -685,8 +704,29 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 		}
 	}
 
-	// Sort images newest first
+	// For any image that belongs to an extraDir, update its category to albumName if nested
+	for _, extra := range extraDirs {
+		trimmed := strings.TrimSpace(extra)
+		if trimmed == "" {
+			continue
+		}
+		if absExtra, err := filepath.Abs(trimmed); err == nil {
+			canonExtra := canonicalPath(absExtra)
+			albumName := filepath.Base(canonExtra)
+			for i := range allImages {
+				canonImg := canonicalPath(allImages[i].Path)
+				if canonImg == canonExtra || strings.HasPrefix(canonImg, canonExtra+string(os.PathSeparator)) {
+					allImages[i].Category = albumName
+				}
+			}
+		}
+	}
+
+	// Sort images newest first (by SortTime, then ModTime)
 	sort.Slice(allImages, func(i, j int) bool {
+		if allImages[i].SortTime != allImages[j].SortTime {
+			return allImages[i].SortTime > allImages[j].SortTime
+		}
 		return allImages[i].ModTime > allImages[j].ModTime
 	})
 
