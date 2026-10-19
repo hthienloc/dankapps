@@ -90,6 +90,7 @@ Singleton {
     }
 
     property var galleryData: null
+    property var _rawGalleryData: null
 
     onGalleryTabChanged: {
         searchBarCollapsed = false;
@@ -561,6 +562,7 @@ Singleton {
             };
         }
         saveAlbumsConfig();
+        applyGalleryFilters();
         loadGallery();
         showToast("Added folder " + folderName);
     }
@@ -597,6 +599,7 @@ Singleton {
             };
         }
         saveAlbumsConfig();
+        applyGalleryFilters();
         loadGallery();
         showToast("Removed folder " + (folderName || cleanPath));
     }
@@ -634,6 +637,7 @@ Singleton {
             };
         }
         saveAlbumsConfig();
+        applyGalleryFilters();
         loadGallery();
         showToast("Removed folder " + folderName);
     }
@@ -654,6 +658,7 @@ Singleton {
             };
         }
         saveAlbumsConfig();
+        applyGalleryFilters();
         loadGallery();
         showToast("Restored default folders");
     }
@@ -860,35 +865,65 @@ Singleton {
         }
     }
 
-    function removePathsFromGalleryData(paths) {
-        if (!galleryData || !paths || paths.length === 0) return;
-        const pathSet = {};
-        for (let i = 0; i < paths.length; i++) pathSet[paths[i]] = true;
+    function applyGalleryFilters() {
+        if (!_rawGalleryData) return;
+        const rawAll = _rawGalleryData.allImages || [];
+        const newAll = rawAll.filter(img => !root.isPathRemoved(img.path, img.category));
 
-        const newAll = (galleryData.allImages || []).filter(img => !pathSet[img.path]);
+        const pathSet = {};
+        for (let i = 0; i < newAll.length; i++) {
+            pathSet[newAll[i].path] = true;
+        }
+
         const newGroups = [];
-        const oldGroups = galleryData.groups || [];
-        for (let gi = 0; gi < oldGroups.length; gi++) {
-            const g = oldGroups[gi];
-            const newImgs = (g.images || []).filter(img => !pathSet[img.path]);
+        const rawGroups = _rawGalleryData.groups || [];
+        for (let gi = 0; gi < rawGroups.length; gi++) {
+            const g = rawGroups[gi];
+            const newImgs = (g.images || []).filter(img => !!pathSet[img.path]);
             if (newImgs.length > 0) {
                 newGroups.push({ dateGroup: g.dateGroup, images: newImgs });
             }
         }
+
+        const rawAlbums = _rawGalleryData.albums || [];
+        const newAlbums = rawAlbums.filter(alb => !root.isAlbumRemoved(alb.name, alb.path));
+
         const activeCats = { "All": true };
         for (let i = 0; i < newAll.length; i++) {
             if (newAll[i].category) activeCats[newAll[i].category] = true;
         }
-        const newCategories = (galleryData.categories || ["All"]).filter(cat => !!activeCats[cat]);
+        const newCategories = (_rawGalleryData.categories || ["All"]).filter(cat => !!activeCats[cat]);
+
         if (selectedCategory !== "All" && selectedCategory !== "Favorites" && !activeCats[selectedCategory]) {
             selectedCategory = "All";
         }
-        galleryData = {
+
+        root.galleryData = {
             allImages: newAll,
-            albums: galleryData.albums,
+            albums: newAlbums,
             groups: newGroups,
             categories: newCategories
         };
+    }
+
+    function removePathsFromGalleryData(paths) {
+        if (!paths || paths.length === 0) return;
+        const pathSet = {};
+        for (let i = 0; i < paths.length; i++) pathSet[paths[i]] = true;
+
+        if (_rawGalleryData && _rawGalleryData.allImages) {
+            _rawGalleryData.allImages = _rawGalleryData.allImages.filter(img => !pathSet[img.path]);
+            if (_rawGalleryData.groups) {
+                const newRawGroups = [];
+                for (let i = 0; i < _rawGalleryData.groups.length; i++) {
+                    const g = _rawGalleryData.groups[i];
+                    const newImgs = (g.images || []).filter(img => !pathSet[img.path]);
+                    if (newImgs.length > 0) newRawGroups.push({ dateGroup: g.dateGroup, images: newImgs });
+                }
+                _rawGalleryData.groups = newRawGroups;
+            }
+        }
+        applyGalleryFilters();
     }
 
     function trashSelected() {
@@ -1130,7 +1165,8 @@ Singleton {
                 try {
                     const data = JSON.parse(text);
                     if (data) {
-                        root.galleryData = data;
+                        root._rawGalleryData = data;
+                        root.applyGalleryFilters();
                         if (root.recentImages && root.recentImages.length > 0 && data.allImages) {
                             const thumbMap = {};
                             for (let i = 0; i < data.allImages.length; i++) {
