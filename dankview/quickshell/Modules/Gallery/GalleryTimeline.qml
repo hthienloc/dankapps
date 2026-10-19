@@ -362,7 +362,7 @@ Item {
                                     anchors.left: parent.left
                                     anchors.right: parent.right
                                     anchors.bottom: parent.bottom
-                                    height: 38
+                                    height: Math.max(38, nameText.implicitHeight + 16)
                                     gradient: Gradient {
                                         GradientStop { position: 0.0; color: "transparent" }
                                         GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.72) }
@@ -370,12 +370,15 @@ Item {
                                 }
 
                                 StyledText {
+                                    id: nameText
                                     anchors.left: parent.left
                                     anchors.right: parent.right
                                     anchors.bottom: parent.bottom
                                     anchors.margins: 8
                                     text: tile.itemData?.name || ""
                                     elide: Text.ElideRight
+                                    maximumLineCount: 2
+                                    wrapMode: Text.Wrap
                                     font.pixelSize: Theme.fontSizeSmall
                                     font.weight: Theme.fontWeightMedium
                                     color: "#FFFFFF"
