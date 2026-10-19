@@ -45,11 +45,13 @@ Item {
         let base = rawGroups
         const cat = ImageService.selectedCategory
         const result = []
+        const seenInTimeline = new Set()
 
         for (let i = 0; i < base.length; i++) {
             const grp = base[i]
             const imgs = grp.images.filter(img => {
-                if (ImageService.isAlbumRemoved(img.category, "")) return false
+                if (!img || !img.path) return false
+                if (ImageService.isPathRemoved(img.path, img.category)) return false
                 if (cat && cat !== "All") {
                     if (cat === "Favorites") {
                         if (!ImageService.isFavorite(img.path)) return false
@@ -57,7 +59,10 @@ Item {
                         return false
                     }
                 }
-                return matchesQuery(img) && matchesFilters(img)
+                if (!matchesQuery(img) || !matchesFilters(img)) return false
+                if (seenInTimeline.has(img.path)) return false
+                seenInTimeline.add(img.path)
+                return true
             })
             if (imgs.length > 0) result.push({ dateGroup: grp.dateGroup, images: imgs })
         }

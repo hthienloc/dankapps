@@ -117,9 +117,31 @@ Item {
 
         SettingsPage {
             SettingsCard {
-                title: "Folders"
+                title: "Manage folders"
 
                 SettingsRow {
+                    title: "Add folder to library"
+                    subtitle: "Choose a directory to scan and display in gallery and albums"
+
+                    DButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Add folder"
+                        buttonHeight: Style.buttonHeightXS
+                        iconName: "create_new_folder"
+                        backgroundColor: Theme.primaryContainer
+                        textColor: Theme.onPrimaryContainer
+                        onClicked: ImageService.openAddFolderDialog()
+                    }
+                }
+
+                SettingsRow {
+                    title: "Quick access folders"
+                    subtitle: "Folders pinned to top filter bar for fast browsing"
+                    trailingBadge: ImageService.quickAccessFolderAlbums.length + " pinned"
+                }
+
+                SettingsRow {
+                    visible: ImageService.hasRemovedFolders
                     title: "Restore default folders"
                     subtitle: "Unhide any default folders (Pictures, Screenshots) that were removed"
 
@@ -133,11 +155,33 @@ Item {
                         onClicked: ImageService.restoreRemovedFolders()
                     }
                 }
+            }
 
-                SettingsRow {
-                    title: "Quick access folders"
-                    subtitle: "Folders pinned to top filter bar for fast browsing"
-                    trailingBadge: ImageService.quickAccessFolderAlbums.length + " pinned"
+            SettingsCard {
+                title: "Custom watched folders"
+                visible: (ImageService.albumsConfig.addedFolders || []).length > 0
+
+                Repeater {
+                    model: ImageService.albumsConfig.addedFolders || []
+
+                    SettingsRow {
+                        required property string modelData
+                        iconName: "folder"
+                        title: {
+                            const clean = modelData.replace(/\/+$/, "");
+                            const parts = clean.split("/");
+                            return parts[parts.length - 1] || clean;
+                        }
+                        subtitle: modelData
+
+                        DIconButton {
+                            anchors.verticalCenter: parent.verticalCenter
+                            iconName: "delete"
+                            size: "s"
+                            tooltipText: "Remove folder from library"
+                            onClicked: ImageService.removeAddedFolder(modelData)
+                        }
+                    }
                 }
             }
         }

@@ -106,6 +106,14 @@ type dsearchResult struct {
 	Hits []dsearchHit `json:"hits"`
 }
 
+func canonicalPath(p string) string {
+	clean := filepath.Clean(p)
+	if realP, err := filepath.EvalSymlinks(clean); err == nil {
+		return filepath.Clean(realP)
+	}
+	return clean
+}
+
 func addGalleryImage(
 	path, absRoot, thumbDir, name string,
 	modTime time.Time,
@@ -115,16 +123,26 @@ func addGalleryImage(
 ) GalleryImage {
 	parentDir := filepath.Dir(path)
 	category := "Pictures"
+	albumDir := absRoot
 	if parentDir != absRoot {
-		category = filepath.Base(parentDir)
-		if _, exists := albumMap[parentDir]; !exists {
-			isPinned := strings.EqualFold(category, "Screenshots") || strings.EqualFold(category, "Wallpapers")
-			albumMap[parentDir] = &GalleryAlbum{
-				Name:     category,
-				Path:     parentDir,
-				IsPinned: isPinned,
-				Previews: []string{},
-			}
+		rel, err := filepath.Rel(absRoot, parentDir)
+		if err == nil && rel != "." {
+			topFolder := strings.Split(rel, string(os.PathSeparator))[0]
+			category = topFolder
+			albumDir = filepath.Join(absRoot, topFolder)
+		} else {
+			category = filepath.Base(parentDir)
+			albumDir = parentDir
+		}
+	}
+
+	if _, exists := albumMap[albumDir]; !exists {
+		isPinned := strings.EqualFold(category, "Screenshots") || strings.EqualFold(category, "Wallpapers")
+		albumMap[albumDir] = &GalleryAlbum{
+			Name:     category,
+			Path:     albumDir,
+			IsPinned: isPinned,
+			Previews: []string{},
 		}
 	}
 
@@ -141,7 +159,7 @@ func addGalleryImage(
 
 	categorySet[category] = true
 
-	if alb, ok := albumMap[parentDir]; ok {
+	if alb, ok := albumMap[albumDir]; ok {
 		alb.TotalCount++
 		if len(alb.Previews) < 4 {
 			alb.Previews = append(alb.Previews, path)
@@ -152,7 +170,13 @@ func addGalleryImage(
 }
 
 // tryScanWithDsearch attempts to query danksearch index for instant results.
-func tryScanWithDsearch(absRoot string, thumbDir string, today, yesterday time.Time) ([]GalleryImage, map[string]*GalleryAlbum, map[string]bool, bool) {
+func tryScanWithDsearch(
+	absRoot string,
+	thumbDir string,
+	today, yesterday time.Time,
+	isExcluded func(string) bool,
+	seenCanonical map[string]bool,
+) ([]GalleryImage, map[string]*GalleryAlbum, map[string]bool, bool) {
 	dsearchBin, err := exec.LookPath("dsearch")
 	if err != nil {
 		return nil, nil, nil, false
@@ -174,23 +198,33 @@ func tryScanWithDsearch(absRoot string, thumbDir string, today, yesterday time.T
 	categorySet := make(map[string]bool)
 
 	screenshotDir := filepath.Join(absRoot, "Screenshots")
-	albumMap[screenshotDir] = &GalleryAlbum{
-		Name:     "Screenshots",
-		Path:     screenshotDir,
-		IsPinned: true,
-		Previews: []string{},
+	if !isExcluded(screenshotDir) {
+		albumMap[screenshotDir] = &GalleryAlbum{
+			Name:     "Screenshots",
+			Path:     screenshotDir,
+			IsPinned: true,
+			Previews: []string{},
+		}
 	}
 
 	for _, hit := range res.Hits {
-		p := hit.ID
-		if !IsSupportedImage(p) {
+		p := filepath.Clean(hit.ID)
+		if isExcluded(p) || !IsSupportedImage(p) {
+			continue
+		}
+		canon := canonicalPath(p)
+		if seenCanonical[canon] {
 			continue
 		}
 		fi, err := os.Stat(p)
 		if err != nil || fi.IsDir() {
 			continue
 		}
+		if strings.HasPrefix(fi.Name(), ".") {
+			continue
+		}
 
+		seenCanonical[canon] = true
 		img := addGalleryImage(p, absRoot, thumbDir, fi.Name(), fi.ModTime(), today, yesterday, albumMap, categorySet)
 		allImages = append(allImages, img)
 	}
@@ -202,8 +236,9 @@ func tryScanWithDsearch(absRoot string, thumbDir string, today, yesterday time.T
 	return allImages, albumMap, categorySet, true
 }
 
-// ScanGallery scans rootDir and its subdirectories (plus any extraDirs) for images and organizes them into GalleryData.
-func ScanGallery(rootDir string, extraDirs ...string) (*GalleryData, error) {
+// ScanGallery scans rootDir and its subdirectories (plus any extraDirs) for images,
+// ignoring any directories in excludedDirs, and organizes them into GalleryData.
+func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*GalleryData, error) {
 	if rootDir == "" {
 		rootDir = GetPicturesDir()
 	}
@@ -211,6 +246,27 @@ func ScanGallery(rootDir string, extraDirs ...string) (*GalleryData, error) {
 	absRoot, err := filepath.Abs(rootDir)
 	if err != nil {
 		return nil, err
+	}
+	absRoot = filepath.Clean(absRoot)
+
+	var canonicalExcludes []string
+	for _, ex := range excludedDirs {
+		if strings.TrimSpace(ex) != "" {
+			canonicalExcludes = append(canonicalExcludes, canonicalPath(ex))
+		}
+	}
+
+	isExcluded := func(p string) bool {
+		if len(canonicalExcludes) == 0 {
+			return false
+		}
+		canon := canonicalPath(p)
+		for _, ex := range canonicalExcludes {
+			if canon == ex || strings.HasPrefix(canon, ex+string(os.PathSeparator)) {
+				return true
+			}
+		}
+		return false
 	}
 
 	now := time.Now()
@@ -221,70 +277,91 @@ func ScanGallery(rootDir string, extraDirs ...string) (*GalleryData, error) {
 	albumMap := make(map[string]*GalleryAlbum)
 	categorySet := make(map[string]bool)
 	explicitAlbums := make(map[string]bool)
+	seenCanonical := make(map[string]bool)
 
 	thumbDir := ""
 	if cacheDir, err := os.UserCacheDir(); err == nil {
 		thumbDir = filepath.Join(cacheDir, "thumbnails")
 	}
 
-	// Try danksearch (dsearch) first for instant indexing results
-	if dsearchImages, dsearchAlbums, dsearchCats, ok := tryScanWithDsearch(absRoot, thumbDir, today, yesterday); ok {
-		allImages = dsearchImages
-		albumMap = dsearchAlbums
-		categorySet = dsearchCats
-	} else {
-		// Fallback to filesystem traversal
-		screenshotDir := filepath.Join(absRoot, "Screenshots")
-		albumMap[screenshotDir] = &GalleryAlbum{
-			Name:     "Screenshots",
-			Path:     screenshotDir,
-			IsPinned: true,
-			Previews: []string{},
-		}
-
-		// Walk max 2 levels deep
-		_ = filepath.Walk(absRoot, func(path string, info os.FileInfo, err error) error {
-			if err != nil || info == nil {
-				return nil
-			}
-
-			rel, relErr := filepath.Rel(absRoot, path)
-			if relErr == nil {
-				depth := len(strings.Split(rel, string(os.PathSeparator)))
-				if info.IsDir() && depth > 2 && rel != "." {
-					return filepath.SkipDir
+	if !isExcluded(absRoot) {
+		// Try danksearch (dsearch) first for instant indexing results
+		if dsearchImages, dsearchAlbums, dsearchCats, ok := tryScanWithDsearch(absRoot, thumbDir, today, yesterday, isExcluded, seenCanonical); ok {
+			allImages = dsearchImages
+			albumMap = dsearchAlbums
+			categorySet = dsearchCats
+		} else {
+			// Fallback to filesystem traversal
+			screenshotDir := filepath.Join(absRoot, "Screenshots")
+			if !isExcluded(screenshotDir) {
+				albumMap[screenshotDir] = &GalleryAlbum{
+					Name:     "Screenshots",
+					Path:     screenshotDir,
+					IsPinned: true,
+					Previews: []string{},
 				}
 			}
 
-			if info.IsDir() {
-				if path != absRoot {
-					albumName := info.Name()
-					isPinned := strings.EqualFold(albumName, "Screenshots") || strings.EqualFold(albumName, "Wallpapers")
-					if _, exists := albumMap[path]; !exists {
-						albumMap[path] = &GalleryAlbum{
-							Name:     albumName,
-							Path:     path,
-							IsPinned: isPinned,
-							Previews: []string{},
-						}
+			// Walk up to 5 levels deep, skipping hidden directories
+			_ = filepath.Walk(absRoot, func(path string, info os.FileInfo, err error) error {
+				if err != nil || info == nil {
+					return nil
+				}
+
+				if isExcluded(path) {
+					if info.IsDir() {
+						return filepath.SkipDir
+					}
+					return nil
+				}
+
+				name := info.Name()
+				if strings.HasPrefix(name, ".") && path != absRoot {
+					if info.IsDir() {
+						return filepath.SkipDir
+					}
+					return nil
+				}
+
+				rel, relErr := filepath.Rel(absRoot, path)
+				if relErr == nil {
+					depth := len(strings.Split(rel, string(os.PathSeparator)))
+					if info.IsDir() && depth > 5 && rel != "." {
+						return filepath.SkipDir
 					}
 				}
+
+				if info.IsDir() {
+					if path != absRoot {
+						albumName := info.Name()
+						isPinned := strings.EqualFold(albumName, "Screenshots") || strings.EqualFold(albumName, "Wallpapers")
+						if _, exists := albumMap[path]; !exists {
+							albumMap[path] = &GalleryAlbum{
+								Name:     albumName,
+								Path:     path,
+								IsPinned: isPinned,
+								Previews: []string{},
+							}
+						}
+					}
+					return nil
+				}
+
+				if !IsSupportedImage(path) {
+					return nil
+				}
+
+				canon := canonicalPath(path)
+				if seenCanonical[canon] {
+					return nil
+				}
+				seenCanonical[canon] = true
+
+				img := addGalleryImage(path, absRoot, thumbDir, info.Name(), info.ModTime(), today, yesterday, albumMap, categorySet)
+				allImages = append(allImages, img)
 				return nil
-			}
-
-			if !IsSupportedImage(path) {
-				return nil
-			}
-
-			img := addGalleryImage(path, absRoot, thumbDir, info.Name(), info.ModTime(), today, yesterday, albumMap, categorySet)
-			allImages = append(allImages, img)
-			return nil
-		})
-	}
-
-	seenPaths := make(map[string]bool, len(allImages))
-	for _, img := range allImages {
-		seenPaths[img.Path] = true
+			})
+		}
 	}
 
 	// Scan any user-added extra folders
@@ -294,6 +371,10 @@ func ScanGallery(rootDir string, extraDirs ...string) (*GalleryData, error) {
 		}
 		absExtra, err := filepath.Abs(extra)
 		if err != nil {
+			continue
+		}
+		absExtra = filepath.Clean(absExtra)
+		if isExcluded(absExtra) {
 			continue
 		}
 		fi, err := os.Stat(absExtra)
@@ -319,18 +400,40 @@ func ScanGallery(rootDir string, extraDirs ...string) (*GalleryData, error) {
 			if err != nil || info == nil {
 				return nil
 			}
-			rel, relErr := filepath.Rel(absExtra, path)
-			if relErr == nil {
-				depth := len(strings.Split(rel, string(os.PathSeparator)))
-				if info.IsDir() && depth > 2 && rel != "." {
+
+			if isExcluded(path) {
+				if info.IsDir() {
 					return filepath.SkipDir
 				}
-			}
-			if info.IsDir() || !IsSupportedImage(path) || seenPaths[path] {
 				return nil
 			}
 
-			seenPaths[path] = true
+			name := info.Name()
+			if strings.HasPrefix(name, ".") && path != absExtra {
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+
+			rel, relErr := filepath.Rel(absExtra, path)
+			if relErr == nil {
+				depth := len(strings.Split(rel, string(os.PathSeparator)))
+				if info.IsDir() && depth > 5 && rel != "." {
+					return filepath.SkipDir
+				}
+			}
+
+			if info.IsDir() || !IsSupportedImage(path) {
+				return nil
+			}
+
+			canon := canonicalPath(path)
+			if seenCanonical[canon] {
+				return nil
+			}
+			seenCanonical[canon] = true
+
 			thumbPath := resolveXdgThumbnail(path, thumbDir)
 			img := GalleryImage{
 				Path:      path,
@@ -347,6 +450,20 @@ func ScanGallery(rootDir string, extraDirs ...string) (*GalleryData, error) {
 			}
 			return nil
 		})
+
+		// If extra directory was already traversed under absRoot, populate previews and count
+		if alb.TotalCount == 0 {
+			canonExtra := canonicalPath(absExtra)
+			for _, img := range allImages {
+				canonImg := canonicalPath(img.Path)
+				if canonImg == canonExtra || strings.HasPrefix(canonImg, canonExtra+string(os.PathSeparator)) {
+					alb.TotalCount++
+					if len(alb.Previews) < 4 {
+						alb.Previews = append(alb.Previews, img.Path)
+					}
+				}
+			}
+		}
 	}
 
 	// Sort images newest first
