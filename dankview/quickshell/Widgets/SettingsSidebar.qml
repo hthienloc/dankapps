@@ -53,7 +53,8 @@ Item {
                 label: "Image viewer",
                 hint: "Controls and backdrop",
                 icon: "visibility"
-            },
+            }
+        ], [
             {
                 tone: "secondary",
                 index: 2,

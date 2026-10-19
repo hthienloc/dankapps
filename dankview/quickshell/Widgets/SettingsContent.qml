@@ -10,8 +10,10 @@ Item {
     id: root
 
     property int currentIndex: 0
+    readonly property var currentFlickable: pageLoader.item
 
     Loader {
+        id: pageLoader
         anchors.fill: parent
         sourceComponent: {
             switch (root.currentIndex) {
