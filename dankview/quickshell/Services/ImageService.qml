@@ -323,8 +323,36 @@ Singleton {
         const rem = (albumsConfig && Array.isArray(albumsConfig.removedFolders)) ? albumsConfig.removedFolders : [];
         if (rem.length === 0) return false;
         const name = typeof albumOrName === "object" ? (albumOrName.name || "") : (albumOrName || "");
-        const p = typeof albumOrName === "object" ? (albumOrName.path || "") : (folderPath || "");
-        return (name !== "" && rem.indexOf(name) !== -1) || (p !== "" && rem.indexOf(p) !== -1);
+        const rawP = typeof albumOrName === "object" ? (albumOrName.path || "") : (folderPath || "");
+        const p = rawP.replace(/\/+$/, "");
+
+        for (let i = 0; i < rem.length; i++) {
+            const r = (rem[i] || "").replace(/\/+$/, "");
+            if (!r) continue;
+            if (name !== "" && r === name) return true;
+            if (p !== "" && (r === p || p.startsWith(r + "/"))) return true;
+        }
+        return false;
+    }
+
+    function isPathRemoved(filePath, category) {
+        const rem = (albumsConfig && Array.isArray(albumsConfig.removedFolders)) ? albumsConfig.removedFolders : [];
+        if (rem.length === 0) return false;
+        if (category && rem.indexOf(category) !== -1) return true;
+        if (!filePath) return false;
+        const cleanFile = filePath.replace(/\/+$/, "");
+        for (let i = 0; i < rem.length; i++) {
+            const r = (rem[i] || "").replace(/\/+$/, "");
+            if (!r) continue;
+            if (r.startsWith("/")) {
+                if (cleanFile === r || cleanFile.startsWith(r + "/")) {
+                    return true;
+                }
+            } else if (category === r) {
+                return true;
+            }
+        }
+        return false;
     }
 
     readonly property var managedAlbums: {
@@ -524,8 +552,17 @@ Singleton {
             quickAccess: Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : null,
             albumOrder: order
         };
-        if (!albumsEditMode) saveAlbumsConfig();
+        if (_albumsConfigSnapshot) {
+            _albumsConfigSnapshot = {
+                addedFolders: added.slice(),
+                removedFolders: removed.slice(),
+                quickAccess: Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : null,
+                albumOrder: order.slice()
+            };
+        }
+        saveAlbumsConfig();
         loadGallery();
+        showToast("Added folder " + folderName);
     }
 
     function removeAlbumFolder(album) {
@@ -551,8 +588,54 @@ Singleton {
             quickAccess: qa,
             albumOrder: (albumsConfig.albumOrder || []).filter(n => n !== folderName)
         };
-        if (!albumsEditMode) saveAlbumsConfig();
+        if (_albumsConfigSnapshot) {
+            _albumsConfigSnapshot = {
+                addedFolders: added.slice(),
+                removedFolders: removed.slice(),
+                quickAccess: qa.slice(),
+                albumOrder: (albumsConfig.albumOrder || []).slice()
+            };
+        }
+        saveAlbumsConfig();
         loadGallery();
+        showToast("Removed folder " + (folderName || cleanPath));
+    }
+
+    function removeAddedFolder(folderPath) {
+        if (!folderPath) return;
+        const cleanPath = folderPath.replace(/\/+$/, "");
+        const parts = cleanPath.split("/");
+        const folderName = parts[parts.length - 1] || cleanPath;
+
+        const added = (albumsConfig.addedFolders || []).filter(p => p !== cleanPath);
+        const removed = (albumsConfig.removedFolders || []).slice();
+        if (cleanPath && removed.indexOf(cleanPath) === -1) removed.push(cleanPath);
+        if (folderName && removed.indexOf(folderName) === -1) removed.push(folderName);
+
+        let qa = Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : [];
+        qa = qa.filter(n => n !== folderName);
+
+        if (selectedCategory === folderName) {
+            selectedCategory = "All";
+        }
+
+        albumsConfig = {
+            addedFolders: added,
+            removedFolders: removed,
+            quickAccess: qa,
+            albumOrder: (albumsConfig.albumOrder || []).filter(n => n !== folderName)
+        };
+        if (_albumsConfigSnapshot) {
+            _albumsConfigSnapshot = {
+                addedFolders: added.slice(),
+                removedFolders: removed.slice(),
+                quickAccess: qa.slice(),
+                albumOrder: (albumsConfig.albumOrder || []).slice()
+            };
+        }
+        saveAlbumsConfig();
+        loadGallery();
+        showToast("Removed folder " + folderName);
     }
 
     function restoreRemovedFolders() {
@@ -562,8 +645,17 @@ Singleton {
             quickAccess: Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : null,
             albumOrder: (albumsConfig.albumOrder || []).slice()
         };
-        if (!albumsEditMode) saveAlbumsConfig();
+        if (_albumsConfigSnapshot) {
+            _albumsConfigSnapshot = {
+                addedFolders: (albumsConfig.addedFolders || []).slice(),
+                removedFolders: [],
+                quickAccess: Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : null,
+                albumOrder: (albumsConfig.albumOrder || []).slice()
+            };
+        }
+        saveAlbumsConfig();
         loadGallery();
+        showToast("Restored default folders");
     }
 
     signal openAddFolderDialogRequested()
@@ -827,13 +919,30 @@ Singleton {
         }
     }
 
+    property bool _galleryReloadPending: false
+
     function loadGallery(dirPath) {
-        if (galleryProc.running || isGalleryLoading) return;
+        if (galleryProc.running || isGalleryLoading) {
+            _galleryReloadPending = true;
+            return;
+        }
+        _galleryReloadPending = false;
         isGalleryLoading = true;
-        const cmd = [dviewBin, "-gallery", dirPath || ""];
+
+        const cmd = [dviewBin, "-gallery"];
+        const removed = (albumsConfig && Array.isArray(albumsConfig.removedFolders)) ? albumsConfig.removedFolders : [];
+        const excludePaths = removed.filter(p => p && p.startsWith("/"));
+        if (excludePaths.length > 0) {
+            cmd.push("-exclude=" + excludePaths.join(","));
+        }
+
+        cmd.push(dirPath || "");
+
         const added = (albumsConfig && Array.isArray(albumsConfig.addedFolders)) ? albumsConfig.addedFolders : [];
         for (let i = 0; i < added.length; i++) {
-            if (added[i]) cmd.push(added[i]);
+            if (added[i] && excludePaths.indexOf(added[i]) === -1) {
+                cmd.push(added[i]);
+            }
         }
         galleryProc.command = cmd;
         galleryProc.running = true;
@@ -1051,6 +1160,10 @@ Singleton {
         }
         onExited: exitCode => {
             root.isGalleryLoading = false;
+            if (root._galleryReloadPending) {
+                root._galleryReloadPending = false;
+                root.loadGallery();
+            }
         }
     }
 

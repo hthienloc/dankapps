@@ -75,6 +75,7 @@ func main() {
 	printInfo := flag.Bool("info", false, "print image metadata as JSON and exit")
 	printList := flag.Bool("list", false, "print directory image list as JSON and exit")
 	printGallery := flag.Bool("gallery", false, "print gallery data as JSON and exit")
+	excludeFlag := flag.String("exclude", "", "comma-separated directories to exclude from gallery scan")
 	restoreFlag := flag.Bool("restore", false, "restore trashed image and exit")
 
 	flag.Usage = func() {
@@ -99,7 +100,15 @@ func main() {
 				extraDirs = flag.Args()[1:]
 			}
 		}
-		data, err := fs.ScanGallery(dir, extraDirs...)
+		var excludes []string
+		if *excludeFlag != "" {
+			for _, e := range strings.Split(*excludeFlag, ",") {
+				if t := strings.TrimSpace(e); t != "" {
+					excludes = append(excludes, t)
+				}
+			}
+		}
+		data, err := fs.ScanGallery(dir, excludes, extraDirs...)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error scanning gallery: %v\n", err)
 			os.Exit(1)
