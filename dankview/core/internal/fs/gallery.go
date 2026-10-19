@@ -16,11 +16,13 @@ import (
 	"time"
 )
 
+// fileID represents a unique device and inode identifier on POSIX systems.
 type fileID struct {
 	dev uint64
 	ino uint64
 }
 
+// getFileID extracts the device and inode numbers from os.FileInfo on supported systems.
 func getFileID(fi os.FileInfo) (fileID, bool) {
 	if stat, ok := fi.Sys().(*syscall.Stat_t); ok {
 		return fileID{dev: uint64(stat.Dev), ino: uint64(stat.Ino)}, true
@@ -129,6 +131,7 @@ type dsearchResult struct {
 	Hits []dsearchHit `json:"hits"`
 }
 
+// canonicalPath resolves symbolic links and cleans the given path.
 func canonicalPath(p string) string {
 	clean := filepath.Clean(p)
 	if realP, err := filepath.EvalSymlinks(clean); err == nil {
@@ -137,6 +140,7 @@ func canonicalPath(p string) string {
 	return clean
 }
 
+// parseTiffExifDate parses TIFF formatted EXIF headers for DateTimeOriginal or DateTime.
 func parseTiffExifDate(data []byte) (time.Time, bool) {
 	if len(data) < 8 {
 		return time.Time{}, false
@@ -286,6 +290,7 @@ func extractExifDate(path string, fallback time.Time) time.Time {
 	return fallback
 }
 
+// addGalleryImage constructs a GalleryImage, categorizes it, and registers it in albumMap.
 func addGalleryImage(
 	path, absRoot, thumbDir, name string,
 	modTime time.Time,
@@ -594,27 +599,8 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 			}
 			albumMap[absExtra] = alb
 		}
-		categorySet[albumName] = true
 
-		if id, ok := getFileID(fi); ok {
-			if seenInodes[id] {
-				// Already walked under absRoot or another directory; populate previews and count if not yet populated
-				if alb.TotalCount == 0 {
-					canonExtra := canonicalPath(absExtra)
-					for _, img := range allImages {
-						canonImg := canonicalPath(img.Path)
-						if canonImg == canonExtra || strings.HasPrefix(canonImg, canonExtra+string(os.PathSeparator)) {
-							alb.TotalCount++
-							if len(alb.Previews) < 4 {
-								alb.Previews = append(alb.Previews, img.Path)
-							}
-						}
-					}
-				}
-				continue
-			}
-			seenInodes[id] = true
-		}
+		seenExtraDirs := make(map[fileID]bool)
 
 		_ = filepath.Walk(absExtra, func(path string, info os.FileInfo, err error) error {
 			if err != nil || info == nil {
@@ -646,10 +632,10 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 
 			if info.IsDir() {
 				if id, ok := getFileID(info); ok {
-					if seenInodes[id] {
+					if seenExtraDirs[id] {
 						return filepath.SkipDir
 					}
-					seenInodes[id] = true
+					seenExtraDirs[id] = true
 				}
 				return nil
 			}
@@ -682,26 +668,8 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 				Category:  albumName,
 			}
 			allImages = append(allImages, img)
-			alb.TotalCount++
-			if len(alb.Previews) < 4 {
-				alb.Previews = append(alb.Previews, path)
-			}
 			return nil
 		})
-
-		// If extra directory was already traversed under absRoot, populate previews and count
-		if alb.TotalCount == 0 {
-			canonExtra := canonicalPath(absExtra)
-			for _, img := range allImages {
-				canonImg := canonicalPath(img.Path)
-				if canonImg == canonExtra || strings.HasPrefix(canonImg, canonExtra+string(os.PathSeparator)) {
-					alb.TotalCount++
-					if len(alb.Previews) < 4 {
-						alb.Previews = append(alb.Previews, img.Path)
-					}
-				}
-			}
-		}
 	}
 
 	// For any image that belongs to an extraDir, update its category to albumName if nested
@@ -712,12 +680,35 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 		}
 		if absExtra, err := filepath.Abs(trimmed); err == nil {
 			canonExtra := canonicalPath(absExtra)
-			albumName := filepath.Base(canonExtra)
+			albumName := filepath.Base(absExtra)
 			for i := range allImages {
 				canonImg := canonicalPath(allImages[i].Path)
 				if canonImg == canonExtra || strings.HasPrefix(canonImg, canonExtra+string(os.PathSeparator)) {
 					allImages[i].Category = albumName
 				}
+			}
+		}
+	}
+
+	// Reconcile album counts, previews, and categories directly from allImages
+	categorySet = make(map[string]bool)
+	categorySet["All"] = true
+	for _, alb := range albumMap {
+		alb.TotalCount = 0
+		alb.Previews = []string{}
+	}
+
+	for _, img := range allImages {
+		if img.Category != "" {
+			categorySet[img.Category] = true
+		}
+		for _, alb := range albumMap {
+			if alb.Name == img.Category {
+				alb.TotalCount++
+				if len(alb.Previews) < 4 {
+					alb.Previews = append(alb.Previews, img.Path)
+				}
+				break
 			}
 		}
 	}
