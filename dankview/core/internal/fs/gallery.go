@@ -2,6 +2,7 @@ package fs
 
 import (
 	"crypto/md5"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"net/url"
@@ -10,8 +11,22 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
 	"time"
 )
+
+type fileID struct {
+	dev uint64
+	ino uint64
+}
+
+func getFileID(fi os.FileInfo) (fileID, bool) {
+	if stat, ok := fi.Sys().(*syscall.Stat_t); ok {
+		return fileID{dev: uint64(stat.Dev), ino: uint64(stat.Ino)}, true
+	}
+	return fileID{}, false
+}
+
 
 // GalleryImage represents a single image with metadata for the gallery.
 type GalleryImage struct {
@@ -114,6 +129,152 @@ func canonicalPath(p string) string {
 	return clean
 }
 
+func parseTiffExifDate(data []byte) (time.Time, bool) {
+	if len(data) < 8 {
+		return time.Time{}, false
+	}
+	var bo binary.ByteOrder
+	if data[0] == 'I' && data[1] == 'I' {
+		bo = binary.LittleEndian
+	} else if data[0] == 'M' && data[1] == 'M' {
+		bo = binary.BigEndian
+	} else {
+		return time.Time{}, false
+	}
+	if bo.Uint16(data[2:4]) != 42 {
+		return time.Time{}, false
+	}
+	ifdOffset := int(bo.Uint32(data[4:8]))
+	if ifdOffset < 0 || ifdOffset+2 > len(data) {
+		return time.Time{}, false
+	}
+
+	readEntries := func(offset int) map[uint16][]byte {
+		if offset < 0 || offset+2 > len(data) {
+			return nil
+		}
+		numEntries := int(bo.Uint16(data[offset : offset+2]))
+		curr := offset + 2
+		tags := make(map[uint16][]byte)
+		for i := 0; i < numEntries; i++ {
+			if curr+12 > len(data) {
+				break
+			}
+			tag := bo.Uint16(data[curr : curr+2])
+			typ := bo.Uint16(data[curr+2 : curr+4])
+			count := int(bo.Uint32(data[curr+4 : curr+8]))
+			valOffsetBytes := data[curr+8 : curr+12]
+
+			if typ == 2 && count > 0 { // ASCII string
+				if count <= 4 {
+					tags[tag] = valOffsetBytes[:count]
+				} else {
+					vOff := int(bo.Uint32(valOffsetBytes))
+					if vOff >= 0 && vOff+count <= len(data) {
+						tags[tag] = data[vOff : vOff+count]
+					}
+				}
+			} else if (typ == 3 || typ == 4) && count == 1 { // SHORT or LONG
+				tags[tag] = valOffsetBytes
+			}
+			curr += 12
+		}
+		return tags
+	}
+
+	var ifd0Date string
+	var exifSubIfdOffset int
+	ifd0Tags := readEntries(ifdOffset)
+	if ifd0Tags != nil {
+		if val, ok := ifd0Tags[0x0132]; ok { // DateTime
+			ifd0Date = strings.TrimRight(string(val), "\x00")
+		}
+		if val, ok := ifd0Tags[0x8769]; ok && len(val) >= 4 { // ExifOffset
+			exifSubIfdOffset = int(bo.Uint32(val))
+		}
+	}
+
+	if exifSubIfdOffset > 0 && exifSubIfdOffset+2 <= len(data) {
+		subTags := readEntries(exifSubIfdOffset)
+		if subTags != nil {
+			if val, ok := subTags[0x9003]; ok { // DateTimeOriginal
+				origDate := strings.TrimRight(string(val), "\x00")
+				if t, err := time.Parse("2006:01:02 15:04:05", origDate); err == nil {
+					return t, true
+				}
+			}
+		}
+	}
+
+	if ifd0Date != "" {
+		if t, err := time.Parse("2006:01:02 15:04:05", ifd0Date); err == nil {
+			return t, true
+		}
+	}
+
+	return time.Time{}, false
+}
+
+// extractExifDate extracts the EXIF DateTimeOriginal (or DateTime) if present in a JPEG header.
+func extractExifDate(path string, fallback time.Time) time.Time {
+	ext := strings.ToLower(filepath.Ext(path))
+	if ext != ".jpg" && ext != ".jpeg" {
+		return fallback
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return fallback
+	}
+	defer f.Close()
+
+	header := make([]byte, 65536)
+	n, err := f.Read(header)
+	if err != nil || n < 16 {
+		return fallback
+	}
+	buf := header[:n]
+
+	if buf[0] != 0xFF || buf[1] != 0xD8 {
+		return fallback
+	}
+
+	pos := 2
+	for pos < len(buf)-4 {
+		if buf[pos] != 0xFF {
+			pos++
+			continue
+		}
+		marker := buf[pos+1]
+		if marker == 0xD9 || marker == 0xDA { // EOI or SOS
+			break
+		}
+		if marker == 0x00 || (marker >= 0xD0 && marker <= 0xD7) { // RST
+			pos += 2
+			continue
+		}
+		segLen := int(binary.BigEndian.Uint16(buf[pos+2 : pos+4]))
+		if segLen < 2 {
+			break
+		}
+		if marker == 0xE1 { // APP1 segment
+			segEnd := pos + 2 + segLen
+			if segEnd > len(buf) {
+				segEnd = len(buf)
+			}
+			exifPayload := buf[pos+4 : segEnd]
+			if len(exifPayload) > 14 && string(exifPayload[:6]) == "Exif\x00\x00" {
+				if t, ok := parseTiffExifDate(exifPayload[6:]); ok {
+					return t
+				}
+			}
+		}
+		pos += 2 + segLen
+	}
+
+	return fallback
+}
+
 func addGalleryImage(
 	path, absRoot, thumbDir, name string,
 	modTime time.Time,
@@ -176,6 +337,7 @@ func tryScanWithDsearch(
 	today, yesterday time.Time,
 	isExcluded func(string) bool,
 	seenCanonical map[string]bool,
+	seenInodes map[fileID]bool,
 ) ([]GalleryImage, map[string]*GalleryAlbum, map[string]bool, bool) {
 	dsearchBin, err := exec.LookPath("dsearch")
 	if err != nil {
@@ -220,12 +382,19 @@ func tryScanWithDsearch(
 		if err != nil || fi.IsDir() {
 			continue
 		}
+		if id, ok := getFileID(fi); ok {
+			if seenInodes[id] {
+				continue
+			}
+			seenInodes[id] = true
+		}
 		if strings.HasPrefix(fi.Name(), ".") {
 			continue
 		}
 
 		seenCanonical[canon] = true
-		img := addGalleryImage(p, absRoot, thumbDir, fi.Name(), fi.ModTime(), today, yesterday, albumMap, categorySet)
+		actualTime := extractExifDate(p, fi.ModTime())
+		img := addGalleryImage(p, absRoot, thumbDir, fi.Name(), actualTime, today, yesterday, albumMap, categorySet)
 		allImages = append(allImages, img)
 	}
 
@@ -278,6 +447,7 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 	categorySet := make(map[string]bool)
 	explicitAlbums := make(map[string]bool)
 	seenCanonical := make(map[string]bool)
+	seenInodes := make(map[fileID]bool)
 
 	thumbDir := ""
 	if cacheDir, err := os.UserCacheDir(); err == nil {
@@ -286,7 +456,7 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 
 	if !isExcluded(absRoot) {
 		// Try danksearch (dsearch) first for instant indexing results
-		if dsearchImages, dsearchAlbums, dsearchCats, ok := tryScanWithDsearch(absRoot, thumbDir, today, yesterday, isExcluded, seenCanonical); ok {
+		if dsearchImages, dsearchAlbums, dsearchCats, ok := tryScanWithDsearch(absRoot, thumbDir, today, yesterday, isExcluded, seenCanonical, seenInodes); ok {
 			allImages = dsearchImages
 			albumMap = dsearchAlbums
 			categorySet = dsearchCats
@@ -332,6 +502,13 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 				}
 
 				if info.IsDir() {
+					if id, ok := getFileID(info); ok {
+						if seenInodes[id] {
+							return filepath.SkipDir
+						}
+						seenInodes[id] = true
+					}
+
 					if path != absRoot {
 						albumName := info.Name()
 						isPinned := strings.EqualFold(albumName, "Screenshots") || strings.EqualFold(albumName, "Wallpapers")
@@ -355,9 +532,16 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 				if seenCanonical[canon] {
 					return nil
 				}
+				if id, ok := getFileID(info); ok {
+					if seenInodes[id] {
+						return nil
+					}
+					seenInodes[id] = true
+				}
 				seenCanonical[canon] = true
 
-				img := addGalleryImage(path, absRoot, thumbDir, info.Name(), info.ModTime(), today, yesterday, albumMap, categorySet)
+				actualTime := extractExifDate(path, info.ModTime())
+				img := addGalleryImage(path, absRoot, thumbDir, info.Name(), actualTime, today, yesterday, albumMap, categorySet)
 				allImages = append(allImages, img)
 				return nil
 			})
@@ -396,6 +580,24 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 		}
 		categorySet[albumName] = true
 
+		if id, ok := getFileID(fi); ok {
+			if seenInodes[id] {
+				// Already walked under absRoot or another directory; populate previews and count
+				canonExtra := canonicalPath(absExtra)
+				for _, img := range allImages {
+					canonImg := canonicalPath(img.Path)
+					if canonImg == canonExtra || strings.HasPrefix(canonImg, canonExtra+string(os.PathSeparator)) {
+						alb.TotalCount++
+						if len(alb.Previews) < 4 {
+							alb.Previews = append(alb.Previews, img.Path)
+						}
+					}
+				}
+				continue
+			}
+			seenInodes[id] = true
+		}
+
 		_ = filepath.Walk(absExtra, func(path string, info os.FileInfo, err error) error {
 			if err != nil || info == nil {
 				return nil
@@ -424,7 +626,17 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 				}
 			}
 
-			if info.IsDir() || !IsSupportedImage(path) {
+			if info.IsDir() {
+				if id, ok := getFileID(info); ok {
+					if seenInodes[id] {
+						return filepath.SkipDir
+					}
+					seenInodes[id] = true
+				}
+				return nil
+			}
+
+			if !IsSupportedImage(path) {
 				return nil
 			}
 
@@ -432,15 +644,22 @@ func ScanGallery(rootDir string, excludedDirs []string, extraDirs ...string) (*G
 			if seenCanonical[canon] {
 				return nil
 			}
+			if id, ok := getFileID(info); ok {
+				if seenInodes[id] {
+					return nil
+				}
+				seenInodes[id] = true
+			}
 			seenCanonical[canon] = true
 
+			actualTime := extractExifDate(path, info.ModTime())
 			thumbPath := resolveXdgThumbnail(path, thumbDir)
 			img := GalleryImage{
 				Path:      path,
 				Thumbnail: thumbPath,
 				Name:      info.Name(),
-				ModTime:   info.ModTime().Unix(),
-				DateGroup: computeDateGroup(info.ModTime(), today, yesterday),
+				ModTime:   actualTime.Unix(),
+				DateGroup: computeDateGroup(actualTime, today, yesterday),
 				Category:  albumName,
 			}
 			allImages = append(allImages, img)
