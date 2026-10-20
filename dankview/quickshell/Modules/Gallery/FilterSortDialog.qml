@@ -29,48 +29,6 @@ Item {
     property int tempZoomLevel: 3
     property bool tempIncludeHidden: false
 
-    component OptionCheckbox: MouseArea {
-        id: cb
-        property string text: ""
-        property bool checked: false
-        signal toggled
-
-        implicitWidth: cbRow.implicitWidth
-        implicitHeight: Math.max(20, cbRow.implicitHeight)
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: cb.toggled()
-
-        RowLayout {
-            id: cbRow
-            anchors.fill: parent
-            spacing: Style.spacingS
-
-            Rectangle {
-                width: 18
-                height: 18
-                radius: 4
-                color: cb.checked ? Theme.primary : "transparent"
-                border.color: cb.checked ? Theme.primary : Theme.outlineVariant
-                border.width: 1.5
-
-                DIcon {
-                    anchors.centerIn: parent
-                    name: "check"
-                    size: 14
-                    color: Theme.onPrimary
-                    visible: cb.checked
-                }
-            }
-
-            StyledText {
-                text: cb.text
-                font.pixelSize: Theme.fontSizeSmall + 1
-                color: Theme.surfaceText
-            }
-        }
-    }
-
     visible: opacity > 0
     opacity: opened ? 1.0 : 0.0
 
@@ -290,7 +248,7 @@ Item {
                 }
             }
 
-            // === Field 5: Options Checkbox ===
+            // === Field 5: Options Toggle ===
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 8
@@ -302,10 +260,26 @@ Item {
                     color: Theme.surfaceVariantText
                 }
 
-                OptionCheckbox {
-                    text: "Include hidden"
-                    checked: root.tempIncludeHidden
-                    onToggled: root.tempIncludeHidden = !root.tempIncludeHidden
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: "Include hidden"
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.surfaceText
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.tempIncludeHidden = !root.tempIncludeHidden
+                        }
+                    }
+
+                    DToggle {
+                        checked: root.tempIncludeHidden
+                        onToggled: val => root.tempIncludeHidden = val
+                    }
                 }
             }
 
