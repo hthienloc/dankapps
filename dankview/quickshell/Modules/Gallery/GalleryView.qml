@@ -83,8 +83,8 @@ Item {
         // Floating M3E Search Bar Pill (Overlays content, collapses to right on scroll)
         Rectangle {
             id: searchPill
-            readonly property int expandedWidth: Math.min(420, mainArea.width - 48)
-            readonly property int collapsedWidth: 40
+            readonly property int expandedWidth: Math.min(440, mainArea.width - 48)
+            readonly property int collapsedWidth: 48
             readonly property bool isCollapsed: ImageService.searchBarCollapsed && ImageService.searchQuery === ""
 
             anchors.top: parent.top
@@ -92,7 +92,7 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: isCollapsed ? 16 : Math.round((mainArea.width - expandedWidth) / 2)
             width: isCollapsed ? collapsedWidth : expandedWidth
-            height: 40
+            height: 48
             radius: height / 2
             z: 30
             visible: ImageService.galleryTab !== "settings"
@@ -119,15 +119,15 @@ Item {
                 // Search icon container (Centered when collapsed, left icon when expanded)
                 Item {
                     id: searchIconContainer
-                    width: 40
-                    height: 40
+                    width: 48
+                    height: 48
                     anchors.left: parent.left
                     anchors.top: parent.top
 
                     DIcon {
                         anchors.centerIn: parent
                         name: "search"
-                        size: 18
+                        size: 20
                         color: searchInput.activeFocus ? Theme.primary : Theme.surfaceVariantText
                     }
 
@@ -138,9 +138,9 @@ Item {
                         height: 7
                         radius: 3.5
                         anchors.top: parent.top
-                        anchors.topMargin: 7
+                        anchors.topMargin: 9
                         anchors.right: parent.right
-                        anchors.rightMargin: 7
+                        anchors.rightMargin: 9
                         color: Theme.primary
                     }
                 }
@@ -168,50 +168,60 @@ Item {
                         anchors.rightMargin: 6
                         spacing: 6
 
-                        TextInput {
-                            id: searchInput
+                        Item {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            verticalAlignment: TextInput.AlignVCenter
-                            text: ImageService.searchQuery
-                            font.pixelSize: Theme.fontSizeMedium - 1
-                            font.family: Style.fontFamily || Theme.fontFamily
-                            font.weight: Style.fontWeight
-                            color: Theme.surfaceText
-                            selectByMouse: true
-                            selectionColor: Theme.primary
-                            selectedTextColor: Theme.onPrimary
 
-                            onTextEdited: ImageService.searchQuery = text
-
-                            StyledText {
+                            MouseArea {
                                 anchors.fill: parent
-                                verticalAlignment: Text.AlignVCenter
-                                visible: !searchInput.text && !searchInput.inputMethodComposing
-                                text: ImageService.galleryTab === "albums" ? "Search albums..." : "Search photos"
-                                font.pixelSize: searchInput.font.pixelSize
-                                color: Theme.surfaceVariantText
+                                cursorShape: Qt.IBeamCursor
+                                acceptedButtons: Qt.NoButton
                             }
 
-                            Keys.onEscapePressed: {
-                                searchInput.text = ""
-                                ImageService.searchQuery = ""
-                                root.forceActiveFocus()
+                            TextInput {
+                                id: searchInput
+                                anchors.fill: parent
+                                verticalAlignment: TextInput.AlignVCenter
+                                text: ImageService.searchQuery
+                                font.pixelSize: Theme.fontSizeMedium
+                                font.family: Style.fontFamily || Theme.fontFamily
+                                font.weight: Style.fontWeight
+                                color: Theme.surfaceText
+                                selectByMouse: true
+                                selectionColor: Theme.primary
+                                selectedTextColor: Theme.onPrimary
+
+                                onTextEdited: ImageService.searchQuery = text
+
+                                StyledText {
+                                    anchors.fill: parent
+                                    verticalAlignment: Text.AlignVCenter
+                                    visible: !searchInput.text && !searchInput.inputMethodComposing
+                                    text: ImageService.galleryTab === "albums" ? "Search albums..." : "Search photos"
+                                    font.pixelSize: searchInput.font.pixelSize
+                                    color: Theme.surfaceVariantText
+                                }
+
+                                Keys.onEscapePressed: {
+                                    searchInput.text = ""
+                                    ImageService.searchQuery = ""
+                                    root.forceActiveFocus()
+                                }
                             }
                         }
 
                         // Clear button
                         Rectangle {
                             visible: searchInput.text !== ""
-                            width: 26
-                            height: 26
-                            radius: 13
+                            width: 28
+                            height: 28
+                            radius: 14
                             color: clearMouse.containsMouse ? Theme.surfaceContainerLowest : "transparent"
 
                             DIcon {
                                 anchors.centerIn: parent
                                 name: "close"
-                                size: 14
+                                size: 16
                                 color: Theme.surfaceVariantText
                             }
 
@@ -228,22 +238,15 @@ Item {
                             }
                         }
 
-                        // Divider before filter button
-                        Rectangle {
-                            width: 1
-                            height: 18
-                            color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
-                        }
-
                         // Filter & Sort Button (tune icon as in Google Photos reference)
                         Rectangle {
                             id: filterBtn
-                            width: 30
-                            height: 30
-                            radius: 15
+                            width: 36
+                            height: 36
+                            radius: 18
                             color: ImageService.hasActiveFilters
                                 ? Theme.primaryContainer
-                                : (filterMouse.containsMouse ? Theme.surfaceContainerLowest : "transparent")
+                                : (filterMouse.containsMouse ? Theme.surfaceContainerLow : Theme.surfaceContainerLowest)
 
                             scale: filterMouse.pressed ? M3E.iconBtnPressScale : 1.0
 
@@ -264,9 +267,9 @@ Item {
                                 height: 7
                                 radius: 3.5
                                 anchors.top: parent.top
-                                anchors.topMargin: 3
+                                anchors.topMargin: 4
                                 anchors.right: parent.right
-                                anchors.rightMargin: 3
+                                anchors.rightMargin: 4
                                 color: Theme.primary
                             }
 
