@@ -116,6 +116,17 @@ Item {
                 Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
                 Behavior on border.color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
 
+                HoverHandler {
+                    id: pillHover
+                    enabled: !searchPill.isCollapsed
+                    cursorShape: Qt.IBeamCursor
+                }
+
+                TapHandler {
+                    enabled: !searchPill.isCollapsed
+                    onTapped: searchInput.forceActiveFocus()
+                }
+
                 // Search icon container (Centered when collapsed, left icon when expanded)
                 Item {
                     id: searchIconContainer
@@ -172,12 +183,6 @@ Item {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
 
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.IBeamCursor
-                                acceptedButtons: Qt.NoButton
-                            }
-
                             TextInput {
                                 id: searchInput
                                 anchors.fill: parent
@@ -190,6 +195,10 @@ Item {
                                 selectByMouse: true
                                 selectionColor: Theme.primary
                                 selectedTextColor: Theme.onPrimary
+
+                                HoverHandler {
+                                    cursorShape: Qt.IBeamCursor
+                                }
 
                                 onTextEdited: ImageService.searchQuery = text
 
@@ -217,6 +226,10 @@ Item {
                             height: 28
                             radius: 14
                             color: clearMouse.containsMouse ? Theme.surfaceContainerLowest : "transparent"
+
+                            HoverHandler {
+                                cursorShape: Qt.PointingHandCursor
+                            }
 
                             DIcon {
                                 anchors.centerIn: parent
@@ -247,6 +260,10 @@ Item {
                             color: ImageService.hasActiveFilters
                                 ? Theme.primaryContainer
                                 : (filterMouse.containsMouse ? Theme.surfaceContainerLow : Theme.surfaceContainerLowest)
+
+                            HoverHandler {
+                                cursorShape: Qt.PointingHandCursor
+                            }
 
                             scale: filterMouse.pressed ? M3E.iconBtnPressScale : 1.0
 
@@ -293,6 +310,7 @@ Item {
                 MouseArea {
                     id: collapsedMouse
                     anchors.fill: parent
+                    visible: searchPill.isCollapsed
                     enabled: searchPill.isCollapsed
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
