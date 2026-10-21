@@ -136,12 +136,28 @@ Singleton {
         albumOrder: []
     })
 
+    property bool _albumsConfigLoaded: false
+
+    Timer {
+        id: startupGalleryFallback
+        interval: 350
+        repeat: false
+        running: false
+        onTriggered: {
+            if (root.galleryMode && !root.galleryData && !root.isGalleryLoading && !galleryProc.running) {
+                root.loadGallery();
+            }
+        }
+    }
+
     FileView {
         id: albumsFileView
         path: root.albumsFilePath
         blockLoading: true
         printErrors: false
         onLoaded: {
+            root._albumsConfigLoaded = true;
+            startupGalleryFallback.stop();
             try {
                 const text = albumsFileView.text();
                 if (text) {
@@ -157,6 +173,20 @@ Singleton {
                 }
             } catch (e) {
                 console.warn("Failed to parse albums.json:", e);
+            }
+            if (root.galleryMode) {
+                if (galleryProc.running || isGalleryLoading) {
+                    root._galleryReloadPending = true;
+                } else {
+                    root.loadGallery();
+                }
+            }
+        }
+        onLoadFailed: {
+            root._albumsConfigLoaded = true;
+            startupGalleryFallback.stop();
+            if (root.galleryMode && !galleryData && !isGalleryLoading && !galleryProc.running) {
+                root.loadGallery();
             }
         }
     }
@@ -1077,7 +1107,11 @@ Singleton {
             fetchMetadata();
         } else {
             galleryMode = true;
-            loadGallery();
+            if (root._albumsConfigLoaded) {
+                loadGallery();
+            } else {
+                startupGalleryFallback.start();
+            }
         }
     }
 
