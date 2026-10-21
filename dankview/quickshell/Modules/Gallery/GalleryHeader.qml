@@ -103,7 +103,13 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: ImageService.selectedCategory = modelData
+                        onClicked: {
+                            if (ImageService.selectedCategory === modelData) {
+                                ImageService.requestScrollToTop()
+                            } else {
+                                ImageService.selectedCategory = modelData
+                            }
+                        }
                     }
                 }
             }

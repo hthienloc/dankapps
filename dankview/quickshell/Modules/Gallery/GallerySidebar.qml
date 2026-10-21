@@ -141,7 +141,14 @@ Item {
             onClicked: {
                 if (navItem.itemKey === "settings") {
                     ImageService.settingsOpen = !ImageService.settingsOpen
-                } else if (navItem.itemKey === "gallery") {
+                    return
+                }
+
+                if (navItem.isSelected) {
+                    ImageService.requestScrollToTop()
+                }
+
+                if (navItem.itemKey === "gallery") {
                     ImageService.selectedCategory = "All"
                     ImageService.galleryTab = "gallery"
                 } else if (navItem.itemKey === "favorites") {

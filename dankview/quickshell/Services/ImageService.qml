@@ -698,6 +698,12 @@ Singleton {
         openAddFolderDialogRequested();
     }
 
+    signal scrollToTopRequested()
+
+    function requestScrollToTop() {
+        scrollToTopRequested();
+    }
+
     readonly property var favoriteImages: {
         if (!galleryData || !galleryData.allImages) return [];
         return galleryData.allImages.filter(img => !!galleryFavorites[img.path] && !isAlbumRemoved(img.category, ""));

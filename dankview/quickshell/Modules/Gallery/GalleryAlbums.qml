@@ -211,6 +211,13 @@ Item {
 
         Connections {
             target: ImageService
+            function onScrollToTopRequested() {
+                albumsFlick.stopMomentum()
+                albumsFlick.contentY = 0
+                albumsFlick.prevContentY = 0
+                albumsFlick.accumulatedDown = 0
+                ImageService.searchBarCollapsed = false
+            }
             function onSearchBarCollapsedChanged() {
                 if (!ImageService.searchBarCollapsed) {
                     albumsFlick.prevContentY = albumsFlick.contentY

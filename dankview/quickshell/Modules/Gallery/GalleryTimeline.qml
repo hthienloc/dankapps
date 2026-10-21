@@ -124,6 +124,7 @@ Item {
         list.accumulatedDown = 0
         list.contentY = topY
         list.stopMomentum()
+        ImageService.searchBarCollapsed = false
     }
 
     readonly property bool showRecents: {
@@ -150,6 +151,9 @@ Item {
 
     Connections {
         target: ImageService
+        function onScrollToTopRequested() {
+            root.resetScroll()
+        }
         function onSelectedCategoryChanged() {
             root.resetScroll()
         }
