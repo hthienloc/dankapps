@@ -1346,14 +1346,14 @@ Singleton {
         openFileDialogRequested();
     }
 
-    function zoomAt(factor, cursorX, cursorY, vpWidth, vpHeight) {
+    function zoomAt(factor, cursorX, cursorY, vpWidth, vpHeight, topInset, bottomInset) {
         const oldZoom = zoom;
         const newZoom = Math.max(minZoom, Math.min(maxZoom, oldZoom * factor));
         if (Math.abs(newZoom - oldZoom) < 0.0001) return;
 
         // Center of viewport relative to cursor
         const cx = cursorX - vpWidth / 2;
-        const cy = cursorY - vpHeight / 2;
+        const cy = cursorY - (vpHeight + (topInset || 0) - (bottomInset || 0)) / 2;
 
         // Shift pan so that the image pixel under cursor stays under cursor
         panX = (panX - cx) * (newZoom / oldZoom) + cx;

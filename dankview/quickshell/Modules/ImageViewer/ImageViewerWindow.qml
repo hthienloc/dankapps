@@ -307,9 +307,12 @@ FloatingWindow {
                 visible: !ImageService.galleryMode
 
                 ImageCanvas {
+                    id: canvas
                     anchors.fill: parent
+                    topInset: !ImageService.uiLocked ? ((headerBarBg.height > 0 ? headerBarBg.height : 40) + Style.spacingM) : Style.spacingM
+                    bottomInset: !ImageService.uiLocked ? ((editFab.height > 0 ? editFab.height : Style.buttonHeightM) + editFab.anchors.bottomMargin + Style.spacingM) : Style.spacingM
+                    sideInset: Style.spacingXL
                 }
-
 
                 // Crop Overlay inside canvas container
                 CropOverlay {
@@ -322,7 +325,7 @@ FloatingWindow {
                     }
                     imageY: {
                         if (!visible) return 0;
-                        return (parent.height - imageH) / 2 + ImageService.panY;
+                        return (parent.height + canvas.topInset - canvas.bottomInset - imageH) / 2 + ImageService.panY;
                     }
                     imageW: {
                         if (!visible) return 1;

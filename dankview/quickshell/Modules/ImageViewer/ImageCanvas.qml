@@ -67,11 +67,17 @@ Item {
         }
     }
 
+    property real topInset: 0
+    property real bottomInset: 0
+    property real sideInset: 24
+
     function calcFitScale(imgW, imgH, vpW, vpH) {
         if (imgW <= 0 || imgH <= 0 || vpW <= 0 || vpH <= 0)
             return 1.0;
-        const scaleX = (vpW - 32) / imgW;
-        const scaleY = (vpH - 32) / imgH;
+        const availW = Math.max(1, vpW - sideInset * 2);
+        const availH = Math.max(1, vpH - topInset - bottomInset);
+        const scaleX = availW / imgW;
+        const scaleY = availH / imgH;
         return Math.min(1.0, Math.min(scaleX, scaleY));
     }
 
@@ -85,7 +91,7 @@ Item {
             width: imageElement.paintedWidth > 0 ? imageElement.paintedWidth : imageElement.implicitWidth
             height: imageElement.paintedHeight > 0 ? imageElement.paintedHeight : imageElement.implicitHeight
             x: (viewport.width - width) / 2 + ImageService.panX
-            y: (viewport.height - height) / 2 + ImageService.panY
+            y: (viewport.height + root.topInset - root.bottomInset - height) / 2 + ImageService.panY
             scale: ImageService.zoom
             rotation: ImageService.rotation
 
@@ -218,7 +224,7 @@ Item {
 
             onWheel: wheel => {
                 const factor = wheel.angleDelta.y > 0 ? 1.25 : (1.0 / 1.25);
-                ImageService.zoomAt(factor, wheel.x, wheel.y, viewport.width, viewport.height);
+                ImageService.zoomAt(factor, wheel.x, wheel.y, viewport.width, viewport.height, root.topInset, root.bottomInset);
                 wheel.accepted = true;
             }
 
