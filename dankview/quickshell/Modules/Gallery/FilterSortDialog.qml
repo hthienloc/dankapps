@@ -48,6 +48,14 @@ Item {
         MouseArea {
             anchors.fill: parent
             onClicked: root.close()
+            onWheel: wheel => wheel.accepted = true
+        }
+
+        WheelHandler {
+            target: null
+            blocking: true
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: event => event.accepted = true
         }
     }
 
@@ -74,6 +82,14 @@ Item {
 
         MouseArea {
             anchors.fill: parent
+            onWheel: wheel => wheel.accepted = true
+        }
+
+        WheelHandler {
+            target: null
+            blocking: true
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: event => event.accepted = true
         }
 
         ColumnLayout {
