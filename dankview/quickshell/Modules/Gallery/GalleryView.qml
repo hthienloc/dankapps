@@ -259,7 +259,7 @@ Item {
                             radius: 18
                             color: ImageService.hasActiveFilters
                                 ? Theme.primaryContainer
-                                : (filterMouse.containsMouse ? Theme.surfaceContainerLow : Theme.surfaceContainerLowest)
+                                : (filterMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainer)
 
                             HoverHandler {
                                 cursorShape: Qt.PointingHandCursor
