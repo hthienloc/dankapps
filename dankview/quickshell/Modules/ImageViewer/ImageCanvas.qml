@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.VectorImage
 import Quickshell
 import qs.Common
 import qs.Services
@@ -17,6 +18,7 @@ Item {
         return ImageService.reloadToken > 0 ? (base + "?v=" + ImageService.reloadToken) : base;
     }
     readonly property bool hasImage: ImageService.currentFilePath !== ""
+    readonly property bool isSvg: /\.svg$/i.test(ImageService.currentFilePath)
 
     DropArea {
         anchors.fill: parent
@@ -146,7 +148,7 @@ Item {
                 smooth: true
                 mipmap: true
                 cache: true
-                opacity: status === Image.Ready ? 1.0 : (previewImage.visible ? 0.0 : 1.0)
+                opacity: svgElement.visible ? 0.0 : (status === Image.Ready ? 1.0 : (previewImage.visible ? 0.0 : 1.0))
 
                 Behavior on opacity {
                     NumberAnimation {
@@ -192,6 +194,16 @@ Item {
 
                 width: implicitWidth > 0 ? implicitWidth * fitScale : (previewImage.implicitWidth > 0 ? previewImage.width : 400)
                 height: implicitHeight > 0 ? implicitHeight * fitScale : (previewImage.implicitHeight > 0 ? previewImage.height : 300)
+            }
+
+            // AnimatedImage rasterizes SVGs at intrinsic size; draw them as scene-graph geometry so they stay sharp at any zoom
+            VectorImage {
+                id: svgElement
+                anchors.fill: imageElement
+                visible: root.isSvg && implicitWidth > 0
+                source: root.isSvg ? root.source : ""
+                fillMode: VectorImage.PreserveAspectFit
+                preferredRendererType: VectorImage.CurveRenderer
             }
         }
 
