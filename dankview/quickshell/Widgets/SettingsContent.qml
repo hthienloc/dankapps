@@ -12,6 +12,51 @@ Item {
     property int currentIndex: 0
     readonly property var currentFlickable: pageLoader.item
 
+    readonly property var landingPageItems: {
+        const items = [
+            { key: "gallery", label: "Timeline", icon: "timeline" },
+            { key: "favorites", label: "Favorites", icon: "favorite" },
+            { key: "albums", label: "Albums", icon: "collections_bookmark" }
+        ];
+        const folders = (ImageService.quickAccessFolderAlbums || []).concat(ImageService.folderAlbums || []);
+        for (let i = 0; i < folders.length; i++) {
+            const name = folders[i] && folders[i].name;
+            if (name && !items.some(it => it.key === "qa:" + name))
+                items.push({ key: "qa:" + name, label: name, icon: "folder" });
+        }
+        return items;
+    }
+
+    readonly property var landingPageOptions: landingPageItems.map(item => item.label)
+
+    readonly property var landingPageIconMap: {
+        const map = {};
+        for (let i = 0; i < landingPageItems.length; i++) {
+            map[landingPageItems[i].label] = landingPageItems[i].icon;
+        }
+        return map;
+    }
+
+    readonly property string landingPageCurrentLabel: {
+        const currentKey = SettingsData.galleryLandingPage || "gallery";
+        for (let i = 0; i < landingPageItems.length; i++) {
+            if (landingPageItems[i].key === currentKey) {
+                return landingPageItems[i].label;
+            }
+        }
+        return "Timeline";
+    }
+
+    function setLandingPageFromLabel(label) {
+        for (let i = 0; i < landingPageItems.length; i++) {
+            if (landingPageItems[i].label === label) {
+                SettingsData.galleryLandingPage = landingPageItems[i].key;
+                return;
+            }
+        }
+        SettingsData.galleryLandingPage = "gallery";
+    }
+
     Loader {
         id: pageLoader
         anchors.fill: parent
@@ -116,6 +161,19 @@ Item {
         id: libraryPage
 
         SettingsPage {
+            SettingsCard {
+                title: "Navigation"
+
+                SettingsDropdownRow {
+                    text: "Startup landing page"
+                    description: "Choose which section or folder opens when launching the gallery"
+                    options: root.landingPageOptions
+                    optionIconMap: root.landingPageIconMap
+                    currentValue: root.landingPageCurrentLabel
+                    onValueChanged: value => root.setLandingPageFromLabel(value)
+                }
+            }
+
             SettingsCard {
                 title: "Manage folders"
 

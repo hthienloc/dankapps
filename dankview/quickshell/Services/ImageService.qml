@@ -704,6 +704,25 @@ Singleton {
         scrollToTopRequested();
     }
 
+    function applyLandingPage() {
+        const landing = SettingsData.galleryLandingPage || "gallery";
+        galleryTab = landing === "albums" ? "albums" : "gallery";
+        if (landing === "favorites")
+            selectedCategory = "Favorites";
+        else if (landing.startsWith("qa:"))
+            selectedCategory = landing.substring(3);
+        else
+            selectedCategory = "All";
+    }
+
+    // SettingsData's JsonAdapter may populate after onCompleted; re-apply until the first gallery scan lands
+    Connections {
+        target: SettingsData
+        function onGalleryLandingPageChanged() {
+            if (root.galleryMode && !root._rawGalleryData) root.applyLandingPage();
+        }
+    }
+
     readonly property var favoriteImages: {
         if (!galleryData || !galleryData.allImages) return [];
         return galleryData.allImages.filter(img => !!galleryFavorites[img.path] && !isAlbumRemoved(img.category, ""));
@@ -1113,6 +1132,7 @@ Singleton {
             fetchMetadata();
         } else {
             galleryMode = true;
+            applyLandingPage();
             if (root._albumsConfigLoaded) {
                 loadGallery();
             } else {

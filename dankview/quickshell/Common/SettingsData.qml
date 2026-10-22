@@ -65,6 +65,9 @@ Singleton {
     property alias autoHideControls: adapter.autoHideControls
     property alias showCheckerboard: adapter.showCheckerboard
 
+    // Gallery preferences
+    property alias galleryLandingPage: adapter.galleryLandingPage
+
     Component.onCompleted: {
         Paths.mkdir(configDir);
     }
@@ -115,6 +118,7 @@ Singleton {
             property string focusRingColor: "primary"
             property bool autoHideControls: true
             property bool showCheckerboard: true
+            property string galleryLandingPage: "gallery"
         }
     }
 }
