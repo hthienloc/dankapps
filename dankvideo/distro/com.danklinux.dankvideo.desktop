@@ -2,7 +2,7 @@
 Name=DankVideo
 Comment=Fast, beautiful Material 3 Video Player
 Exec=dplay %F
-Icon=video-player
+Icon=com.danklinux.dankvideo
 Terminal=false
 Type=Application
 Categories=AudioVideo;Video;Player;Qt;
