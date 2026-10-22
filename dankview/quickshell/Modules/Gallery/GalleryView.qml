@@ -206,7 +206,7 @@ Item {
                                     anchors.fill: parent
                                     verticalAlignment: Text.AlignVCenter
                                     visible: !searchInput.text && !searchInput.inputMethodComposing
-                                    text: ImageService.galleryTab === "albums" ? "Search albums..." : "Search photos"
+                                    text: ImageService.galleryTab === "albums" ? "Search albums..." : (ImageService.galleryTab === "trash" ? "Search trash..." : "Search photos")
                                     font.pixelSize: searchInput.font.pixelSize
                                     color: Theme.surfaceVariantText
                                 }
@@ -340,6 +340,11 @@ Item {
             GalleryAlbums {
                 anchors.fill: parent
                 visible: ImageService.galleryTab === "albums"
+            }
+
+            GalleryTrash {
+                anchors.fill: parent
+                visible: ImageService.galleryTab === "trash"
             }
 
         }

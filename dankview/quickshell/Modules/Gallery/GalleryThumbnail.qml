@@ -10,6 +10,7 @@ Item {
     property var flickable: null // kept for compatibility, unused with ListView virtualization
     property var imageItem: null
     property real tileSize: 160
+    property bool isTrashMode: false
 
     width: tileSize
     height: tileSize
@@ -65,7 +66,7 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             height: Style.buttonHeightS
-            visible: thumbMouse.containsMouse || root.isSelected || root.isFav || root.isSelectionMode
+            visible: thumbMouse.containsMouse || root.isSelected || (!root.isTrashMode && root.isFav) || root.isSelectionMode
             gradient: Gradient {
                 GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.55) }
                 GradientStop { position: 1.0; color: "transparent" }
@@ -103,31 +104,41 @@ Item {
             }
         }
 
-        // Favorite Heart Button (Top-Right)
+        // Top-Right Action Button: Restore (Trash mode) or Favorite Heart (Normal)
         Rectangle {
-            id: favBtn
+            id: actionBtn
             anchors.top: parent.top
             anchors.right: parent.right
             anchors.margins: Style.spacingS
             width: Style.iconSize
             height: Style.iconSize
             radius: height / 2
-            visible: thumbMouse.containsMouse || root.isFav
+            visible: thumbMouse.containsMouse || (!root.isTrashMode && root.isFav)
             color: Qt.rgba(0, 0, 0, 0.35)
 
             DIcon {
                 anchors.centerIn: parent
-                name: "favorite"
-                filled: root.isFav
+                name: root.isTrashMode ? "restore" : "favorite"
+                filled: !root.isTrashMode && root.isFav
                 size: Style.iconSizeSmall
-                color: root.isFav ? Theme.error : Qt.rgba(1, 1, 1, 0.9)
+                color: root.isTrashMode ? Theme.surfaceText : (root.isFav ? Theme.error : Qt.rgba(1, 1, 1, 0.9))
+            }
+
+            DTooltipHost {
+                anchors.fill: parent
+                text: root.isTrashMode ? "Restore" : "Favorite"
             }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    if (root.imageItem) ImageService.toggleFavorite(root.imageItem.path)
+                    if (!root.imageItem) return
+                    if (root.isTrashMode) {
+                        ImageService.restoreFromTrash(root.imageItem)
+                    } else {
+                        ImageService.toggleFavorite(root.imageItem.path)
+                    }
                 }
             }
         }

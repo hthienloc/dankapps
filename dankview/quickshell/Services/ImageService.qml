@@ -95,6 +95,7 @@ Singleton {
     onGalleryTabChanged: {
         searchBarCollapsed = false;
         if (galleryTab !== "albums" && albumsEditMode) cancelEditAlbums();
+        if (galleryTab === "trash") loadTrash();
     }
     onGalleryModeChanged: {
         if (!galleryMode && albumsEditMode) cancelEditAlbums();
@@ -787,6 +788,13 @@ Singleton {
     readonly property int gallerySelectedCount: Object.keys(gallerySelectedFiles).length
     readonly property var gallerySelectedList: Object.keys(gallerySelectedFiles)
     readonly property bool isAllSelected: {
+        if (galleryTab === "trash") {
+            if (!trashImages || trashImages.length === 0) return false;
+            for (let i = 0; i < trashImages.length; i++) {
+                if (!gallerySelectedFiles[trashImages[i].path]) return false;
+            }
+            return true;
+        }
         if (!galleryData || !galleryData.allImages || galleryData.allImages.length === 0) return false;
         const cat = selectedCategory;
         let count = 0;
@@ -805,13 +813,17 @@ Singleton {
     }
 
     function selectAll() {
-        if (!galleryData || !galleryData.allImages) return;
-        const cat = selectedCategory;
-        const matching = [];
-        for (let i = 0; i < galleryData.allImages.length; i++) {
-            const img = galleryData.allImages[i];
-            if (!cat || cat === "All" || img.category === cat) {
-                matching.push(img.path);
+        let matching = [];
+        if (galleryTab === "trash") {
+            matching = (trashImages || []).map(img => img.path);
+        } else {
+            if (!galleryData || !galleryData.allImages) return;
+            const cat = selectedCategory;
+            for (let i = 0; i < galleryData.allImages.length; i++) {
+                const img = galleryData.allImages[i];
+                if (!cat || cat === "All" || img.category === cat) {
+                    matching.push(img.path);
+                }
             }
         }
         if (matching.length === 0) return;
@@ -1002,6 +1014,7 @@ Singleton {
                 root.showToast(`Moved ${list.length} to trash`);
                 root.clearSelection();
                 root.loadGallery();
+                root.loadTrash();
             } else {
                 root.showToast("Failed to delete selected items", true);
             }
@@ -1139,6 +1152,7 @@ Singleton {
                 startupGalleryFallback.start();
             }
         }
+        loadTrash();
     }
 
     readonly property string dviewBin: Quickshell.env("DVIEW_BIN") || "dview"
@@ -1274,6 +1288,7 @@ Singleton {
                     root.removeRecentImage(root.lastTrashedPath);
                 }
                 removeCurrentFromList();
+                root.loadTrash();
             } else {
                 root.showToast("Failed to move image to trash", true);
             }
@@ -1294,10 +1309,184 @@ Singleton {
                     if (root.galleryMode) {
                         root.loadGallery();
                     }
+                    root.loadTrash();
                 } else {
                     root.showToast("Nothing to undo", true);
                 }
             }
+        }
+    }
+
+    property var trashImages: []
+    readonly property int trashCount: trashImages.length
+    property bool isTrashLoading: false
+
+    function loadTrash() {
+        if (trashListProc.running) return;
+        isTrashLoading = true;
+        trashListProc.command = ["dms", "trash", "list", "--json"];
+        trashListProc.running = true;
+    }
+
+    Process {
+        id: trashListProc
+        running: false
+        command: []
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.isTrashLoading = false;
+                if (!text || text.trim() === "") {
+                    root.trashImages = [];
+                    return;
+                }
+                try {
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) {
+                        const imgExt = /\.(jpe?g|png|webp|gif|svg|bmp|ico|tiff?|avif|jxl)$/i;
+                        const filtered = [];
+                        for (let i = 0; i < data.length; i++) {
+                            const item = data[i];
+                            if (item && item.filesPath && imgExt.test(item.filesPath)) {
+                                filtered.push({
+                                    path: item.filesPath,
+                                    filesPath: item.filesPath,
+                                    thumbnail: "",
+                                    name: item.name,
+                                    originalPath: item.originalPath,
+                                    deletionDate: item.deletionDate,
+                                    trashDir: item.trashDir,
+                                    infoPath: item.infoPath,
+                                    size: item.size
+                                });
+                            }
+                        }
+                        filtered.sort((a, b) => (b.deletionDate || "").localeCompare(a.deletionDate || ""));
+                        root.trashImages = filtered;
+                    }
+                } catch (e) {
+                    console.warn("Failed to parse trash list JSON:", e);
+                }
+            }
+        }
+        onExited: exitCode => {
+            root.isTrashLoading = false;
+        }
+    }
+
+    function restoreFromTrash(item) {
+        if (!item || !item.name) return;
+        const cmd = item.trashDir
+            ? ["dms", "trash", "restore", "--trash-dir", item.trashDir, item.name]
+            : ["dms", "trash", "restore", item.name];
+        restoreItemProc.command = cmd;
+        restoreItemProc._restoringName = item.name;
+        restoreItemProc.running = true;
+    }
+
+    Process {
+        id: restoreItemProc
+        property string _restoringName: ""
+        running: false
+        command: []
+        onExited: exitCode => {
+            if (exitCode === 0) {
+                root.showToast("Restored " + (_restoringName || "item"));
+                root.loadTrash();
+                root.loadGallery();
+            } else {
+                root.showToast("Failed to restore item", true);
+            }
+        }
+    }
+
+    function emptyTrash() {
+        emptyTrashProc.command = ["dms", "trash", "empty"];
+        emptyTrashProc.running = true;
+    }
+
+    Process {
+        id: emptyTrashProc
+        running: false
+        command: []
+        onExited: exitCode => {
+            if (exitCode === 0) {
+                root.showToast("Emptied trash");
+                root.trashImages = [];
+                root.loadTrash();
+            } else {
+                root.showToast("Failed to empty trash", true);
+            }
+        }
+    }
+
+    function deletePermanentlyFromTrash(item) {
+        if (!item || !item.filesPath) return;
+        const files = [item.filesPath];
+        if (item.infoPath) files.push(item.infoPath);
+        deleteItemProc.command = ["rm", "-f"].concat(files);
+        deleteItemProc._deletingName = item.name;
+        deleteItemProc.running = true;
+    }
+
+    Process {
+        id: deleteItemProc
+        property string _deletingName: ""
+        running: false
+        command: []
+        onExited: exitCode => {
+            if (exitCode === 0) {
+                root.showToast("Permanently deleted " + (_deletingName || "item"));
+                root.loadTrash();
+            } else {
+                root.showToast("Failed to delete item", true);
+            }
+        }
+    }
+
+    function restoreSelectedFromTrash() {
+        const list = gallerySelectedList;
+        if (list.length === 0) return;
+        const toRestore = trashImages.filter(item => list.indexOf(item.path) !== -1);
+        if (toRestore.length === 0) return;
+        const names = toRestore.map(item => item.name);
+        restoreSelectedProc.command = ["sh", "-c", 'for name in "$@"; do dms trash restore "$name"; done', "restoreBatch"].concat(names);
+        restoreSelectedProc.running = true;
+    }
+
+    Process {
+        id: restoreSelectedProc
+        running: false
+        command: []
+        onExited: exitCode => {
+            root.showToast("Restored selected items");
+            root.clearSelection();
+            root.loadTrash();
+            root.loadGallery();
+        }
+    }
+
+    function deletePermanentlySelectedFromTrash() {
+        const list = gallerySelectedList;
+        if (list.length === 0) return;
+        const toDelete = trashImages.filter(item => list.indexOf(item.path) !== -1);
+        const files = [];
+        for (let i = 0; i < toDelete.length; i++) {
+            if (toDelete[i].filesPath) files.push(toDelete[i].filesPath);
+            if (toDelete[i].infoPath) files.push(toDelete[i].infoPath);
+        }
+        if (files.length === 0) return;
+        deleteSelectedProc.command = ["rm", "-f"].concat(files);
+        deleteSelectedProc.running = true;
+    }
+
+    Process {
+        id: deleteSelectedProc
+        running: false
+        command: []
+        onExited: exitCode => {
+            root.showToast("Permanently deleted selected items");
+            root.clearSelection();
+            root.loadTrash();
         }
     }
 

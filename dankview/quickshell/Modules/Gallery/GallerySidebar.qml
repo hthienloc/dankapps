@@ -17,6 +17,7 @@ Item {
         property string itemKey: ""
         property string itemText: ""
         property string itemIcon: ""
+        property int badgeCount: 0
 
         readonly property bool isSelected: {
             if (itemKey === "gallery") {
@@ -26,6 +27,9 @@ Item {
             if (itemKey === "favorites") {
                 return (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline")
                     && ImageService.selectedCategory === "Favorites"
+            }
+            if (itemKey === "trash") {
+                return ImageService.galleryTab === "trash"
             }
             if (itemKey === "settings") {
                 return ImageService.settingsOpen
@@ -79,6 +83,24 @@ Item {
                     color: navItem.isSelected ? Theme.onPrimary : Theme.surfaceText
                     elide: Text.ElideRight
                 }
+
+                Rectangle {
+                    visible: navItem.badgeCount > 0
+                    Layout.alignment: Qt.AlignVCenter
+                    height: 18
+                    width: Math.max(18, expBadgeText.implicitWidth + 8)
+                    radius: 9
+                    color: navItem.isSelected ? Theme.surfaceContainerLowest : Theme.error
+
+                    StyledText {
+                        id: expBadgeText
+                        anchors.centerIn: parent
+                        text: navItem.badgeCount > 99 ? "99+" : navItem.badgeCount
+                        font.pixelSize: 10
+                        font.weight: Theme.fontWeightBold
+                        color: navItem.isSelected ? Theme.primary : Theme.onError
+                    }
+                }
             }
         }
 
@@ -113,6 +135,28 @@ Item {
                     size: Style.iconSize
                     filled: navItem.isSelected
                     color: navItem.isSelected ? Theme.onPrimary : Theme.surfaceText
+                }
+
+                Rectangle {
+                    visible: navItem.badgeCount > 0
+                    anchors.top: parent.top
+                    anchors.topMargin: -2
+                    anchors.right: parent.right
+                    anchors.rightMargin: 4
+                    height: 14
+                    width: Math.max(14, badgeText.implicitWidth + 6)
+                    radius: 7
+                    color: navItem.isSelected ? Theme.surfaceContainerLowest : Theme.error
+                    z: 5
+
+                    StyledText {
+                        id: badgeText
+                        anchors.centerIn: parent
+                        text: navItem.badgeCount > 99 ? "99+" : navItem.badgeCount
+                        font.pixelSize: 9
+                        font.weight: Theme.fontWeightBold
+                        color: navItem.isSelected ? Theme.primary : Theme.onError
+                    }
                 }
             }
 
@@ -157,6 +201,8 @@ Item {
                 } else if (navItem.itemKey.startsWith("qa:")) {
                     ImageService.selectedCategory = navItem.itemKey.substring(3)
                     ImageService.galleryTab = "gallery"
+                } else if (navItem.itemKey === "trash") {
+                    ImageService.galleryTab = "trash"
                 } else {
                     ImageService.galleryTab = navItem.itemKey
                 }
@@ -233,9 +279,17 @@ Item {
                 }
             }
 
-            // Expanding spacer pushing Settings to the bottom
+            // Expanding spacer pushing Trash & Settings to the bottom
             Item {
                 Layout.fillHeight: true
+            }
+
+            // === Trash Item ===
+            NavItem {
+                itemKey: "trash"
+                itemText: "Trash"
+                itemIcon: "delete"
+                badgeCount: ImageService.trashCount
             }
 
             // === Bottom Item: Settings ===

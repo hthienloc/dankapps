@@ -173,11 +173,17 @@ Item {
             }
 
             DIconButton {
-                iconName: "favorite"
+                iconName: ImageService.galleryTab === "trash" ? "restore" : "favorite"
                 size: "s"
                 variant: "standard"
-                tooltipText: "Favorite Selected"
-                onClicked: ImageService.toggleFavoriteSelected()
+                tooltipText: ImageService.galleryTab === "trash" ? "Restore Selected" : "Favorite Selected"
+                onClicked: {
+                    if (ImageService.galleryTab === "trash") {
+                        ImageService.restoreSelectedFromTrash();
+                    } else {
+                        ImageService.toggleFavoriteSelected();
+                    }
+                }
             }
 
             // Divider between groups
@@ -207,14 +213,20 @@ Item {
 
             // Destructive — M3E tonal errorContainer
             DIconButton {
-                iconName: "delete"
+                iconName: ImageService.galleryTab === "trash" ? "delete_forever" : "delete"
                 size: "s"
                 variant: "tonal"
                 containerColor: Style.errorContainer
                 contentColor: Style.onErrorContainer
                 stateColor: Style.error
-                tooltipText: "Move to Trash (Delete)"
-                onClicked: ImageService.trashSelected()
+                tooltipText: ImageService.galleryTab === "trash" ? "Delete Permanently" : "Move to Trash (Delete)"
+                onClicked: {
+                    if (ImageService.galleryTab === "trash") {
+                        ImageService.deletePermanentlySelectedFromTrash();
+                    } else {
+                        ImageService.trashSelected();
+                    }
+                }
             }
         }
     }
