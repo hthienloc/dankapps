@@ -1,6 +1,6 @@
 # DankCalc (`dcalc`)
 
-Fast, modern Material 3 Calculator built for Linux and the [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) ecosystem.
+Calculator for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell).
 
 Powered by a lightweight **Go** backend and a **Quickshell** (Qt 6 / QML) frontend.
 

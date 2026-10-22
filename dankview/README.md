@@ -1,6 +1,6 @@
 # DankView (`dview`)
 
-Image viewer for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell), inspired by GNOME Loupe. Built with Material 3 styling, DMS surface tokens, and seamless Quick Capture annotation integration.
+Image viewer for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell).
 
 > [!IMPORTANT]
 > **DMS Required**: DankView is designed specifically as a first-party viewer within the DankMaterialShell desktop environment. It relies directly on DMS theme tokens, `dms` CLI utilities (trash, wallpaper, notifications), and DMS IPC services. It is not intended for standalone use outside DMS.

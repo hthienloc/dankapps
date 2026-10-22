@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Duzzle
 GenericName=Puzzle Hub
-Comment=Experimental Material 3 Puzzle & Arcade Hub for Linux and DankMaterialShell
+Comment=Puzzle & arcade games for DMS
 Exec=duzzle %u
 Icon=com.danklinux.duzzle
 Terminal=false

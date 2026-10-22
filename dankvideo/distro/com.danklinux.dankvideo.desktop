@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=DankVideo
-Comment=Fast, beautiful Material 3 Video Player
+Comment=Video player for DMS
 Exec=dplay %F
 Icon=com.danklinux.dankvideo
 Terminal=false

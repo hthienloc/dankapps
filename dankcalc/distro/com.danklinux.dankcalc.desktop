@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=DankCalc
 GenericName=Calculator
-Comment=Fast, modern Material 3 Calculator
+Comment=Calculator for DMS
 Exec=dcalc %u
 Icon=com.danklinux.dankcalc
 Terminal=false

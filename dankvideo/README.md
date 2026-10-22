@@ -1,6 +1,6 @@
 # dankvideo (dplay)
 
-Fast, beautiful Material 3 Video Player built for Linux and the [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) ecosystem, inspired by GNOME Showtime.
+Video player for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell).
 
 Powered by a lightweight **Go** backend and a hardware-accelerated **Quickshell** (Qt 6 / QML / QtMultimedia) frontend.
 

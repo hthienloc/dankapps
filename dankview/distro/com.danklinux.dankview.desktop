@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=DankView
-Comment=Modern and fast image viewer for the Dank desktop
+Comment=Image viewer for DMS
 GenericName=Image Viewer
 Exec=dview %F
 Icon=com.danklinux.dankview

@@ -1,7 +1,9 @@
 # Duzzle (`duzzle`)
 
+Puzzle & arcade games for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell).
+
 > [!NOTE]
-> **Status: Experimental** — Duzzle is an experimental puzzle & arcade playground built for Linux and the [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) ecosystem. It is an unofficial community project exploring modular casual games.
+> **Status: Experimental** — unofficial community project.
 
 Powered by a lightweight **Go** backend and a hardware-accelerated **Quickshell** (Qt 6 / QML) frontend.
 
