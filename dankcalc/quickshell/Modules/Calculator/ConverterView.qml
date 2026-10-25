@@ -11,179 +11,253 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: Theme.spacingM
-        spacing: Theme.spacingS
+        anchors.leftMargin: Math.max(Theme.spacingM, root.width * 0.04)
+        anchors.rightMargin: Math.max(Theme.spacingM, root.width * 0.04)
+        anchors.bottomMargin: Math.max(Theme.spacingM, root.height * 0.03)
+        spacing: Theme.spacingM
 
-        // ── VALUE & UNIT CONVERSION DISPLAY CARDS ────────────────────────────
-        ColumnLayout {
+        // ── VALUE & UNIT CONVERSION DISPLAY AREA ─────────────────────────────
+        Item {
             Layout.fillWidth: true
-            spacing: Theme.spacingS
+            Layout.fillHeight: true
+            Layout.minimumHeight: 120
 
-            // "From" Value Card
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: 64
-                radius: Theme.cornerRadiusSmall
-                color: Theme.surfaceContainerHigh
-                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
-                border.width: 1
+            ColumnLayout {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenterOffset: -Theme.spacingXS
+                spacing: Theme.spacingM
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: Theme.spacingM
-                    anchors.rightMargin: Theme.spacingM
-                    spacing: Theme.spacingM
+                // "From" Value & Unit (Secondary / Input)
+                ColumnLayout {
+                    Layout.alignment: Qt.AlignRight
+                    spacing: 2
 
-                    // Unit Picker Button
-                    Rectangle {
-                        id: fromUnitButton
-                        implicitHeight: Style.buttonHeightXS
-                        implicitWidth: fromUnitRow.implicitWidth + Style.spacingL
-                        radius: height / 2
-                        color: fromUnitMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLowest
-
-                        RowLayout {
-                            id: fromUnitRow
-                            anchors.centerIn: parent
-                            spacing: Style.spacingXS
-
-                            StyledText {
-                                text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterFromUnit)
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.weight: Font.Medium
-                                color: Theme.primary
-                                elide: Text.ElideRight
-                                Layout.maximumWidth: 120
-                            }
-
-                            DIcon {
-                                name: "arrow_drop_down"
-                                size: Style.iconSizeSmall
-                                color: Theme.primary
-                                rotation: CalculatorService.converterPickerTarget === "from" ? 180 : 0
-                                Behavior on rotation { NumberAnimation { duration: Theme.shortDuration } }
-                            }
-                        }
-
-                        MouseArea {
-                            id: fromUnitMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: CalculatorService.converterPickerTarget = CalculatorService.converterPickerTarget === "from" ? "" : "from"
-                        }
-                    }
-
-                    // Numeric Input
                     StyledText {
-                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignRight
                         text: CalculatorService.converterFromValue
-                        font.pixelSize: 24
-                        font.weight: Font.Medium
+                        font.pixelSize: Math.max(24, Math.min(38, root.width * 0.09))
+                        font.weight: Font.Normal
                         color: Theme.surfaceText
                         horizontalAlignment: Text.AlignRight
                         elide: Text.ElideLeft
                     }
-                }
-            }
 
-            // "To" Value Card (Click to copy result)
-            Rectangle {
-                id: toCard
-                Layout.fillWidth: true
-                implicitHeight: 64
-                radius: Theme.cornerRadiusSmall
-                color: toCardMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainer
-                border.color: M3E.stroke(Theme.primary, M3E.strokePopup)
-                border.width: 1
-
-                MouseArea {
-                    id: toCardMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    acceptedButtons: Qt.LeftButton
-                    onClicked: {
-                        CalculatorService.copyConverterResult();
-                    }
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: Theme.spacingM
-                    anchors.rightMargin: Theme.spacingM
-                    spacing: Theme.spacingM
-
-                    // Unit Picker Button
-                    Rectangle {
-                        id: toUnitButton
-                        z: 2
-                        implicitHeight: Style.buttonHeightXS
-                        implicitWidth: toUnitRow.implicitWidth + Style.spacingL
-                        radius: height / 2
-                        color: toUnitMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerLowest
-
-                        RowLayout {
-                            id: toUnitRow
-                            anchors.centerIn: parent
-                            spacing: Style.spacingXS
-
-                            StyledText {
-                                text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterToUnit)
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.weight: Font.Medium
-                                color: Theme.primary
-                                elide: Text.ElideRight
-                                Layout.maximumWidth: 120
-                            }
-
-                            DIcon {
-                                name: "arrow_drop_down"
-                                size: Style.iconSizeSmall
-                                color: Theme.primary
-                                rotation: CalculatorService.converterPickerTarget === "to" ? 180 : 0
-                                Behavior on rotation { NumberAnimation { duration: Theme.shortDuration } }
-                            }
-                        }
-
-                        MouseArea {
-                            id: toUnitMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: CalculatorService.converterPickerTarget = CalculatorService.converterPickerTarget === "to" ? "" : "to"
-                        }
-                    }
-
-                    // Result Display
                     StyledText {
-                        Layout.fillWidth: true
-                        text: CalculatorService.converterToValue
-                        font.pixelSize: 24
-                        font.weight: Font.Bold
-                        color: Theme.primary
+                        Layout.alignment: Qt.AlignRight
+                        text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterFromUnit)
+                        font.pixelSize: Theme.fontSizeMedium
+                        font.weight: Font.Medium
+                        color: Theme.surfaceVariantText
                         horizontalAlignment: Text.AlignRight
-                        elide: Text.ElideLeft
+                    }
+                }
+
+                // "To" Value & Unit (Primary / Result - Click to copy)
+                Item {
+                    id: toValueRow
+                    Layout.alignment: Qt.AlignRight
+                    implicitWidth: toValCol.implicitWidth
+                    implicitHeight: toValCol.implicitHeight
+
+                    MouseArea {
+                        id: toCardMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        acceptedButtons: Qt.LeftButton
+                        onClicked: CalculatorService.copyConverterResult()
+                    }
+
+                    ColumnLayout {
+                        id: toValCol
+                        anchors.right: parent.right
+                        spacing: 2
+
+                        StyledText {
+                            Layout.alignment: Qt.AlignRight
+                            text: CalculatorService.converterToValue
+                            font.pixelSize: Math.max(32, Math.min(54, root.width * 0.13))
+                            font.weight: Font.Bold
+                            color: toCardMouse.containsMouse ? Theme.primary : Theme.surfaceText
+                            horizontalAlignment: Text.AlignRight
+                            elide: Text.ElideLeft
+
+                            Behavior on color {
+                                DColorAnim {
+                                    duration: M3E.effectsFastMs
+                                    easing.bezierCurve: M3E.curveFastEffects
+                                }
+                            }
+                        }
+
+                        StyledText {
+                            Layout.alignment: Qt.AlignRight
+                            text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterToUnit)
+                            font.pixelSize: Theme.fontSizeLarge
+                            font.weight: Font.SemiBold
+                            color: Theme.primary
+                            horizontalAlignment: Text.AlignRight
+                        }
                     }
                 }
             }
         }
 
-        // ── CONVERTER KEYPAD ────────────────────────────────────────────────
+        // ── PILL UNIT SELECTOR & SWAP BUTTON ─────────────────────────────────
         Item {
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            implicitHeight: Style.buttonHeightS
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: Theme.spacingS
+
+                // "From" Unit Pill Button
+                Rectangle {
+                    id: fromUnitButton
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Style.buttonHeightS
+                    radius: height / 2
+                    color: fromUnitMouse.containsMouse || CalculatorService.converterPickerTarget === "from"
+                           ? Theme.surfaceContainerHighest
+                           : Theme.surfaceContainerHigh
+                    border.color: CalculatorService.converterPickerTarget === "from"
+                                  ? M3E.stroke(Theme.primary, M3E.strokeControl)
+                                  : M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
+                    border.width: 1
+
+                    scale: fromUnitMouse.pressed ? 0.97 : 1.0
+                    Behavior on scale {
+                        DAnim {
+                            duration: M3E.spatialFastMs
+                            easing.bezierCurve: M3E.curveFastSpatial
+                        }
+                    }
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        anchors.leftMargin: Theme.spacingM
+                        anchors.rightMargin: Theme.spacingM
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: ConvLogic.getUnitFullName(CalculatorService.converterCategory, CalculatorService.converterFromUnit)
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Font.Medium
+                            color: Theme.surfaceText
+                            horizontalAlignment: Text.AlignHCenter
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    MouseArea {
+                        id: fromUnitMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: CalculatorService.converterPickerTarget = CalculatorService.converterPickerTarget === "from" ? "" : "from"
+                    }
+                }
+
+                // Swap Units Button (Icon button with swap_horiz)
+                Rectangle {
+                    id: swapBtn
+                    implicitWidth: Style.buttonHeightS
+                    implicitHeight: Style.buttonHeightS
+                    radius: height / 2
+                    color: swapMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
+                    border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
+                    border.width: 1
+
+                    scale: swapMouse.pressed ? 0.92 : 1.0
+                    Behavior on scale {
+                        DAnim {
+                            duration: M3E.spatialFastMs
+                            easing.bezierCurve: M3E.curveFastSpatial
+                        }
+                    }
+
+                    DIcon {
+                        anchors.centerIn: parent
+                        name: "swap_horiz"
+                        size: Style.iconSizeSmall
+                        color: Theme.primary
+                    }
+
+                    MouseArea {
+                        id: swapMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: CalculatorService.swapConverterUnits()
+                    }
+                }
+
+                // "To" Unit Pill Button
+                Rectangle {
+                    id: toUnitButton
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Style.buttonHeightS
+                    radius: height / 2
+                    color: toUnitMouse.containsMouse || CalculatorService.converterPickerTarget === "to"
+                           ? Theme.surfaceContainerHighest
+                           : Theme.surfaceContainerHigh
+                    border.color: CalculatorService.converterPickerTarget === "to"
+                                  ? M3E.stroke(Theme.primary, M3E.strokeControl)
+                                  : M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
+                    border.width: 1
+
+                    scale: toUnitMouse.pressed ? 0.97 : 1.0
+                    Behavior on scale {
+                        DAnim {
+                            duration: M3E.spatialFastMs
+                            easing.bezierCurve: M3E.curveFastSpatial
+                        }
+                    }
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        anchors.leftMargin: Theme.spacingM
+                        anchors.rightMargin: Theme.spacingM
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: ConvLogic.getUnitFullName(CalculatorService.converterCategory, CalculatorService.converterToUnit)
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Font.Medium
+                            color: Theme.surfaceText
+                            horizontalAlignment: Text.AlignHCenter
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    MouseArea {
+                        id: toUnitMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: CalculatorService.converterPickerTarget = CalculatorService.converterPickerTarget === "to" ? "" : "to"
+                    }
+                }
+            }
+        }
+
+        // ── 3-COLUMN CONVERTER KEYPAD ───────────────────────────────────────
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: Math.max(220, root.height * 0.52)
 
             GridLayout {
                 id: converterGrid
                 anchors.fill: parent
                 columns: 3
-                rowSpacing: 6
-                columnSpacing: 6
+                columnSpacing: Math.max(8, Math.min(16, root.width * 0.025))
+                rowSpacing: Math.max(8, Math.min(16, root.height * 0.025))
 
-                // Row 1: Actions
+                // Row 1: AC, ±, ⌫
                 CalculatorButton {
-                    text: "C"
+                    text: "AC"
                     backgroundColor: Theme.tertiaryContainer
                     textColor: Theme.onTertiaryContainer
                     fontWeight: Font.Medium
@@ -191,17 +265,18 @@ Item {
                 }
 
                 CalculatorButton {
+                    text: "±"
+                    backgroundColor: Theme.primaryContainer
+                    textColor: Theme.onPrimaryContainer
+                    fontWeight: Font.Medium
+                    onClicked: CalculatorService.toggleConverterSign()
+                }
+
+                CalculatorButton {
                     iconName: "backspace"
                     backgroundColor: Theme.secondaryContainer
                     textColor: Theme.onSecondaryContainer
                     onClicked: CalculatorService.backspaceConverter()
-                }
-
-                CalculatorButton {
-                    iconName: "swap_vert"
-                    backgroundColor: Theme.primaryContainer
-                    textColor: Theme.onPrimaryContainer
-                    onClicked: CalculatorService.swapConverterUnits()
                 }
 
                 // Row 2: 7, 8, 9
@@ -246,19 +321,24 @@ Item {
                     onClicked: CalculatorService.appendConverterDigit("3")
                 }
 
-                // Row 5: ±, 0, .
+                // Row 5: ., 0, 00
                 CalculatorButton {
-                    text: "±"
-                    backgroundColor: Theme.surfaceContainerHighest
-                    onClicked: CalculatorService.toggleConverterSign()
+                    text: "."
+                    fontWeight: Font.Medium
+                    onClicked: CalculatorService.appendConverterDecimal()
                 }
                 CalculatorButton {
                     text: "0"
                     onClicked: CalculatorService.appendConverterDigit("0")
                 }
                 CalculatorButton {
-                    text: "."
-                    onClicked: CalculatorService.appendConverterDecimal()
+                    text: "00"
+                    backgroundColor: Theme.surfaceContainerHighest
+                    textColor: Theme.surfaceText
+                    onClicked: {
+                        CalculatorService.appendConverterDigit("0");
+                        CalculatorService.appendConverterDigit("0");
+                    }
                 }
             }
         }

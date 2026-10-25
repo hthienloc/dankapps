@@ -46,41 +46,10 @@ Item {
         anchors.rightMargin: Math.max(Theme.spacingM, root.width * 0.04)
         spacing: Theme.spacingXXS
 
-        // Top line: RAD/DEG badge + Expression
+        // Top line: Expression
         RowLayout {
             Layout.fillWidth: true
             spacing: Theme.spacingS
-
-            // Rad / Deg Badge (clickable)
-            Rectangle {
-                id: radBadge
-                z: 5
-                implicitWidth: radText.implicitWidth + 14
-                implicitHeight: Math.max(18, Math.min(24, root.height * 0.26))
-                radius: height / 2
-                color: radMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
-                border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeSurface)
-                border.width: 1
-
-                Behavior on color { DColorAnim { duration: Theme.shortDuration } }
-
-                StyledText {
-                    id: radText
-                    anchors.centerIn: parent
-                    text: CalculatorService.isRad ? "RAD" : "DEG"
-                    font.pixelSize: Math.max(10, Math.min(13, root.height * 0.16))
-                    font.weight: Font.DemiBold
-                    color: Theme.primary
-                }
-
-                MouseArea {
-                    id: radMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: CalculatorService.toggleRad()
-                }
-            }
 
             // Expression line
             StyledText {

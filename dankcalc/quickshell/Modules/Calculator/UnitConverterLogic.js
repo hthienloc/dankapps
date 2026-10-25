@@ -200,6 +200,13 @@ function getUnitName(categoryKey, unitId) {
     return unit ? unit.name : unitId;
 }
 
+function getUnitFullName(categoryKey, unitId) {
+    const cat = CATEGORIES[categoryKey];
+    if (!cat) return unitId;
+    const unit = cat.units.find(u => u.id === unitId);
+    return unit ? (unit.desc || unit.name) : unitId;
+}
+
 function convert(categoryKey, valueStr, fromId, toId) {
     if (!valueStr || valueStr.trim() === "" || valueStr === "-") {
         return "0";

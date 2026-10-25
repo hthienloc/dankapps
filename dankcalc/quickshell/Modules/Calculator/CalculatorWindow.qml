@@ -265,19 +265,48 @@ FloatingWindow {
                             onClicked: CalculatorService.menuOpen = !CalculatorService.menuOpen
                         }
 
-                        Item { Layout.fillWidth: true }
-
-                        // Calculator Mode: History Button
-                        DIconButton {
+                        // Calculator Mode: RAD / DEG Chip (Next to Menu)
+                        Rectangle {
                             visible: CalculatorService.currentMode === "calculator"
-                            iconName: "history"
-                            size: "s"
-                            variant: "standard"
-                            tooltipText: "History"
-                            onClicked: CalculatorService.historyOpen = !CalculatorService.historyOpen
+                            implicitHeight: Style.buttonHeightXS
+                            implicitWidth: radText.implicitWidth + Theme.spacingM * 2
+                            radius: height / 2
+                            color: radMouse.containsMouse
+                                   ? Theme.surfaceContainerHighest
+                                   : Theme.surfaceContainerHigh
+                            border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
+                            border.width: 1
+
+                            scale: radMouse.pressed ? 0.95 : 1.0
+                            Behavior on scale {
+                                DAnim {
+                                    duration: M3E.spatialFastMs
+                                    easing.bezierCurve: M3E.curveFastSpatial
+                                }
+                            }
+                            Behavior on color {
+                                DColorAnim { duration: Theme.shortDuration }
+                            }
+
+                            StyledText {
+                                id: radText
+                                anchors.centerIn: parent
+                                text: CalculatorService.isRad ? "RAD" : "DEG"
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Font.DemiBold
+                                color: Theme.primary
+                            }
+
+                            MouseArea {
+                                id: radMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: CalculatorService.toggleRad()
+                            }
                         }
 
-                        // Converter Mode: Category Dropdown Button
+                        // Converter Mode: Category Dropdown Button (Left-aligned next to Menu)
                         Rectangle {
                             visible: CalculatorService.currentMode === "converter"
                             implicitHeight: Style.buttonHeightXS
@@ -321,6 +350,18 @@ FloatingWindow {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: CalculatorService.categoryMenuOpen = !CalculatorService.categoryMenuOpen
                             }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        // Calculator Mode: History Button
+                        DIconButton {
+                            visible: CalculatorService.currentMode === "calculator"
+                            iconName: "history"
+                            size: "s"
+                            variant: "standard"
+                            tooltipText: "History"
+                            onClicked: CalculatorService.historyOpen = !CalculatorService.historyOpen
                         }
                     }
                 }

@@ -32,8 +32,7 @@ Rectangle {
 
     Rectangle {
         id: menuCard
-        anchors.right: parent.right
-        anchors.rightMargin: Theme.spacingM
+        x: Theme.spacingM + Style.buttonHeightS + Theme.spacingS
         y: 84
         width: 220
         height: Math.min(parent.height - 100, 360)
