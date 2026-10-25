@@ -781,6 +781,40 @@ Singleton {
         gallerySelectedFiles = sel;
     }
 
+    function selectGroup(paths) {
+        if (!paths || paths.length === 0) return;
+        const sel = Object.assign({}, gallerySelectedFiles);
+        for (let i = 0; i < paths.length; i++) {
+            if (paths[i]) sel[paths[i]] = true;
+        }
+        gallerySelectedFiles = sel;
+    }
+
+    function deselectGroup(paths) {
+        if (!paths || paths.length === 0) return;
+        const sel = Object.assign({}, gallerySelectedFiles);
+        for (let i = 0; i < paths.length; i++) {
+            if (paths[i]) delete sel[paths[i]];
+        }
+        gallerySelectedFiles = sel;
+    }
+
+    function toggleSelectGroup(paths) {
+        if (!paths || paths.length === 0) return;
+        let allSelected = true;
+        for (let i = 0; i < paths.length; i++) {
+            if (paths[i] && !gallerySelectedFiles[paths[i]]) {
+                allSelected = false;
+                break;
+            }
+        }
+        if (allSelected) {
+            deselectGroup(paths);
+        } else {
+            selectGroup(paths);
+        }
+    }
+
     function isSelected(filePath) {
         return !!gallerySelectedFiles[filePath];
     }

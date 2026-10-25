@@ -443,15 +443,97 @@ Item {
         }
 
         delegate: ColumnLayout {
+            id: groupDelegate
+            required property var modelData
+            required property int index
+
             width: ListView.view.width - 16
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 12
 
-            StyledText {
-                text: modelData.dateGroup
-                font.pixelSize: Theme.fontSizeMedium + 1
-                font.weight: Theme.fontWeightBold
-                color: Theme.surfaceText
+            readonly property var groupImages: modelData.images || []
+            readonly property var groupPaths: groupImages.map(img => img.path)
+            readonly property bool hasMultipleImages: groupImages.length > 1
+            readonly property int selectedInGroupCount: {
+                // Dependency on gallerySelectedFiles
+                const sel = ImageService.gallerySelectedFiles;
+                let c = 0;
+                for (let i = 0; i < groupPaths.length; i++) {
+                    if (sel[groupPaths[i]]) c++;
+                }
+                return c;
+            }
+            readonly property bool isGroupAllSelected: hasMultipleImages && selectedInGroupCount === groupImages.length
+            readonly property bool isGroupIndeterminate: hasMultipleImages && selectedInGroupCount > 0 && !isGroupAllSelected
+            readonly property bool isSelectionMode: ImageService.gallerySelectedCount > 0
+            readonly property bool showGroupCheckbox: hasMultipleImages && (headerHover.hovered || isSelectionMode)
+
+            // Date Group Header with Checkbox
+            Item {
+                Layout.fillWidth: true
+                implicitHeight: Math.max(dateTitle.implicitHeight, Style.iconSize)
+
+                HoverHandler {
+                    id: headerHover
+                }
+
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Style.spacingS
+
+                    // Checkbox for Date Group
+                    Rectangle {
+                        id: groupCheckBtn
+                        width: Style.iconSize
+                        height: Style.iconSize
+                        radius: height / 2
+                        visible: groupDelegate.showGroupCheckbox
+                        color: (groupDelegate.isGroupAllSelected || groupDelegate.isGroupIndeterminate)
+                            ? (groupCheckMouse.containsMouse ? Theme.primaryContainer : Theme.primary)
+                            : (groupCheckMouse.containsMouse ? Theme.withAlpha(Theme.surfaceVariant, 0.45) : Theme.withAlpha(Theme.surfaceVariant, 0.2))
+                        border.color: (groupDelegate.isGroupAllSelected || groupDelegate.isGroupIndeterminate)
+                            ? Theme.primary
+                            : (groupCheckMouse.containsMouse ? Theme.surfaceText : Theme.withAlpha(Theme.surfaceText, 0.6))
+                        border.width: (groupDelegate.isGroupAllSelected || groupDelegate.isGroupIndeterminate) ? 0 : 1.5
+                        scale: groupCheckMouse.pressed ? 0.9 : (groupCheckMouse.containsMouse ? 1.1 : 1.0)
+
+                        Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
+                        Behavior on border.color { ColorAnimation { duration: Theme.shortDuration } }
+                        Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
+
+                        DIcon {
+                            anchors.centerIn: parent
+                            visible: groupDelegate.isGroupAllSelected || groupDelegate.isGroupIndeterminate
+                            name: groupDelegate.isGroupAllSelected ? "check" : "remove"
+                            size: Style.iconSizeSmall
+                            color: groupCheckMouse.containsMouse ? Theme.onPrimaryContainer : Theme.primaryText
+                        }
+
+                        DTooltipHost {
+                            anchors.fill: parent
+                            text: groupDelegate.isGroupAllSelected ? "Deselect date" : "Select date"
+                        }
+
+                        MouseArea {
+                            id: groupCheckMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                ImageService.toggleSelectGroup(groupDelegate.groupPaths);
+                            }
+                        }
+                    }
+
+                    StyledText {
+                        id: dateTitle
+                        text: groupDelegate.modelData.dateGroup
+                        font.pixelSize: Theme.fontSizeMedium + 1
+                        font.weight: Theme.fontWeightBold
+                        color: Theme.surfaceText
+                    }
+                }
             }
 
             Grid {
