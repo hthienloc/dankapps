@@ -18,6 +18,7 @@ Item {
     readonly property bool isSelected: imageItem ? ImageService.isSelected(imageItem.path) : false
     readonly property bool isFav: imageItem ? ImageService.isFavorite(imageItem.path) : false
     readonly property bool isSelectionMode: ImageService.gallerySelectedCount > 0
+    readonly property bool isCardHovered: cardHover.hovered
 
     Rectangle {
         id: card
@@ -25,8 +26,12 @@ Item {
         radius: 0
         color: Theme.surfaceContainerHigh
 
-        scale: thumbMouse.containsMouse ? 1.02 : 1.0
+        scale: root.isCardHovered ? 1.02 : 1.0
         Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
+
+        HoverHandler {
+            id: cardHover
+        }
 
         Image {
             id: thumbImg
@@ -49,12 +54,12 @@ Item {
             anchors.fill: parent
             radius: 0
             color: root.isSelected
-                ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, thumbMouse.containsMouse ? 0.22 : 0.16)
+                ? Theme.withAlpha(Theme.primary, root.isCardHovered ? 0.22 : 0.16)
                 : "transparent"
             border.color: root.isSelected
                 ? Theme.primary
-                : (thumbMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.4) : "transparent")
-            border.width: root.isSelected ? 3 : (thumbMouse.containsMouse ? 1 : 0)
+                : (root.isCardHovered ? Theme.withAlpha(Theme.surfaceText, 0.4) : "transparent")
+            border.width: root.isSelected ? 3 : (root.isCardHovered ? 1 : 0)
 
             Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
             Behavior on border.color { ColorAnimation { duration: Theme.shortDuration } }
@@ -66,9 +71,9 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             height: Style.buttonHeightS
-            visible: thumbMouse.containsMouse || root.isSelected || (!root.isTrashMode && root.isFav) || root.isSelectionMode
+            visible: root.isCardHovered || root.isSelected || (!root.isTrashMode && root.isFav) || root.isSelectionMode
             gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.55) }
+                GradientStop { position: 0.0; color: Theme.withAlpha(Theme.scrimColor, 0.55) }
                 GradientStop { position: 1.0; color: "transparent" }
             }
         }
@@ -82,21 +87,32 @@ Item {
             width: Style.iconSize
             height: Style.iconSize
             radius: height / 2
-            visible: thumbMouse.containsMouse || root.isSelected || root.isSelectionMode
-            color: root.isSelected ? Theme.primary : Qt.rgba(0, 0, 0, 0.35)
-            border.color: root.isSelected ? Theme.primary : Qt.rgba(1, 1, 1, 0.8)
+            visible: root.isCardHovered || root.isSelected || root.isSelectionMode
+            color: root.isSelected
+                ? (selectMouse.containsMouse ? Theme.primaryContainer : Theme.primary)
+                : (selectMouse.containsMouse ? Theme.withAlpha(Theme.scrimColor, 0.6) : Theme.withAlpha(Theme.scrimColor, 0.35))
+            border.color: root.isSelected
+                ? Theme.primary
+                : (selectMouse.containsMouse ? Theme.surfaceText : Theme.withAlpha(Theme.surfaceText, 0.8))
             border.width: root.isSelected ? 0 : 1.5
+            scale: selectMouse.pressed ? 0.9 : (selectMouse.containsMouse ? 1.1 : 1.0)
+
+            Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
+            Behavior on border.color { ColorAnimation { duration: Theme.shortDuration } }
+            Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
 
             DIcon {
                 anchors.centerIn: parent
                 visible: root.isSelected
                 name: "check"
                 size: Style.iconSizeSmall
-                color: Theme.primaryText
+                color: root.isSelected && selectMouse.containsMouse ? Theme.onPrimaryContainer : Theme.primaryText
             }
 
             MouseArea {
+                id: selectMouse
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (root.imageItem) ImageService.toggleSelect(root.imageItem.path)
@@ -113,24 +129,29 @@ Item {
             width: Style.iconSize
             height: Style.iconSize
             radius: height / 2
-            visible: thumbMouse.containsMouse || (!root.isTrashMode && root.isFav)
-            color: Qt.rgba(0, 0, 0, 0.35)
+            visible: root.isCardHovered || (!root.isTrashMode && root.isFav)
+            color: actionMouse.containsMouse ? Theme.withAlpha(Theme.scrimColor, 0.6) : Theme.withAlpha(Theme.scrimColor, 0.35)
+            scale: actionMouse.pressed ? 0.9 : (actionMouse.containsMouse ? 1.1 : 1.0)
+
+            Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
+            Behavior on scale { NumberAnimation { duration: Theme.shortDuration; easing.type: Theme.standardEasing } }
 
             DIcon {
                 anchors.centerIn: parent
                 name: root.isTrashMode ? "restore" : "favorite"
                 filled: !root.isTrashMode && root.isFav
                 size: Style.iconSizeSmall
-                color: root.isTrashMode ? Theme.surfaceText : (root.isFav ? Theme.error : Qt.rgba(1, 1, 1, 0.9))
-            }
-
-            DTooltipHost {
-                anchors.fill: parent
-                text: root.isTrashMode ? "Restore" : "Favorite"
+                color: root.isTrashMode
+                    ? (actionMouse.containsMouse ? Theme.surfaceText : Theme.withAlpha(Theme.surfaceText, 0.8))
+                    : (root.isFav
+                        ? (actionMouse.containsMouse ? Qt.lighter(Theme.error, 1.2) : Theme.error)
+                        : (actionMouse.containsMouse ? Theme.surfaceText : Theme.withAlpha(Theme.surfaceText, 0.8)))
             }
 
             MouseArea {
+                id: actionMouse
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (!root.imageItem) return
@@ -147,7 +168,6 @@ Item {
         MouseArea {
             id: thumbMouse
             anchors.fill: parent
-            hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             z: -1
             onClicked: {
