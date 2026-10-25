@@ -79,22 +79,22 @@ Item {
             NumberAnimation {
                 target: bgRect
                 property: "scale"
-                to: 0.92
-                duration: 60
+                to: 0.96
+                duration: 40
                 easing.type: Easing.OutQuad
             }
             NumberAnimation {
                 target: bgRect
                 property: "scale"
-                to: 1.05
-                duration: 120
+                to: 1.02
+                duration: 70
                 easing.bezierCurve: Theme.expressiveCurves.emphasizedDecel
             }
             NumberAnimation {
                 target: bgRect
                 property: "scale"
                 to: 1.0
-                duration: 90
+                duration: 50
                 easing.type: Easing.OutQuad
             }
         }
