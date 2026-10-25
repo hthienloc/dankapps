@@ -127,46 +127,13 @@ Item {
 
                 Item { Layout.fillWidth: true }
 
-                // Empty Trash Button
-                Rectangle {
+                DButton {
                     visible: root.allTrash.length > 0
-                    implicitHeight: Style.buttonHeightS
-                    implicitWidth: emptyRow.implicitWidth + Style.spacingL
-                    radius: height / 2
-                    color: emptyMouse.pressed
-                        ? Theme.error
-                        : (emptyMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh)
-                    border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeSurface)
-                    border.width: 1
-
-                    Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
-
-                    RowLayout {
-                        id: emptyRow
-                        anchors.centerIn: parent
-                        spacing: Style.spacingS
-
-                        DIcon {
-                            name: "delete_sweep"
-                            size: Style.iconSizeSmall
-                            color: Theme.error
-                        }
-
-                        StyledText {
-                            text: "Empty Trash"
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.weight: Theme.fontWeightMedium
-                            color: Theme.error
-                        }
-                    }
-
-                    MouseArea {
-                        id: emptyMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: ImageService.emptyTrash()
-                    }
+                    text: "Empty Trash"
+                    buttonHeight: Style.buttonHeightXS
+                    backgroundColor: "transparent"
+                    textColor: Theme.primary
+                    onClicked: confirmDialog.opened = true
                 }
             }
 
@@ -247,5 +214,39 @@ Item {
                 color: Theme.surfaceVariantText
             }
         }
+    }
+
+    DDialog {
+        id: confirmDialog
+        anchors.fill: parent
+        z: 200
+        embedded: false
+        opened: false
+        title: "Empty Trash?"
+        supportingText: "All items in the trash will be permanently deleted. This action cannot be undone."
+        maximumWidth: 420
+
+        onAccepted: {
+            opened = false;
+            ImageService.emptyTrash();
+        }
+        onRejected: {
+            opened = false;
+        }
+
+        actions: [
+            DButton {
+                text: "Cancel"
+                backgroundColor: "transparent"
+                textColor: Style.onSurface
+                onClicked: confirmDialog.rejected()
+            },
+            DButton {
+                text: "Empty"
+                backgroundColor: Style.errorContainer
+                textColor: Style.onErrorContainer
+                onClicked: confirmDialog.accepted()
+            }
+        ]
     }
 }
