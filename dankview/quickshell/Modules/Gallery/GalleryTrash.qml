@@ -43,7 +43,17 @@ Item {
     Connections {
         target: ImageService
         function onScrollToTopRequested() {
+            flick.stopMomentum();
             flick.contentY = 0;
+            flick.prevContentY = 0;
+            flick.accumulatedDown = 0;
+            ImageService.searchBarCollapsed = false;
+        }
+        function onSearchBarCollapsedChanged() {
+            if (!ImageService.searchBarCollapsed) {
+                flick.prevContentY = flick.contentY;
+                flick.accumulatedDown = 0;
+            }
         }
     }
 
@@ -56,6 +66,29 @@ Item {
         contentWidth: width
         contentHeight: contentCol.implicitHeight + 40
         clip: true
+
+        property real prevContentY: 0
+        property real accumulatedDown: 0
+
+        onContentYChanged: {
+            if (contentY <= 8) {
+                accumulatedDown = 0;
+                ImageService.searchBarCollapsed = false;
+            } else {
+                const delta = contentY - prevContentY;
+                if (delta > 0) {
+                    accumulatedDown += delta;
+                    if (accumulatedDown > 12 && contentY > 20) {
+                        if (!ImageService.searchQuery) {
+                            ImageService.searchBarCollapsed = true;
+                        }
+                    }
+                } else if (delta < -2) {
+                    accumulatedDown = 0;
+                }
+            }
+            prevContentY = contentY;
+        }
 
         ColumnLayout {
             id: contentCol
