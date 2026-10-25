@@ -1434,7 +1434,7 @@ Singleton {
     }
 
     function emptyTrash() {
-        emptyTrashProc.command = ["dms", "trash", "empty"];
+        emptyTrashProc.command = ["sh", "-c", "dms trash empty || gio trash --empty || rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/*"];
         emptyTrashProc.running = true;
     }
 
