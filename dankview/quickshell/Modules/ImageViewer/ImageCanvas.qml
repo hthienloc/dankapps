@@ -71,16 +71,51 @@ Item {
 
     property real topInset: 0
     property real bottomInset: 0
+    property real minBottomInset: Style.spacingM
+    property real safeCenterWidth: 0
     property real sideInset: 24
+
+    readonly property real _rawImgW: (imageElement.status === Image.Ready && imageElement.implicitWidth > 0)
+        ? imageElement.implicitWidth
+        : (previewImage.implicitWidth > 0 ? previewImage.implicitWidth : (ImageService.currentMeta.width || 0))
+    readonly property real _rawImgH: (imageElement.status === Image.Ready && imageElement.implicitHeight > 0)
+        ? imageElement.implicitHeight
+        : (previewImage.implicitHeight > 0 ? previewImage.implicitHeight : (ImageService.currentMeta.height || 0))
+    readonly property bool _isQuarterTurn: Math.abs(Math.round(ImageService.rotation / 90)) % 2 === 1
+    readonly property real _effImgW: _isQuarterTurn ? _rawImgH : _rawImgW
+    readonly property real _effImgH: _isQuarterTurn ? _rawImgW : _rawImgH
+
+    function _shouldUseCorridor(imgW, imgH, vpW, vpH) {
+        if (ImageService.cropMode || imgW <= 0 || imgH <= 0 || vpW <= 0 || vpH <= 0 || safeCenterWidth <= 0)
+            return false;
+        const effW = _isQuarterTurn ? imgH : imgW;
+        const effH = _isQuarterTurn ? imgW : imgH;
+        const availW = Math.max(1, vpW - sideInset * 2);
+        const shortAvailH = Math.max(1, vpH - topInset - bottomInset);
+        const fullAvailH = Math.max(1, vpH - topInset - minBottomInset);
+        const corridorW = Math.min(availW, safeCenterWidth);
+
+        const scaleAbove = Math.min(availW / effW, shortAvailH / effH);
+        const scaleCorridor = Math.min(corridorW / effW, fullAvailH / effH);
+        return scaleCorridor > scaleAbove;
+    }
+
+    readonly property bool _useCorridorFit: _shouldUseCorridor(_rawImgW, _rawImgH, viewport.width, viewport.height)
+    readonly property real effectiveBottomInset: _useCorridorFit ? minBottomInset : bottomInset
 
     function calcFitScale(imgW, imgH, vpW, vpH) {
         if (imgW <= 0 || imgH <= 0 || vpW <= 0 || vpH <= 0)
             return 1.0;
-        const availW = Math.max(1, vpW - sideInset * 2);
-        const availH = Math.max(1, vpH - topInset - bottomInset);
-        const scaleX = availW / imgW;
-        const scaleY = availH / imgH;
-        return Math.min(1.0, Math.min(scaleX, scaleY));
+        const effW = _isQuarterTurn ? imgH : imgW;
+        const effH = _isQuarterTurn ? imgW : imgH;
+        const useCorridor = _shouldUseCorridor(imgW, imgH, vpW, vpH);
+        const availW = useCorridor
+            ? Math.max(1, Math.min(vpW - sideInset * 2, safeCenterWidth))
+            : Math.max(1, vpW - sideInset * 2);
+        const availH = Math.max(1, vpH - topInset - (useCorridor ? minBottomInset : bottomInset));
+        const scaleX = availW / effW;
+        const scaleY = availH / effH;
+        return Math.min(scaleX, scaleY);
     }
 
     Item {
@@ -90,10 +125,10 @@ Item {
 
         Item {
             id: container
-            width: imageElement.paintedWidth > 0 ? imageElement.paintedWidth : imageElement.implicitWidth
-            height: imageElement.paintedHeight > 0 ? imageElement.paintedHeight : imageElement.implicitHeight
+            width: imageElement.paintedWidth > 0 ? imageElement.paintedWidth : imageElement.width
+            height: imageElement.paintedHeight > 0 ? imageElement.paintedHeight : imageElement.height
             x: (viewport.width - width) / 2 + ImageService.panX
-            y: (viewport.height + root.topInset - root.bottomInset - height) / 2 + ImageService.panY
+            y: (viewport.height + root.topInset - root.effectiveBottomInset - height) / 2 + ImageService.panY
             scale: ImageService.zoom
             rotation: ImageService.rotation
 
@@ -236,7 +271,7 @@ Item {
 
             onWheel: wheel => {
                 const factor = wheel.angleDelta.y > 0 ? 1.25 : (1.0 / 1.25);
-                ImageService.zoomAt(factor, wheel.x, wheel.y, viewport.width, viewport.height, root.topInset, root.bottomInset);
+                ImageService.zoomAt(factor, wheel.x, wheel.y, viewport.width, viewport.height, root.topInset, root.effectiveBottomInset);
                 wheel.accepted = true;
             }
 

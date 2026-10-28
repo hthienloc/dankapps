@@ -311,6 +311,15 @@ FloatingWindow {
                     anchors.fill: parent
                     topInset: (headerBarBg.height > 0 ? headerBarBg.height : 40) + Style.spacingM
                     bottomInset: (editFab.height > 0 ? editFab.height : Style.buttonHeightM) + editFab.anchors.bottomMargin + Style.spacingM
+                    minBottomInset: Style.spacingM
+                    safeCenterWidth: {
+                        if (ImageService.uiLocked) return width;
+                        const leftClearance = zoomFab.anchors.leftMargin + 128 + Style.spacingM;
+                        const rightClearance = editFab.anchors.rightMargin + editFab.width
+                            + floatingActionsPill.anchors.rightMargin + floatingActionsPill.implicitWidth + Style.spacingM;
+                        const halfWidth = width / 2 - Math.max(leftClearance, rightClearance);
+                        return Math.max(0, halfWidth * 2);
+                    }
                     sideInset: Style.spacingXL
                 }
 
@@ -325,7 +334,7 @@ FloatingWindow {
                     }
                     imageY: {
                         if (!visible) return 0;
-                        return (parent.height + canvas.topInset - canvas.bottomInset - imageH) / 2 + ImageService.panY;
+                        return (parent.height + canvas.topInset - canvas.effectiveBottomInset - imageH) / 2 + ImageService.panY;
                     }
                     imageW: {
                         if (!visible) return 1;

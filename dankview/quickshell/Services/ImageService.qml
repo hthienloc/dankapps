@@ -19,7 +19,7 @@ Singleton {
     }
 
     property var currentMeta: ({})
-    readonly property real minZoom: 0.25
+    readonly property real minZoom: Math.min(0.25, fitScale > 0 ? (1.0 / fitScale) : 0.25)
     readonly property real maxZoom: 30.0
     property real zoom: 1.0
     property real fitScale: 1.0
