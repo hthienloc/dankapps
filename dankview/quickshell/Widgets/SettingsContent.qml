@@ -67,8 +67,10 @@ Item {
             case 1:
                 return viewerPage;
             case 2:
-                return libraryPage;
+                return galleryPage;
             case 3:
+                return libraryPage;
+            case 4:
                 return aboutPage;
             default:
                 return appearancePage;
@@ -158,7 +160,7 @@ Item {
     }
 
     Component {
-        id: libraryPage
+        id: galleryPage
 
         SettingsPage {
             SettingsCard {
@@ -186,7 +188,13 @@ Item {
                     onValueSelected: value => SettingsData.setGalleryThumbnailLayout(value)
                 }
             }
+        }
+    }
 
+    Component {
+        id: libraryPage
+
+        SettingsPage {
             SettingsCard {
                 title: "Manage folders"
 

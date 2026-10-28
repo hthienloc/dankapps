@@ -58,14 +58,22 @@ Item {
             {
                 tone: "secondary",
                 index: 2,
+                label: "Gallery",
+                hint: "Layout and startup section",
+                icon: "photo_library"
+            }
+        ], [
+            {
+                tone: "secondary",
+                index: 3,
                 label: "Library & folders",
-                hint: "Watched folders and access",
+                hint: "Manage watched folders",
                 icon: "folder"
             }
         ], [
             {
                 tone: "tertiary",
-                index: 3,
+                index: 4,
                 label: "About",
                 hint: "Version, license and links",
                 icon: "info"
