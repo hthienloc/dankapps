@@ -13,7 +13,9 @@ StyledButton {
     property var keyForwardTargets: []
     property bool _pooled: false
     property bool isHovered: hovered
-    readonly property color contentColor: colorForRole(Style.onSurface)
+    property alias tooltipText: stateLayer.tooltipText
+    property color idleContentColor: Style.onSurface
+    readonly property color contentColor: colorForRole(idleContentColor)
     readonly property color supportingContentColor: colorForRole(Style.onSurfaceVariant)
 
     function colorForRole(idleColor) {
@@ -67,6 +69,7 @@ StyledButton {
     }
 
     StateLayer {
+        id: stateLayer
         control: root
         disabled: !root.enabled
         hovered: root.isHovered

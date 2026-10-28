@@ -100,7 +100,7 @@ ScrollBar {
 
     Binding on parent {
         when: scrollbar.targetFlickable !== null
-        value: scrollbar.placement?.host ?? null
+        value: scrollbar.placement?.host ?? scrollbar.targetFlickable
     }
 
     // the attached ScrollBar calls setX and setHeight when it adopts the bar, which drops plain bindings

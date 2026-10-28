@@ -7,6 +7,7 @@ import qs.DCommon.Common
 
 Singleton {
     readonly property var legacyKeys: ["sortBy", "sortAscending", "iconSizeIndex"]
+    readonly property bool showExtensions: Style.settings?.showExtensions ?? true
 
     function sortKeyFor(value) {
         switch (value) {

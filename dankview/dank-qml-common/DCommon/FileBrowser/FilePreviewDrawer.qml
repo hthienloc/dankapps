@@ -15,7 +15,6 @@ Item {
     property real dragWidth: 0
     property color chipColor: Style.chipSurface
     property var resolved: []
-    property bool showing: false
     property var strip: []
     property string focusPath: ""
     property int focusIndex: -1
@@ -23,8 +22,8 @@ Item {
 
     readonly property real gap: FileBrowserMetrics.contentSpacing
     readonly property real targetWidth: FilePreview.drawerWidth(available, grip.pressed ? dragWidth : preferredWidth, FileBrowserMetrics.previewDrawerMinWidth, FileBrowserMetrics.previewViewMinWidth, FileBrowserMetrics.previewDrawerRatio)
-    readonly property bool selected: body.selection.count > 0
-    readonly property bool shown: open && showing && targetWidth > 0
+    readonly property bool shown: open && targetWidth > 0
+    readonly property string folderName: FilePaths.baseName(body.directory.path) || body.directory.path
     readonly property real devicePixelRatio: Window.window?.devicePixelRatio ?? Screen.devicePixelRatio
     readonly property real stripRaster: FileBrowserMetrics.previewStripHeight * devicePixelRatio
     property real reveal: shown ? 1 : 0
@@ -132,16 +131,6 @@ Item {
         });
     }
 
-    onSelectedChanged: {
-        if (!selected) {
-            hideLater.restart();
-            return;
-        }
-        hideLater.stop();
-        showing = true;
-    }
-    Component.onCompleted: showing = selected
-
     width: shown || reveal > 0 ? Math.round(targetWidth) : 0
     clip: true
 
@@ -172,9 +161,10 @@ Item {
             anchors.bottomMargin: stripView.visible ? drawer.gap : 0
             anchors.left: parent.left
             anchors.right: parent.right
-            active: drawer.width > 0 && drawer.visible
+            active: drawer.visible && (drawer.open || drawer.reveal > 0)
             onLoaded: drawer.resolve()
             sourceComponent: FilePreviewPane {
+                visible: drawer.resolved.length > 0
                 entries: drawer.resolved
                 backend: drawer.body.directory.backend ?? null
                 imageSizeLimit: drawer.body.directory.thumbnailSizeLimit ?? -1
@@ -185,6 +175,46 @@ Item {
                 closable: true
                 onCloseRequested: drawer.body.previewKeyRequested("toggle", 0)
                 caption: drawer.strip.length > 1 && drawer.focusIndex >= 0 ? I18n.tr("%1 of %2", "position of the previewed item among the selected items").arg(drawer.focusIndex + 1).arg(drawer.strip.length) : ""
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                visible: content.active && drawer.resolved.length === 0
+                radius: FileBrowserMetrics.previewCardRadius
+                color: drawer.chipColor
+            }
+
+            Column {
+                anchors.centerIn: parent
+                width: parent.width - FileBrowserMetrics.previewCardPadding * 2
+                visible: content.active && drawer.resolved.length === 0
+                spacing: Style.spacingS
+
+                FileIcon {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    size: FileBrowserMetrics.previewIconSize
+                    iconName: "folder"
+                    color: Style.primary
+                }
+
+                StyledText {
+                    width: parent.width
+                    text: drawer.folderName
+                    color: Style.surfaceText
+                    font.pixelSize: Style.fontSizeLarge
+                    font.weight: Style.fontWeightMedium
+                    horizontalAlignment: Text.AlignHCenter
+                    elide: Text.ElideMiddle
+                }
+
+                StyledText {
+                    width: parent.width
+                    opacity: drawer.body.directory.loading ? 0 : 1
+                    text: FileFormat.count(drawer.body.directory.total)
+                    color: Style.surfaceVariantText
+                    font.pixelSize: Style.fontSizeMedium
+                    horizontalAlignment: Text.AlignHCenter
+                }
             }
 
             TapHandler {
@@ -271,13 +301,6 @@ Item {
 
         interval: FileBrowserMetrics.settleInterval
         onTriggered: drawer.requestStripThumbnails()
-    }
-
-    Timer {
-        id: hideLater
-
-        interval: FileBrowserMetrics.settleInterval
-        onTriggered: drawer.showing = drawer.selected
     }
 
     Connections {

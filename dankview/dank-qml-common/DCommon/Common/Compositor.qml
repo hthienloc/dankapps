@@ -8,17 +8,17 @@ Singleton {
 
     readonly property string desktop: (Quickshell.env("XDG_CURRENT_DESKTOP") || "").split(":")[0].toLowerCase()
 
-    readonly property bool supportsMinimize: {
+    readonly property bool tiling: {
         if (Quickshell.env("NIRI_SOCKET"))
-            return false;
+            return true;
         if (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE"))
-            return false;
+            return true;
         if (Quickshell.env("SWAYSOCK"))
-            return false;
+            return true;
         if (Quickshell.env("MANGO_INSTANCE_SIGNATURE"))
-            return false;
+            return true;
         if (Quickshell.env("MIRACLESOCK"))
-            return false;
+            return true;
 
         switch (desktop) {
         case "niri":
@@ -30,9 +30,11 @@ Singleton {
         case "umbriel":
         case "river":
         case "dwl":
-            return false;
-        default:
             return true;
+        default:
+            return false;
         }
     }
+
+    readonly property bool supportsMinimize: !tiling
 }

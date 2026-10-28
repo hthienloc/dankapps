@@ -41,18 +41,25 @@ QtObject {
     property int _firstVisible: -1
     property int _lastVisible: -1
     property string _loadedPath: ""
+    property var _requested: null
     property bool _awaiting: false
     property var _buffered: []
     property var _watchToken: null
     property var _pageToken: null
-    property var _thumbnailsInFlight: ({})
     property string _matcherQuery: ""
     property var _matcher: null
 
     signal gone
     signal listed
     signal entriesAdded
+    signal entriesRemoved
     signal pathReset
+
+    readonly property ThumbnailRequests _thumbnails: ThumbnailRequests {
+        backend: root.backend
+        size: root.thumbnailSize
+        sizeLimit: root.thumbnailSizeLimit
+    }
 
     readonly property Connections _backendLink: Connections {
         target: root.backend
@@ -78,6 +85,7 @@ QtObject {
 
     function reload() {
         _release();
+        _requested = null;
         loading = false;
         if (path !== _loadedPath) {
             _loadedPath = path;
@@ -98,6 +106,7 @@ QtObject {
         const token = _token();
         const service = backend;
         _watchToken = token;
+        _requested = _options();
         loading = true;
         _await();
         service.watch(path, _options(), result => {
@@ -140,8 +149,6 @@ QtObject {
         });
     }
 
-    // The daemon owns sorting and hidden files; the name filter is the one
-    // client-side view, so batches are translated into filtered indices.
     function _passes(entry) {
         if (nameFilter === "")
             return true;
@@ -175,16 +182,6 @@ QtObject {
         repage();
     }
 
-    function setShowHidden(show) {
-        includeHidden = show === true;
-        repage();
-    }
-
-    function setFilters(patterns) {
-        filters = patterns ?? [];
-        repage();
-    }
-
     function refresh() {
         if (!pollOnFocus)
             return;
@@ -215,37 +212,14 @@ QtObject {
         const paths = [];
         for (let i = first; i <= Math.min(last, entries.count - 1); i++) {
             const entry = entries.get(i);
-            if (!entry.thumbnailable || entry.thumbnail !== "" || _thumbnailsInFlight[entry.path] === true)
-                continue;
-            if (thumbnailSizeLimit >= 0 && entry.size > thumbnailSizeLimit && entry.mime.startsWith("image/"))
-                continue;
-            paths.push(entry.path);
+            if (_thumbnails.wanted(entry))
+                paths.push(entry.path);
         }
-        if (paths.length === 0)
-            return;
-
-        for (const path of paths)
-            _thumbnailsInFlight[path] = true;
-        backend.thumbnails(paths, thumbnailSize, watchId, result => {
-            for (const path of paths)
-                delete _thumbnailsInFlight[path];
-            if (result.error)
-                return;
+        _thumbnails.request(paths, watchId, items => {
             const at = _positions();
-            for (const item of result.results || []) {
-                if (!item.thumbnail)
-                    continue;
+            for (const item of items)
                 _setThumbnail(item.path, item.thumbnail, at);
-            }
         });
-    }
-
-    function indexOfName(name) {
-        for (let i = 0; i < entries.count; i++) {
-            if (entries.get(i).name === name)
-                return i;
-        }
-        return -1;
     }
 
     function indexOfPath(target) {
@@ -287,7 +261,22 @@ QtObject {
         return false;
     }
 
+    function _sameOptions(a, b) {
+        if (!a || !b)
+            return false;
+        if (a.includeHidden !== b.includeHidden || a.sortKey !== b.sortKey || a.sortDesc !== b.sortDesc || a.dirsFirst !== b.dirsFirst || a.limit !== b.limit)
+            return false;
+        return a.filters.length === b.filters.length && a.filters.every((pattern, i) => pattern === b.filters[i]);
+    }
+
+    function repageIfChanged() {
+        if (_sameOptions(_options(), _requested))
+            return;
+        repage();
+    }
+
     function repage() {
+        _requested = _options();
         if (watchId === "") {
             reload();
             return;
@@ -402,6 +391,7 @@ QtObject {
     function _applyBatch(data) {
         if (data.hidden !== undefined)
             hiddenCount = data.hidden;
+        let removed = false;
         for (const name of data.removed || []) {
             total = Math.max(0, total - 1);
             const raw = _rawIndexOfName(name);
@@ -410,9 +400,13 @@ QtObject {
             const shown = _passes(_all[raw]);
             const index = _filteredIndexBefore(raw);
             _all.splice(raw, 1);
-            if (shown)
-                entries.remove(index);
+            if (!shown)
+                continue;
+            entries.remove(index);
+            removed = true;
         }
+        if (removed)
+            entriesRemoved();
 
         _applyChanged(data.changed || []);
 
@@ -496,7 +490,7 @@ QtObject {
         _buffered = [];
         if (watchId !== "" && backend)
             backend.unwatch(watchId);
-        _thumbnailsInFlight = ({});
+        _thumbnails.reset();
         watchId = "";
         watching = false;
         pollOnFocus = false;

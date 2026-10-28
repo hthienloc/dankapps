@@ -2,6 +2,7 @@ import QtQuick
 import qs.DCommon.Common
 
 DTextField {
+    fieldHeight: Style.fieldHeightLarge
     cornerRadius: Style.fullRadius(width, height)
     normalBorderColor: Style.outlineVariant
     focusedBorderColor: Style.focusRingWidth > 0 ? Style.focusRingColor : normalBorderColor

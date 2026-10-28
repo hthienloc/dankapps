@@ -35,6 +35,8 @@ DTextField {
     }
 
     height: Style.buttonHeightXXS
+    topPadding: 0
+    bottomPadding: 0
     outlined: true
     isError: text !== "" && !valid
     onAccepted: commit()

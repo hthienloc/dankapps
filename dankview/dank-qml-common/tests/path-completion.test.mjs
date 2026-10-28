@@ -5,7 +5,7 @@ import test from "node:test";
 
 const ctx = vm.createContext({});
 vm.runInContext(readFileSync(new URL("../DCommon/FileBrowser/PathCompletion.js", import.meta.url), "utf8").replace(/^\.pragma.*$/gm, ""), ctx);
-const { target, rank, row, tab, commonPrefix, markup, merge, isPathLike } = ctx;
+const { target, rank, row, tab, commonPrefix, merge, isPathLike } = ctx;
 
 const plain = value => JSON.parse(JSON.stringify(value));
 const home = "/home/me";
@@ -51,7 +51,6 @@ test("completion rows keep the typed form and mark the matched part", () => {
     assert.equal(downloads.replacement, "Downloads/");
     assert.equal(downloads.hint, "~");
     assert.deepEqual(downloads.nameMarks, [[1, 5]]);
-    assert.equal(markup(downloads.name, downloads.nameMarks, "#f00"), 'D<font color="#f00"><b>ownl</b></font>oads');
 });
 
 test("rows split into a name and a parent hint", () => {
@@ -73,10 +72,6 @@ test("match positions are split between the hint and the name", () => {
     assert.deepEqual(r.hintMarks, [[2, 4]]);
     assert.deepEqual(r.nameMarks, [[0, 2], [5, 6]]);
     assert.equal(r.replacement, "~/repos/dfiles/");
-});
-
-test("markup escapes names", () => {
-    assert.equal(markup("a<b>&c", [[1, 4]], "#f00"), 'a<font color="#f00"><b>&lt;b&gt;</b></font>&amp;c');
 });
 
 test("the longest common prefix", () => {

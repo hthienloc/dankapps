@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Window
@@ -14,13 +16,22 @@ Rectangle {
 
     readonly property real windowWidth: root.Window.window?.width ?? Infinity
     readonly property real windowHeight: root.Window.window?.height ?? Infinity
+    readonly property string currentLabel: root.currentIcon ? root.currentIcon.charAt(0).toUpperCase() + root.currentIcon.slice(1).replace(/_/g, " ") : I18n.tr("Choose icon")
+    readonly property string query: searchField.text.trim().toLowerCase().replace(/\s+/g, "_")
 
     width: Math.min(240, windowWidth - Style.spacingL * 2)
-    height: 32
-    radius: Style.cornerRadius
-    color: Style.chipSurface
-    border.color: iconPopup.visible ? Style.primary : Style.outline
-    border.width: 1
+    height: Style.buttonHeightS
+    radius: Style.fullRadius(width, height)
+    color: triggerArea.containsMouse ? Style.surfaceHover : Style.chipSurface
+    border.color: iconPopup.visible ? Style.primary : Style.outlineVariant
+    border.width: Style.outlineWidth
+
+    Behavior on color {
+        ColorAnimation {
+            duration: Style.shortDuration
+            easing.type: Style.standardEasing
+        }
+    }
 
     property var iconCategories: [
         {
@@ -61,11 +72,13 @@ Rectangle {
         },
         {
             "name": I18n.tr("Fun"),
-            "icons": ["celebration", "cake", "star", "favorite", "pets", "sports_esports", "local_fire_department", "bolt", "auto_awesome", "diamond"]
+            "icons": ["celebration", "cake", "star", "favorite", "pets", "sports_esports", "local_fire_department", "bolt", "auto_awesome", "diamond", "blur_on"]
         }
     ]
 
     MouseArea {
+        id: triggerArea
+
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
@@ -75,51 +88,61 @@ Rectangle {
                 return;
             }
             const pos = root.mapToItem(Overlay.overlay, 0, 0);
-            const popupHeight = iconPopup.height;
+            const overlayWidth = Overlay.overlay?.width ?? Infinity;
             const overlayHeight = Overlay.overlay?.height ?? 800;
-            iconPopup.x = pos.x;
-            if (pos.y + root.height + popupHeight + 4 > overlayHeight) {
-                iconPopup.y = pos.y - popupHeight - 4;
-            } else {
-                iconPopup.y = pos.y + root.height + 4;
-            }
+            const margin = Style.spacingM;
+            // Trigger sits at the row's trailing edge, so align the popup's right edge to it and keep it on screen.
+            iconPopup.x = Math.max(margin, Math.min(pos.x + root.width - iconPopup.width, overlayWidth - iconPopup.width - margin));
+            const below = pos.y + root.height + Style.spacingXS;
+            const y = below + iconPopup.height > overlayHeight - margin ? pos.y - iconPopup.height - Style.spacingXS : below;
+            iconPopup.y = Math.max(margin, Math.min(y, overlayHeight - iconPopup.height - margin));
             iconPopup.open();
         }
     }
 
-    Row {
+    Rectangle {
+        id: avatar
+
+        readonly property real inset: Style.spacingXS + Style.outlineWidth
+
         anchors.left: parent.left
+        anchors.leftMargin: inset
         anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: Style.spacingS
-        spacing: Style.spacingS
+        width: root.height - inset * 2
+        height: width
+        radius: width / 2
+        color: root.currentIcon ? Style.primaryContainer : Style.surfaceContainerHighest
 
         DIcon {
-            id: previewIcon
-
-            name: (root.iconType === "icon" && root.currentIcon) ? root.currentIcon : (root.iconType === "text" ? "text_fields" : "add")
-            size: 16
-            color: root.currentIcon ? Style.surfaceText : Style.outline
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.centerIn: parent
+            name: root.currentIcon || "add"
+            size: Style.iconSizeSmall
+            filled: root.currentIcon !== ""
+            color: root.currentIcon ? Style.onPrimaryContainer : Style.outline
         }
+    }
 
-        StyledText {
-            text: root.currentIcon ? root.currentIcon : I18n.tr("Choose icon")
-            font.pixelSize: Style.fontSizeSmall
-            color: root.currentIcon ? Style.surfaceText : Style.outline
-            anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(0, root.width - Style.spacingS * 3 - previewIcon.width - chevron.width)
-            elide: Text.ElideRight
-        }
+    StyledText {
+        anchors.left: avatar.right
+        anchors.leftMargin: Style.spacingS
+        anchors.right: chevron.left
+        anchors.rightMargin: Style.spacingS
+        anchors.verticalCenter: parent.verticalCenter
+        text: root.currentLabel
+        font.pixelSize: Style.fontSizeSmall
+        font.weight: Style.fontWeightMedium
+        color: root.currentIcon ? Style.surfaceText : Style.outline
+        elide: Text.ElideRight
     }
 
     DIcon {
         id: chevron
 
         name: iconPopup.visible ? "expand_less" : "expand_more"
-        size: 16
+        size: Style.iconSizeSmall
         color: Style.outline
         anchors.right: parent.right
-        anchors.rightMargin: Style.spacingS
+        anchors.rightMargin: Style.spacingM
         anchors.verticalCenter: parent.verticalCenter
     }
 
@@ -127,12 +150,14 @@ Rectangle {
         id: iconPopup
 
         parent: root.Overlay.overlay
-        width: Math.min(320, root.windowWidth - Style.spacingL * 2)
-        height: Math.min(500, root.windowHeight - Style.spacingL * 2, dropdownContent.implicitHeight + 32)
+        width: Math.min(360, root.windowWidth - Style.spacingL * 2)
+        height: Math.min(520, root.windowHeight - Style.spacingL * 2, dropdownContent.height + searchRow.height + Style.spacingM * 3)
         padding: 0
         modal: true
         dim: false
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        onOpened: searchField.forceActiveFocus()
+        onClosed: searchField.text = ""
 
         background: Rectangle {
             color: "transparent"
@@ -140,13 +165,13 @@ Rectangle {
 
         contentItem: Rectangle {
             id: contentSurface
+
             color: Style.cardSurface
             border.width: Style.layerOutlineWidth
             border.color: Style.outlineMedium
             radius: Style.windowRadius
 
             ElevationShadow {
-                id: shadowLayer
                 anchors.fill: parent
                 z: -1
                 level: Style.elevationLevel2
@@ -157,98 +182,122 @@ Rectangle {
                 shadowEnabled: Style.elevationEnabled
             }
 
-            Rectangle {
-                width: 24
-                height: 24
-                radius: Style.cornerRadiusM
-                color: closeMouseArea.containsMouse ? Style.errorHover : Style.withAlpha(Style.errorHover, 0)
-                anchors.top: parent.top
-                anchors.right: parent.right
-                anchors.topMargin: Style.spacingS
-                anchors.rightMargin: Style.spacingS
-                z: 1
-
-                DIcon {
-                    name: "close"
-                    size: 16
-                    color: closeMouseArea.containsMouse ? Style.error : Style.outline
-                    anchors.centerIn: parent
-                }
-
-                MouseArea {
-                    id: closeMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: iconPopup.close()
-                }
-            }
-
-            DFlickable {
+            Column {
                 anchors.fill: parent
-                anchors.margins: Style.spacingS
-                contentHeight: dropdownContent.height
-                clip: true
-                pressDelay: 0
+                anchors.margins: Style.spacingM
+                spacing: Style.spacingM
 
-                Column {
-                    id: dropdownContent
+                Item {
+                    id: searchRow
+
                     width: parent.width
-                    spacing: Style.spacingM
+                    height: searchField.height
 
-                    Repeater {
-                        model: root.iconCategories
+                    DSearchField {
+                        id: searchField
 
-                        Column {
-                            required property var modelData
-                            width: parent.width
-                            spacing: Style.spacingS
+                        anchors.left: parent.left
+                        anchors.right: closeButton.left
+                        anchors.rightMargin: Style.spacingS
+                        anchors.verticalCenter: parent.verticalCenter
+                        placeholderText: I18n.tr("Search...")
+                    }
 
-                            StyledText {
-                                text: modelData.name
-                                font.pixelSize: Style.fontSizeSmall
-                                font.weight: Style.fontWeightMedium
-                                color: Style.surfaceText
-                            }
+                    DActionButton {
+                        id: closeButton
 
-                            Flow {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        iconName: "close"
+                        Accessible.name: I18n.tr("Close")
+                        onClicked: iconPopup.close()
+                    }
+                }
+
+                DFlickable {
+                    width: parent.width
+                    height: parent.height - searchRow.height - parent.spacing
+                    contentHeight: dropdownContent.height
+                    clip: true
+                    pressDelay: 0
+
+                    Column {
+                        id: dropdownContent
+
+                        width: parent.width
+                        spacing: Style.spacingM
+
+                        Repeater {
+                            model: root.iconCategories
+
+                            Column {
+                                id: category
+
+                                required property var modelData
+                                readonly property var shownIcons: root.query ? category.modelData.icons.filter(icon => icon.includes(root.query)) : category.modelData.icons
+
                                 width: parent.width
-                                spacing: Style.spacingXS
+                                spacing: Style.spacingS
+                                visible: shownIcons.length > 0
 
-                                Repeater {
-                                    model: modelData.icons
+                                StyledText {
+                                    text: category.modelData.name
+                                    font.pixelSize: Style.fontSizeSmall
+                                    font.weight: Style.fontWeightMedium
+                                    color: Style.primary
+                                }
 
-                                    Rectangle {
-                                        required property string modelData
-                                        width: 36
-                                        height: 36
-                                        radius: Style.cornerRadius
-                                        color: iconMouseArea.containsMouse ? Style.primaryHover : Style.withAlpha(Style.primaryHover, 0)
-                                        border.color: root.currentIcon === modelData ? Style.primary : Style.withAlpha(Style.primary, 0)
-                                        border.width: 2
+                                Flow {
+                                    width: parent.width
+                                    spacing: Style.spacingXS
 
-                                        DIcon {
-                                            name: parent.modelData
-                                            size: 20
-                                            color: root.currentIcon === parent.modelData ? Style.primary : Style.surfaceText
-                                            anchors.centerIn: parent
-                                        }
+                                    Repeater {
+                                        model: category.shownIcons
 
-                                        MouseArea {
-                                            id: iconMouseArea
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: {
-                                                root.iconSelected(parent.modelData, "icon");
-                                                iconPopup.close();
+                                        Rectangle {
+                                            id: tile
+
+                                            required property string modelData
+                                            readonly property bool selected: root.currentIcon === modelData
+
+                                            width: Style.buttonHeightS
+                                            height: Style.buttonHeightS
+                                            radius: tile.selected ? tile.width / 2 : Style.cornerRadiusS
+                                            color: tile.selected ? Style.primaryContainer : iconMouseArea.containsMouse ? Style.surfaceHover : Style.withAlpha(Style.surfaceHover, 0)
+
+                                            DIcon {
+                                                anchors.centerIn: parent
+                                                name: tile.modelData
+                                                size: Style.iconSize
+                                                filled: tile.selected
+                                                color: tile.selected ? Style.onPrimaryContainer : Style.surfaceText
                                             }
-                                        }
 
-                                        Behavior on color {
-                                            ColorAnimation {
-                                                duration: Style.shortDuration
-                                                easing.type: Style.standardEasing
+                                            MouseArea {
+                                                id: iconMouseArea
+
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    root.iconSelected(tile.modelData, "icon");
+                                                    iconPopup.close();
+                                                }
+                                            }
+
+                                            Behavior on radius {
+                                                enabled: !Style.reduceMotion
+                                                DAnim {
+                                                    duration: Style.expressiveDurations.expressiveEffects
+                                                    easing.bezierCurve: Style.expressiveCurves.expressiveEffects
+                                                }
+                                            }
+
+                                            Behavior on color {
+                                                ColorAnimation {
+                                                    duration: Style.shortDuration
+                                                    easing.type: Style.standardEasing
+                                                }
                                             }
                                         }
                                     }
@@ -262,7 +311,6 @@ Rectangle {
     }
 
     function setIcon(iconName, type) {
-        root.iconType = type;
         root.iconType = "icon";
         root.currentIcon = iconName;
     }

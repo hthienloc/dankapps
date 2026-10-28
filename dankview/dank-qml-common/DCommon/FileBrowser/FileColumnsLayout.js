@@ -26,14 +26,14 @@ function columnWidth(stripWidth, previewWidth, minWidth, maxWidth) {
 function revealTarget(contentX, depth, columnWidth, previewWidth, stripWidth) {
     const activeX = depth * columnWidth;
     const activeEnd = activeX + columnWidth;
-    let x = contentX;
+    const stripEnd = Math.max(activeEnd + previewWidth, stripWidth);
+    let x = Math.min(contentX, stripEnd - stripWidth);
     if (x > activeX)
         x = activeX;
     else if (x < activeEnd + previewWidth - stripWidth)
         x = activeEnd + previewWidth - stripWidth;
-    x = Math.max(0, x);
     return {
-        "contentX": x,
-        "stripEnd": Math.max(activeEnd + previewWidth, stripWidth, x + stripWidth)
+        "contentX": Math.max(0, x),
+        "stripEnd": stripEnd
     };
 }

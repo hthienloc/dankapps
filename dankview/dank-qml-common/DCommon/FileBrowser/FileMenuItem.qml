@@ -23,16 +23,10 @@ StyledButton {
         return danger ? Style.error : Style.surfaceVariantText;
     }
 
-    signal entered
-
     width: parent?.width ?? 0
-    implicitHeight: Style.menuItemHeight
+    implicitHeight: Style.menuRowHeight
     radius: Style.cornerRadiusS
     color: "transparent"
-    onHoveredChanged: {
-        if (hovered)
-            root.entered();
-    }
 
     StateLayer {
         control: root
@@ -57,13 +51,13 @@ StyledButton {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.iconName !== ""
             name: root.iconName
-            size: Style.iconSizeMedium
+            size: Style.menuItemIconSize
             color: root.iconColor
         }
 
         StyledText {
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - (root.iconName !== "" ? Style.iconSizeMedium + parent.spacing : 0) - (root.submenu || root.checked ? Style.iconSizeMedium + Style.spacingM : 0)
+            width: parent.width - (root.iconName !== "" ? Style.menuItemIconSize + parent.spacing : 0) - (root.submenu || root.checked ? Style.menuItemIconSize + Style.spacingM : 0)
             text: root.text
             color: root.contentColor
             font.pixelSize: Style.fontSizeMedium
@@ -79,7 +73,7 @@ StyledButton {
         anchors.verticalCenter: parent.verticalCenter
         visible: root.submenu || root.checked
         name: root.submenu ? "chevron_right" : "check"
-        size: Style.iconSizeMedium
+        size: Style.menuItemIconSize
         color: root.submenu ? Style.surfaceVariantText : Style.primary
     }
 }

@@ -44,11 +44,19 @@ Item {
             replaced[row.id] = row;
         const head = ["type", "size"];
         const tail = ["modified", "created", "owner", "permissions"];
-        const make = id => replaced[id] ?? (entry ? {
-                    "id": id,
-                    "label": FileColumns.label(id),
-                    "value": FileColumns.value(id, entry)
-                } : null);
+        const make = id => {
+            if (replaced[id])
+                return replaced[id];
+            if (!entry)
+                return null;
+            const value = FileColumns.value(id, entry);
+            const pending = id === "size" && entry.isDir && value === "";
+            return {
+                "id": id,
+                "label": FileColumns.label(id),
+                "value": pending ? "…" : value
+            };
+        };
         const middle = extra.filter(row => !head.includes(row.id) && !tail.includes(row.id));
         return head.map(make).concat(middle, tail.map(make)).filter(row => row && row.value !== "");
     }
@@ -197,6 +205,7 @@ Item {
             visible: pane.entry !== null && !stage.showsContent && !stage.standing
             iconSize: stage.iconSize
             iconName: pane.entry?.iconName ?? ""
+            path: pane.entry?.path ?? ""
             thumbnail: pane.entry?.thumbnail ?? ""
             mime: pane.entry?.mime ?? ""
             isDir: pane.entry?.isDir ?? false
@@ -243,14 +252,14 @@ Item {
 
                 StyledText {
                     width: parent.width
-                    text: pane.entry?.name ?? ""
+                    text: pane.entry ? FileFormat.shownName("", pane.entry.name, pane.entry.isDir ?? false) : ""
                     color: Style.surfaceText
                     font.pixelSize: Style.fontSizeLarge
                     font.weight: Style.fontWeightMedium
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WrapAnywhere
                     maximumLineCount: 3
-                    elide: Text.ElideMiddle
+                    elide: Text.ElideRight
                 }
 
                 StyledText {

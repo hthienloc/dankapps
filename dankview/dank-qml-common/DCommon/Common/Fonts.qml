@@ -13,6 +13,15 @@ Singleton {
     readonly property string notable: notableFont.name || "Notable"
     readonly property string gochiHand: gochiHandFont.name || "Gochi Hand"
     readonly property var bundledFamilies: [display, notable, gochiHand]
+    readonly property string system: Qt.application.font.family
+    readonly property string systemMono: "monospace"
+
+    function selectableFamilies(defaultFamily) {
+        const bundled = bundledFamilies.filter(f => f !== defaultFamily);
+        const installed = Qt.fontFamilies().filter(f => !f.startsWith(".") && f !== defaultFamily && !bundled.includes(f));
+        installed.sort();
+        return bundled.concat(installed);
+    }
 
     FontLoader {
         id: googleSansFont

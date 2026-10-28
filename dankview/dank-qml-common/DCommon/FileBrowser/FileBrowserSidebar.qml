@@ -51,6 +51,7 @@ DFlickable {
 
                 label: sidebar.labelFor(modelData)
                 iconName: modelData.iconName
+                path: modelData.path
                 selected: sidebar.currentPath === modelData.path
                 onClicked: sidebar.placeSelected(modelData.path)
             }

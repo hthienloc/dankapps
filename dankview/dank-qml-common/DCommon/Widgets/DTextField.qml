@@ -14,7 +14,7 @@ StyledRect {
     onActiveFocusChanged: {
         if (!activeFocus)
             return;
-        textInput.forceActiveFocus();
+        forceActiveFocus();
     }
 
     property alias text: textInput.text
@@ -39,6 +39,9 @@ StyledRect {
     property bool showPasswordToggle: false
     property real rightAccessoryWidth: 0
     property bool passwordVisible: false
+    readonly property bool imeShielded: echoMode === TextInput.Password && !passwordVisible && !textInput.readOnly
+    readonly property bool inputFocused: textInput.activeFocus || imeSink.activeFocus
+    readonly property bool composing: textInput.inputMethodComposing || imeSink.inputMethodComposing
     property bool usePopupTransparency: !Style.isFloatingWindow(root)
     property color backgroundColor: expressive ? Style.surfaceContainerHigh : Style.chipSurface
     property color focusedBorderColor: expressive ? Style.focusRingColor : Style.primary
@@ -49,6 +52,7 @@ StyledRect {
     property real focusedBorderWidth: expressive ? (Style.focusRingWidth > 0 ? Math.max(Style.outlineWidth, Style.focusRingWidth) : Style.layerOutlineWidth) : Style.outlineWidthFocused
     property real cornerRadius: expressive ? Style.cornerRadiusXL : Style.cornerRadiusXS
     property real controlHeight: expressive ? Style.buttonHeightM : Style.iconButtonSize
+    property real fieldHeight: Style.fieldHeight
     property bool expressive: false
     property bool morph: false
     property bool busy: false
@@ -97,13 +101,13 @@ StyledRect {
     signal focusStateChanged(bool hasFocus)
 
     function getActiveFocus() {
-        return textInput.activeFocus;
+        return inputFocused;
     }
     function setFocus(value) {
         textInput.focus = value;
     }
     function forceActiveFocus() {
-        textInput.forceActiveFocus();
+        (imeShielded ? imeSink : textInput).forceActiveFocus();
     }
     function selectAll() {
         textInput.selectAll();
@@ -133,32 +137,44 @@ StyledRect {
     }
 
     readonly property real labelBandHeight: Math.round(Style.fontSizeSmall * 1.4) + Style.spacingXS * 2
-    readonly property bool labelFloated: textInput.activeFocus || text.length > 0 || textInput.inputMethodComposing
+    readonly property bool labelFloated: root.inputFocused || text.length > 0 || root.composing
     readonly property real labelProgress: Math.max(0, Math.min(1, labelMotion.value))
     readonly property real containerTop: outlined && labelText ? Style.outlinedFieldLabelLineHeight / 2 : 0
     readonly property string shownPlaceholderText: expressive && labelText ? labelText : placeholderText
     readonly property string shownSupportingText: supportingText || (expressive && labelText ? placeholderText : "")
     readonly property real supportingHeight: shownSupportingText ? supportingLabel.implicitHeight + Style.spacingXS : 0
     readonly property real containerHeight: height - containerTop - supportingHeight
-    readonly property bool placeholderVisible: textInput.text.length === 0 && !textInput.inputMethodComposing && (outlined ? (!labelText || labelFloated) : expressive || !hidePlaceholderOnFocus || !textInput.activeFocus)
-    readonly property color outlineTargetColor: !enabled ? Style.onSurface_12 : isError ? (fieldHover.hovered && !textInput.activeFocus ? Style.onErrorContainer : Style.error) : textInput.activeFocus ? focusedBorderColor : fieldHover.hovered ? Style.onSurface : normalBorderColor
+    readonly property bool placeholderVisible: textInput.text.length === 0 && !root.composing && (outlined ? (!labelText || labelFloated) : expressive || !hidePlaceholderOnFocus || !root.inputFocused)
+    readonly property color outlineTargetColor: !enabled ? Style.onSurface_12 : isError ? (fieldHover.hovered && !root.inputFocused ? Style.onErrorContainer : Style.error) : root.inputFocused ? focusedBorderColor : fieldHover.hovered ? Style.onSurface : normalBorderColor
     readonly property real outlineStrokeWidth: !enabled ? borderWidth : borderWidth + (focusedBorderWidth - borderWidth) * Math.max(0, Math.min(1, strokeMotion.value))
-    readonly property color labelTargetColor: !enabled ? Style.onSurface_38 : isError ? (fieldHover.hovered && !textInput.activeFocus ? Style.onErrorContainer : Style.error) : textInput.activeFocus ? Style.primary : fieldHover.hovered ? Style.onSurface : Style.onSurfaceVariant
+    readonly property color labelTargetColor: !enabled ? Style.onSurface_38 : isError ? (fieldHover.hovered && !root.inputFocused ? Style.onErrorContainer : Style.error) : root.inputFocused ? Style.primary : fieldHover.hovered ? Style.onSurface : Style.onSurfaceVariant
 
     width: Style.fieldDefaultWidth
-    implicitHeight: outlined ? Math.max(controlHeight, textInput.contentHeight + topPadding + bottomPadding) + containerTop + supportingHeight : expressive ? controlHeight + supportingHeight : Style.fieldHeight + (labelText ? labelBandHeight : 0)
+    implicitHeight: outlined ? Math.max(controlHeight, textInput.contentHeight + topPadding + bottomPadding) + containerTop + supportingHeight : expressive ? controlHeight + supportingHeight : fieldHeight + (labelText ? labelBandHeight : 0)
     height: implicitHeight
     radius: cornerRadius
     color: outlined || expressive ? "transparent" : Style.foregroundColor(backgroundColor, !usePopupTransparency)
-    border.color: isError ? Style.error : textInput.activeFocus ? focusedBorderColor : normalBorderColor
-    border.width: outlined || expressive ? 0 : textInput.activeFocus || isError ? focusedBorderWidth : borderWidth
+    border.color: isError ? Style.error : root.inputFocused ? focusedBorderColor : normalBorderColor
+    border.width: outlined || expressive ? 0 : root.inputFocused || isError ? focusedBorderWidth : borderWidth
 
     Component.onCompleted: {
         labelMotion.snapTo(labelFloated ? 1 : 0);
-        strokeMotion.snapTo(textInput.activeFocus ? 1 : 0);
+        strokeMotion.snapTo(root.inputFocused ? 1 : 0);
         placeholderMotion.snapTo(placeholderVisible ? 1 : 0);
     }
     onLabelFloatedChanged: labelMotion.retarget(labelFloated ? 1 : 0)
+    onInputFocusedChanged: {
+        strokeMotion.retarget(inputFocused ? 1 : 0);
+        focusStateChanged(inputFocused);
+    }
+    onImeShieldedChanged: {
+        if (imeShielded && textInput.activeFocus) {
+            imeSink.forceActiveFocus();
+            return;
+        }
+        if (!imeShielded && imeSink.activeFocus)
+            textInput.forceActiveFocus();
+    }
     onTextChanged: {
         const grew = text.length > typedCount;
         typedCount = text.length;
@@ -252,8 +268,8 @@ StyledRect {
 
             radius: root.cornerRadius
             color: Style.foregroundColor(root.backgroundColor, !root.usePopupTransparency)
-            border.color: errorOutline ? Style.error : textInput.activeFocus ? root.focusedBorderColor : root.normalBorderColor
-            border.width: errorOutline ? Style.outlineWidth : textInput.activeFocus ? root.focusedBorderWidth : root.borderWidth
+            border.color: errorOutline ? Style.error : root.inputFocused ? root.focusedBorderColor : root.normalBorderColor
+            border.width: errorOutline ? Style.outlineWidth : root.inputFocused ? root.focusedBorderWidth : root.borderWidth
 
             Behavior on border.color {
                 enabled: Style.currentAnimationSpeed !== Style.AnimationSpeed.None
@@ -382,7 +398,7 @@ StyledRect {
         anchors.verticalCenter: textInput.verticalCenter
         name: leftIconName
         size: leftIconSize
-        color: root.outlined ? (root.enabled ? root.leftIconColor : Style.onSurface_38) : textInput.activeFocus ? leftIconFocusedColor : leftIconColor
+        color: root.outlined ? (root.enabled ? root.leftIconColor : Style.onSurface_38) : root.inputFocused ? leftIconFocusedColor : leftIconColor
         visible: leftIconName !== "" && !leadingLoader.item && !root.morphShown
     }
 
@@ -420,10 +436,37 @@ StyledRect {
             font.pixelSize: root.outlined ? root.font.pixelSize : Style.fontSizeSmall
             scale: fieldLabel.textScale
             transformOrigin: I18n.isRtl ? Item.Right : Item.Left
-            color: root.outlined ? root.labelColor : textInput.activeFocus ? Style.primary : Style.onSurfaceVariant
+            color: root.outlined ? root.labelColor : root.inputFocused ? Style.primary : Style.onSurfaceVariant
             wrapMode: Text.NoWrap
             maximumLineCount: 1
             elide: Text.ElideNone
+        }
+    }
+
+    TextInput {
+        id: imeSink
+
+        x: textInput.x + textInput.cursorRectangle.x
+        y: textInput.y + textInput.cursorRectangle.y
+        width: 1
+        height: textInput.cursorRectangle.height
+        opacity: 0
+        activeFocusOnPress: false
+        activeFocusOnTab: root.enabled && root.imeShielded
+        Accessible.ignored: true
+        cursorDelegate: Item {}
+        // Password echo strips ImhHiddenText (QTBUG-88367); NoEcho keeps it so the input method sees a password field
+        echoMode: TextInput.NoEcho
+        inputMethodHints: Qt.ImhHiddenText | Qt.ImhSensitiveData | Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
+        Keys.forwardTo: [textInput]
+        onTextChanged: {
+            if (text.length === 0)
+                return;
+            const committed = text;
+            text = "";
+            if (textInput.selectedText.length > 0)
+                textInput.remove(textInput.selectionStart, textInput.selectionEnd);
+            textInput.insert(textInput.cursorPosition, committed);
         }
     }
 
@@ -445,14 +488,15 @@ StyledRect {
         font.family: Style.fontFamily
         font.weight: Style.fontWeight
         color: root.outlined && !root.enabled ? Style.onSurface_38 : Style.surfaceText
-        selectionColor: Style.selectedContainer
-        selectedTextColor: Style.onSelectedContainer
+        selectionColor: Style.primary
+        selectedTextColor: Style.onPrimary
         horizontalAlignment: TextInput.AlignLeft
         verticalAlignment: TextInput.AlignVCenter
-        selectByMouse: !root.ignoreLeftRightKeys
+        selectByMouse: true
         echoMode: root.passwordVisible && root.echoMode === TextInput.Password ? TextInput.Normal : root.echoMode
         clip: true
-        activeFocusOnTab: root.enabled
+        activeFocusOnTab: root.enabled && !root.imeShielded
+        cursorVisible: root.inputFocused
         Accessible.name: root.Accessible.name || root.labelText || root.placeholderText
         Accessible.description: root.supportingText || root.Accessible.description
         cursorDelegate: DTextCursor {
@@ -462,7 +506,7 @@ StyledRect {
             x: textInput.cursorRectangle.x
             y: textInput.cursorRectangle.y
             height: textInput.cursorRectangle.height
-            shown: textInput.cursorVisible
+            shown: root.inputFocused
 
             readonly property int inputCursorPosition: textInput.cursorPosition
             readonly property string inputText: textInput.text
@@ -476,8 +520,8 @@ StyledRect {
         onEditingFinished: root.editingFinished()
         onAccepted: root.accepted()
         onActiveFocusChanged: {
-            strokeMotion.retarget(activeFocus ? 1 : 0);
-            root.focusStateChanged(activeFocus);
+            if (activeFocus && root.imeShielded)
+                imeSink.forceActiveFocus();
         }
         Keys.forwardTo: root.keyForwardTargets
         Keys.onLeftPressed: event => {
@@ -539,7 +583,7 @@ StyledRect {
                 buttonSize: root.accessorySize
                 iconName: root.passwordVisible ? "visibility_off" : "visibility"
                 iconSize: root.outlined ? Style.iconSize : Style.iconSizeSmall
-                iconColor: root.outlined && root.isError ? (fieldHover.hovered && !textInput.activeFocus ? Style.onErrorContainer : Style.error) : Style.onSurfaceVariant
+                iconColor: root.outlined && root.isError ? (fieldHover.hovered && !root.inputFocused ? Style.onErrorContainer : Style.error) : Style.onSurfaceVariant
                 onClicked: root.passwordVisible = !root.passwordVisible
             }
         }
@@ -553,7 +597,7 @@ StyledRect {
                 buttonSize: root.accessorySize
                 iconName: "close"
                 iconSize: root.outlined ? Style.iconSize : Style.iconSizeSmall
-                iconColor: root.outlined && root.isError ? (fieldHover.hovered && !textInput.activeFocus ? Style.onErrorContainer : Style.error) : Style.onSurfaceVariant
+                iconColor: root.outlined && root.isError ? (fieldHover.hovered && !root.inputFocused ? Style.onErrorContainer : Style.error) : Style.onSurfaceVariant
                 onClicked: textInput.text = ""
             }
         }
@@ -598,7 +642,7 @@ StyledRect {
 
     Item {
         anchors.fill: textInput
-        visible: textInput.text.length === 0 && !textInput.inputMethodComposing && opacity > 0
+        visible: textInput.text.length === 0 && !root.composing && opacity > 0
         opacity: root.outlined ? Math.max(0, Math.min(1, placeholderMotion.value)) : root.placeholderVisible ? 1 : 0
 
         StyledText {

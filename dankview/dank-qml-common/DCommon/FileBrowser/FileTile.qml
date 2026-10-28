@@ -61,15 +61,17 @@ FileItemSurface {
         StyledText {
             id: nameLabel
 
+            readonly property string shown: FileFormat.shownName(tile.displayName, tile.name, tile.isDir)
+
             width: parent.width
             visible: !tile.renaming
             opacity: tile.cut ? Style.pendingOpacity : 1
-            text: FileFormat.highlight(tile.displayName !== "" ? tile.displayName : tile.name, tile.highlight, tile.selected ? tile.contentColor : Style.primary)
+            text: tile.highlight === "" ? (tile.view?.fitName(shown, tile.isDir) ?? shown) : FileFormat.highlight(shown, tile.highlight, tile.selected ? tile.contentColor : Style.primary)
             textFormat: tile.highlight === "" ? Text.PlainText : Text.StyledText
             color: tile.contentColor
             font.pixelSize: Style.fontSizeSmall
             horizontalAlignment: Text.AlignHCenter
-            elide: Text.ElideMiddle
+            elide: Text.ElideRight
             maximumLineCount: 2
             wrapMode: Text.Wrap
         }

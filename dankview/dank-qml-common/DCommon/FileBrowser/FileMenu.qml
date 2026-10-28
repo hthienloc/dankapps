@@ -15,9 +15,8 @@ Popup {
     readonly property bool motionEnabled: FileBrowserMetrics.animationsEnabled
 
     function openAt(pointX, pointY) {
-        const limits = anchorItem ?? parent;
-        x = Math.max(0, Math.min(pointX, (limits?.width ?? width) - width));
-        y = Math.max(0, Math.min(pointY, (limits?.height ?? height) - height));
+        x = pointX;
+        y = pointY;
         open();
     }
 
@@ -78,6 +77,7 @@ Popup {
 
     width: FileBrowserMetrics.menuWidth
     padding: Style.spacingXS
+    margins: 0
     modal: true
     dim: false
     focus: true

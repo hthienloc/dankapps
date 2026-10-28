@@ -66,6 +66,15 @@ Singleton {
         }
     ]
 
+    readonly property var recentColumns: [
+        {
+            "id": "used",
+            "sortKey": "used",
+            "width": FileBrowserMetrics.modifiedColumnWidth,
+            "align": Text.AlignRight
+        }
+    ]
+
     function label(id) {
         switch (id) {
         case "name":
@@ -88,17 +97,22 @@ Singleton {
             return I18n.tr("Original location", "trash list column header, where an item was deleted from");
         case "deleted":
             return I18n.tr("Deleted", "trash list column header, when an item was moved to the trash");
+        case "used":
+            return I18n.tr("Last used", "recent files list column header, when a file was last opened");
         default:
             return id;
         }
     }
 
-    function value(id, entry) {
+    function value(id, entry, childCount) {
         switch (id) {
         case "size":
-            if (!entry.isDir)
-                return FileFormat.size(entry.size);
-            return entry.childCount >= 0 ? FileFormat.count(entry.childCount) : "";
+            {
+                if (!entry.isDir)
+                    return FileFormat.size(entry.size);
+                const count = childCount ?? entry.childCount ?? -1;
+                return count >= 0 ? FileFormat.count(count) : "";
+            }
         case "modified":
             return FileFormat.modified(entry.mtimeMs);
         case "type":
@@ -115,16 +129,22 @@ Singleton {
             return FileFormat.location(entry.originalPath ?? "");
         case "deleted":
             return FileFormat.modified(entry.deletedMs);
+        case "used":
+            return FileFormat.modified(entry.usedMs);
         default:
             return "";
         }
     }
 
     function specFor(id) {
-        return optional.find(column => column.id === id) ?? trashColumns.find(column => column.id === id) ?? null;
+        return optional.find(column => column.id === id) ?? trashColumns.find(column => column.id === id) ?? recentColumns.find(column => column.id === id) ?? null;
     }
 
     function sortKeyFor(id) {
         return specFor(id)?.sortKey ?? "";
+    }
+
+    function widthFor(id, widths) {
+        return widths[id] ?? specFor(id)?.width ?? FileBrowserMetrics.columnMinWidth;
     }
 }

@@ -12,6 +12,7 @@ GridView {
     property real momentumVelocity: 0
     property bool isMomentumActive: false
     property real friction: Scroll.friction
+    readonly property real maximumContentY: Math.max(originY, contentHeight - height + originY)
     property bool wheelEnabled: true
     property bool showScrollBar: true
     property bool fadeEdges: true
@@ -47,6 +48,17 @@ GridView {
         vbar.hideTimer.stop();
     }
     onMovementEnded: vbar.hideTimer.restart()
+
+    property real _lastOriginY: 0
+
+    // A header that grows after the first layout extends upward past the viewport; a view resting at the top follows the new origin.
+    onOriginYChanged: {
+        const wasAtTop = contentY <= _lastOriginY + 0.5;
+        _lastOriginY = originY;
+        if (!wasAtTop || moving || isMomentumActive)
+            return;
+        contentY = originY;
+    }
 
     function forwardWheel(event) {
         if (!wheelEnabled)
@@ -108,7 +120,7 @@ GridView {
                 const lines = Math.round(Math.abs(deltaY) / 120);
                 const scrollAmount = (deltaY > 0 ? -lines : lines) * mouseWheelSpeed;
                 let newY = contentY + scrollAmount;
-                newY = Math.max(0, Math.min(contentHeight - height, newY));
+                newY = Math.max(originY, Math.min(maximumContentY, newY));
 
                 if (flicking) {
                     cancelFlick();
@@ -125,7 +137,7 @@ GridView {
 
                 let delta = deltaY / 8 * touchpadSpeed;
                 let newY = contentY - delta;
-                newY = Math.max(0, Math.min(contentHeight - height, newY));
+                newY = Math.max(originY, Math.min(maximumContentY, newY));
 
                 if (flicking) {
                     cancelFlick();
@@ -161,7 +173,7 @@ GridView {
                 }
 
                 let newY = contentY - delta;
-                newY = Math.max(0, Math.min(contentHeight - height, newY));
+                newY = Math.max(originY, Math.min(maximumContentY, newY));
 
                 if (flicking) {
                     cancelFlick();
@@ -194,10 +206,11 @@ GridView {
         onTriggered: {
             const dt = frameTime;
             const newY = contentY - momentumVelocity * dt;
-            const maxY = Math.max(0, contentHeight - height);
+            const minY = originY;
+            const maxY = maximumContentY;
 
-            if (newY < 0 || newY > maxY) {
-                contentY = newY < 0 ? 0 : maxY;
+            if (newY < minY || newY > maxY) {
+                contentY = newY < minY ? minY : maxY;
                 running = false;
                 isMomentumActive = false;
                 momentumVelocity = 0;

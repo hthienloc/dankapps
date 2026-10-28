@@ -26,6 +26,7 @@ FileItemSurface {
     required property var model
 
     readonly property string highlight: view?.nameHighlight ?? ""
+    readonly property int childCount: view?.childCounts?.[path] ?? -1
     readonly property var entry: ({
             "path": path,
             "isDir": isDir,
@@ -37,9 +38,9 @@ FileItemSurface {
             "ctimeMs": ctimeMs,
             "owner": owner,
             "mode": mode,
-            "childCount": view?.childCounts?.[path] ?? -1,
             "originalPath": model.originalPath ?? "",
-            "deletedMs": model.deletedMs ?? 0
+            "deletedMs": model.deletedMs ?? 0,
+            "usedMs": model.usedMs ?? 0
         })
 
     hitTargets: [visual, nameLabel, chevron].concat(Array.from(columns.children))
@@ -89,7 +90,7 @@ FileItemSurface {
 
                 width: row.view.columnWidth(modelData)
                 horizontalAlignment: FileColumns.specFor(modelData)?.align ?? Text.AlignLeft
-                text: FileColumns.value(modelData, row.entry)
+                text: FileColumns.value(modelData, row.entry, row.childCount)
                 color: row.supportingColor
                 font.pixelSize: Style.fontSizeSmall
                 elide: Text.ElideRight
@@ -115,13 +116,13 @@ FileItemSurface {
         id: nameLabel
 
         anchors.left: visual.right
-        anchors.leftMargin: FileBrowserMetrics.listRowPadding
+        anchors.leftMargin: FileBrowserMetrics.listRowGap
         anchors.right: chevron.left
         anchors.rightMargin: FileBrowserMetrics.columnGap
         anchors.verticalCenter: parent.verticalCenter
         visible: !row.renaming
         opacity: row.cut ? Style.pendingOpacity : 1
-        text: FileFormat.highlight(row.displayName !== "" ? row.displayName : row.name, row.highlight, row.selected ? row.contentColor : Style.primary)
+        text: FileFormat.highlight(FileFormat.shownName(row.displayName, row.name, row.isDir), row.highlight, row.selected ? row.contentColor : Style.primary)
         textFormat: row.highlight === "" ? Text.PlainText : Text.StyledText
         color: row.contentColor
         font.pixelSize: Style.fontSizeMedium
@@ -131,7 +132,7 @@ FileItemSurface {
 
     Loader {
         anchors.left: visual.right
-        anchors.leftMargin: FileBrowserMetrics.listRowPadding
+        anchors.leftMargin: FileBrowserMetrics.listRowGap
         anchors.right: chevron.left
         anchors.rightMargin: FileBrowserMetrics.columnGap
         anchors.verticalCenter: parent.verticalCenter

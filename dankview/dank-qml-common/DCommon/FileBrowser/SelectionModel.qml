@@ -45,10 +45,11 @@ QtObject {
         _base = [];
     }
 
-    function setCursor(path) {
-        cursorPath = path;
-        if (anchorPath === "")
-            anchorPath = path;
+    function replace(next, cursor) {
+        paths = next;
+        anchorPath = cursor;
+        cursorPath = cursor;
+        _base = next.slice();
     }
 
     function toggle(path) {

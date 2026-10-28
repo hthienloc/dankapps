@@ -39,13 +39,13 @@ Row {
         return (maximumWidth - spacing * (count - 1)) / count - Style.spacingXS;
     }
     readonly property real outerRadius: Style.fullRadius(buttonHeight, buttonHeight)
-    readonly property real innerRadius: Math.min(M3E.innerR, outerRadius)
-    readonly property real pressedInnerRadius: Math.min(M3E.pressRadiusXS, outerRadius)
+    readonly property real innerRadius: Math.min(Style.cornerRadiusS, outerRadius)
+    readonly property real pressedInnerRadius: Math.min(Style.cornerRadiusXS, outerRadius)
 
     signal selectionChanged(int index, bool selected)
     signal animationCompleted
 
-    spacing: M3E.groupGap
+    spacing: Style.groupedListGap
     LayoutMirroring.enabled: I18n.isRtl
     LayoutMirroring.childrenInherit: true
 
@@ -157,8 +157,8 @@ Row {
             property bool visualLast: index === repeater.count - 1
             property bool prevSelected: index > 0 ? root.isSelected(index - 1) : false
             property bool nextSelected: index < repeater.count - 1 ? root.isSelected(index + 1) : false
-            readonly property real leftRadius: M3E.leftRadius(index, repeater.count, root.outerRadius, pressed, hovered, selected, root.pressedInnerRadius)
-            readonly property real rightRadius: M3E.rightRadius(index, repeater.count, root.outerRadius, pressed, hovered, selected, root.pressedInnerRadius)
+            readonly property real leftRadius: visualFirst ? root.outerRadius : (pressed ? root.pressedInnerRadius : (selected ? root.outerRadius : root.innerRadius))
+            readonly property real rightRadius: visualLast ? root.outerRadius : (pressed ? root.pressedInnerRadius : (selected ? root.outerRadius : root.innerRadius))
             readonly property color contentColor: !root.enabled ? Style.onSurface_38 : (selected ? root.selectedContentColor : root.unselectedContentColor)
 
             readonly property real contentNaturalWidth: (checkIcon.visible ? checkIcon.width + contentRow.spacing : 0) + (optionIcon.visible ? optionIcon.width + (buttonText.visible ? contentRow.spacing : 0) : 0) + (buttonText.visible ? buttonText.implicitWidth : 0)
@@ -172,9 +172,8 @@ Row {
 
             width: baseWidth
             height: root.buttonHeight
-            scale: pressed ? M3E.rowPressScale : 1.0
 
-            color: !root.enabled ? Style.onSurface_12 : (selected ? root.selectedColor : root.unselectedColor)
+            color: !root.enabled ? Style.onSurface_10 : (selected ? root.selectedColor : root.unselectedColor)
             border.color: "transparent"
             border.width: 0
 
@@ -183,51 +182,43 @@ Row {
             topRightRadius: mirrored ? leftRadius : rightRadius
             bottomRightRadius: mirrored ? leftRadius : rightRadius
 
-            Behavior on scale {
-                enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
-                DAnim {
-                    duration: M3E.spatialFastMs
-                    easing.bezierCurve: M3E.curveFastSpatial
-                }
-            }
-
             Behavior on topLeftRadius {
-                enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
+                enabled: root.interactionStarted && !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
                 DAnim {
-                    duration: M3E.spatialFastMs
-                    easing.bezierCurve: M3E.curveFastSpatial
+                    duration: Style.expressiveDurations.expressiveFastSpatial
+                    easing.bezierCurve: Style.expressiveCurves.standard
                 }
             }
 
             Behavior on topRightRadius {
-                enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
+                enabled: root.interactionStarted && !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
                 DAnim {
-                    duration: M3E.spatialFastMs
-                    easing.bezierCurve: M3E.curveFastSpatial
+                    duration: Style.expressiveDurations.expressiveFastSpatial
+                    easing.bezierCurve: Style.expressiveCurves.standard
                 }
             }
 
             Behavior on bottomLeftRadius {
-                enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
+                enabled: root.interactionStarted && !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
                 DAnim {
-                    duration: M3E.spatialFastMs
-                    easing.bezierCurve: M3E.curveFastSpatial
+                    duration: Style.expressiveDurations.expressiveFastSpatial
+                    easing.bezierCurve: Style.expressiveCurves.standard
                 }
             }
 
             Behavior on bottomRightRadius {
-                enabled: !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
+                enabled: root.interactionStarted && !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
                 DAnim {
-                    duration: M3E.spatialFastMs
-                    easing.bezierCurve: M3E.curveFastSpatial
+                    duration: Style.expressiveDurations.expressiveFastSpatial
+                    easing.bezierCurve: Style.expressiveCurves.standard
                 }
             }
 
             Behavior on color {
                 enabled: root.userInteracted && !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
                 DColorAnim {
-                    duration: M3E.effectsMs
-                    easing.bezierCurve: M3E.curveEffects
+                    duration: Style.expressiveDurations.expressiveEffects
+                    easing.bezierCurve: Style.expressiveCurves.expressiveEffects
                 }
             }
 

@@ -66,10 +66,10 @@
     "Confirm": "Onayla"
   },
   "Copy path": {
-    "Copy path": ""
+    "Copy path": "Yolu Kopyala"
   },
   "Create": {
-    "Create": ""
+    "Create": "Yap"
   },
   "Created": {
     "Created": ""
@@ -114,7 +114,7 @@
     "First %1 of %2": ""
   },
   "Folder": {
-    "Folder": ""
+    "Folder": "Klasör"
   },
   "Folder name": {
     "Folder name": ""
@@ -171,7 +171,7 @@
     "MB": ""
   },
   "Maximize": {
-    "Maximize": ""
+    "Maximize": "Maksimize et"
   },
   "Media": {
     "Media": "Medya"
@@ -237,7 +237,7 @@
     "Refresh": "Yenile"
   },
   "Rename": {
-    "Rename": ""
+    "Rename": "Yeniden Adlandır"
   },
   "Restore": {
     "Restore": ""

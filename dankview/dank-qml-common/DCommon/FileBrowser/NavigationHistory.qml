@@ -18,6 +18,7 @@ QtObject {
     readonly property bool canGoUp: parentPath !== ""
 
     signal restored(var marker)
+    signal entering(string target)
 
     function _entry() {
         return {
@@ -27,6 +28,7 @@ QtObject {
     }
 
     function _enter(entry) {
+        entering(entry.path);
         path = entry.path;
         marker = entry.marker ?? null;
         restored(marker);
@@ -87,6 +89,7 @@ QtObject {
                     }));
         backStack = _capped(paths(state?.back));
         forwardStack = paths(state?.forward);
+        entering(state?.path ?? "");
         path = state?.path ?? "";
         marker = null;
     }

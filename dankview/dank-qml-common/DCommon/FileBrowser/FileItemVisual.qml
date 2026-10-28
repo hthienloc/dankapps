@@ -23,6 +23,7 @@ Item {
     property color tint: Style.surfaceText
 
     readonly property real emblemSize: Math.max(FileBrowserMetrics.emblemMinSize, iconSize * FileBrowserMetrics.emblemRatio)
+    readonly property var look: root.isDir && Host.appearance ? Host.appearance.lookup(root.path) : null
 
     implicitWidth: iconSize
     implicitHeight: iconSize
@@ -31,9 +32,11 @@ Item {
     FileIcon {
         anchors.fill: parent
         iconName: root.iconName
+        iconOverride: root.look?.icon ?? ""
         thumbnail: root.thumbnail !== "" ? root.thumbnail : root.mime === "image/svg+xml" ? root.path : ""
         size: root.iconSize
         color: root.isDir && !root.selected ? Style.primary : root.tint
+        tint: root.look?.color || "transparent"
     }
 
     component Emblem: Rectangle {
@@ -70,6 +73,16 @@ Item {
         sourceComponent: Emblem {
             iconName: root.unreadable ? "lock" : "warning"
             iconColor: Style.error
+        }
+    }
+
+    Loader {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        active: (root.look?.emblem ?? "") !== "" && !root.untrusted && !root.unreadable
+        sourceComponent: DSVGIcon {
+            source: Paths.resolveIconPath(root.look?.emblem ?? "")
+            size: root.emblemSize
         }
     }
 }

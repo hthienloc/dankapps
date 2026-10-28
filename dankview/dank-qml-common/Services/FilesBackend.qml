@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import "../DCommon/FileBrowser/NaturalSort.js" as NaturalSort
 
 Singleton {
     id: root
@@ -196,10 +197,7 @@ Singleton {
             break;
         }
         if (order === 0)
-            order = a.name.localeCompare(b.name, undefined, {
-                "numeric": true,
-                "sensitivity": "base"
-            });
+            order = NaturalSort.key(a.name).localeCompare(NaturalSort.key(b.name));
         return options.sortDesc ? -order : order;
     }
 

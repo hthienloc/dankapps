@@ -1,57 +1,57 @@
 {
   "%1 items": {
-    "%1 items": ""
+    "%1 items": "%1 items"
   },
   "%1 selected": {
-    "%1 selected": ""
+    "%1 selected": "%1 geselecteerd"
   },
   "1 item": {
-    "1 item": ""
+    "1 item": "1 item"
   },
   "1 selected": {
-    "1 selected": ""
+    "1 selected": "1 geselecteerd"
   },
   "A file with this name already exists. Do you want to overwrite it?": {
-    "A file with this name already exists. Do you want to overwrite it?": ""
+    "A file with this name already exists. Do you want to overwrite it?": "Er bestaat al een bestand met deze naam. Wil je het overschrijven?"
   },
   "A name cannot be empty or contain a slash": {
-    "A name cannot be empty or contain a slash": ""
+    "A name cannot be empty or contain a slash": "Een naam mag niet leeg zijn of een slash bevatten"
   },
   "AM": {
-    "AM": ""
+    "AM": "AM"
   },
   "Actions": {
     "Actions": "Acties"
   },
   "Ascending": {
-    "Ascending": ""
+    "Ascending": "Oplopend"
   },
   "B": {
-    "B": ""
+    "B": "B"
   },
   "Back": {
     "Back": "Terug"
   },
   "Backspace": {
-    "Backspace": ""
+    "Backspace": "Backspace"
   },
   "Binary file": {
-    "Binary file": ""
+    "Binary file": "Binair bestand"
   },
   "Broken link": {
-    "Broken link": ""
+    "Broken link": "Verbroken koppeling"
   },
   "Cancel": {
     "Cancel": "Annuleren"
   },
   "Choose icon": {
-    "Choose icon": ""
+    "Choose icon": "Pictogram kiezen"
   },
   "Clear": {
     "Clear": "Wissen"
   },
   "Clear the selection": {
-    "Clear the selection": ""
+    "Clear the selection": "Selectie wissen"
   },
   "Close": {
     "Close": "Sluiten"
@@ -60,7 +60,7 @@
     "Color": "Kleur"
   },
   "Communication": {
-    "Communication": ""
+    "Communication": "Communicatie"
   },
   "Confirm": {
     "Confirm": "Bevestigen"
@@ -72,73 +72,73 @@
     "Create": "Aanmaken"
   },
   "Created": {
-    "Created": ""
+    "Created": "Aangemaakt"
   },
   "Decrease": {
-    "Decrease": ""
+    "Decrease": "Verlagen"
   },
   "Descending": {
-    "Descending": ""
+    "Descending": "Aflopend"
   },
   "Development": {
     "Development": "Ontwikkeling"
   },
   "Drag to reorder": {
-    "Drag to reorder": ""
+    "Drag to reorder": "Sleep om de volgorde te wijzigen"
   },
   "Edit": {
     "Edit": "Bewerken"
   },
   "Enter": {
-    "Enter": ""
+    "Enter": "Enter"
   },
   "Enter filename...": {
-    "Enter filename...": ""
+    "Enter filename...": "Bestandsnaam invoeren..."
   },
   "File": {
     "File": "Bestand"
   },
   "File Already Exists": {
-    "File Already Exists": ""
+    "File Already Exists": "Bestand bestaat al"
   },
   "File System": {
-    "File System": ""
+    "File System": "Bestandssysteem"
   },
   "Files - %1": {
-    "Files - %1": ""
+    "Files - %1": "Bestanden - %1"
   },
   "Files are unavailable because the file service is not running": {
-    "Files are unavailable because the file service is not running": ""
+    "Files are unavailable because the file service is not running": "Bestanden zijn niet beschikbaar omdat de bestandsservice niet draait"
   },
   "First %1 of %2": {
-    "First %1 of %2": ""
+    "First %1 of %2": "Eerste %1 van %2"
   },
   "Folder": {
     "Folder": "Map"
   },
   "Folder name": {
-    "Folder name": ""
+    "Folder name": "Mapnaam"
   },
   "Forward": {
-    "Forward": ""
+    "Forward": "Vooruit"
   },
   "Fun": {
-    "Fun": ""
+    "Fun": "Plezier"
   },
   "GB": {
-    "GB": ""
+    "GB": "GB"
   },
   "Grid view": {
-    "Grid view": ""
+    "Grid view": "Rasterweergave"
   },
   "Hibernate": {
     "Hibernate": "Sluimerstand"
   },
   "Hide keyboard": {
-    "Hide keyboard": ""
+    "Hide keyboard": "Toetsenbord verbergen"
   },
   "Hide password": {
-    "Hide password": ""
+    "Hide password": "Wachtwoord verbergen"
   },
   "Hold longer to confirm": {
     "Hold longer to confirm": "Langer ingedrukt houden om te bevestigen"
@@ -150,16 +150,16 @@
     "Hold to confirm (%1s)": "Ingedrukt houden om te bevestigen (%1s)"
   },
   "Home": {
-    "Home": ""
+    "Home": "Persoonlijke map"
   },
   "Hour": {
-    "Hour": ""
+    "Hour": "Uur"
   },
   "Increase": {
-    "Increase": ""
+    "Increase": "Verhogen"
   },
   "List view": {
-    "List view": ""
+    "List view": "Lijstweergave"
   },
   "Location": {
     "Location": "Locatie"
@@ -168,7 +168,7 @@
     "Log Out": "Afmelden"
   },
   "MB": {
-    "MB": ""
+    "MB": "MB"
   },
   "Maximize": {
     "Maximize": "Maximaliseren"
@@ -177,31 +177,31 @@
     "Media": "Media"
   },
   "Minimize": {
-    "Minimize": ""
+    "Minimize": "Minimaliseren"
   },
   "Minute": {
-    "Minute": ""
+    "Minute": "Minuut"
   },
   "Modified": {
     "Modified": "Gewijzigd"
   },
   "Move to Trash": {
-    "Move to Trash": ""
+    "Move to Trash": "Naar prullenbak verplaatsen"
   },
   "Name": {
     "Name": "Naam"
   },
   "Navigation": {
-    "Navigation": ""
+    "Navigation": "Navigatie"
   },
   "New folder": {
-    "New folder": ""
+    "New folder": "Nieuwe map"
   },
   "No locations found": {
-    "No locations found": ""
+    "No locations found": "Geen locaties gevonden"
   },
   "Numbers": {
-    "Numbers": ""
+    "Numbers": "Cijfers"
   },
   "OK": {
     "OK": "OK"
@@ -210,25 +210,25 @@
     "Open": "Openen"
   },
   "Overwrite": {
-    "Overwrite": ""
+    "Overwrite": "Overschrijven"
   },
   "Owner": {
-    "Owner": ""
+    "Owner": "Eigenaar"
   },
   "PM": {
-    "PM": ""
+    "PM": "PM"
   },
   "Permissions": {
-    "Permissions": ""
+    "Permissions": "Rechten"
   },
   "Power Off": {
     "Power Off": "Uitschakelen"
   },
   "Power Options": {
-    "Power Options": ""
+    "Power Options": "Energieopties"
   },
   "Quick Access": {
-    "Quick Access": ""
+    "Quick Access": "Snelle toegang"
   },
   "Reboot": {
     "Reboot": "Opnieuw opstarten"
@@ -240,40 +240,40 @@
     "Rename": "Hernoemen"
   },
   "Restore": {
-    "Restore": ""
+    "Restore": "Herstellen"
   },
   "Review changes": {
-    "Review changes": ""
+    "Review changes": "Wijzigingen controleren"
   },
   "Saturation %1%, brightness %2%": {
-    "Saturation %1%, brightness %2%": ""
+    "Saturation %1%, brightness %2%": "Verzadiging %1%, helderheid %2%"
   },
   "Save": {
     "Save": "Opslaan"
   },
   "Search for a location...": {
-    "Search for a location...": ""
+    "Search for a location...": "Zoek een locatie..."
   },
   "Search...": {
     "Search...": "Zoeken..."
   },
   "Searching...": {
-    "Searching...": ""
+    "Searching...": "Zoeken..."
   },
   "Select File": {
     "Select File": "Bestand selecteren"
   },
   "Select time": {
-    "Select time": ""
+    "Select time": "Tijd selecteren"
   },
   "Shift": {
-    "Shift": ""
+    "Shift": "Shift"
   },
   "Show hidden files": {
-    "Show hidden files": ""
+    "Show hidden files": "Verborgen bestanden tonen"
   },
   "Show password": {
-    "Show password": ""
+    "Show password": "Wachtwoord tonen"
   },
   "Size": {
     "Size": "Grootte"
@@ -282,7 +282,7 @@
     "Sort By": "Sorteren op"
   },
   "Space": {
-    "Space": ""
+    "Space": "Spatie"
   },
   "Status": {
     "Status": "Status"
@@ -297,31 +297,31 @@
     "System": "Systeem"
   },
   "TB": {
-    "TB": ""
+    "TB": "TB"
   },
   "This folder could not be opened": {
-    "This folder could not be opened": ""
+    "This folder could not be opened": "Deze map kon niet worden geopend"
   },
   "This folder is empty": {
-    "This folder is empty": ""
+    "This folder is empty": "Deze map is leeg"
   },
   "This folder no longer exists": {
-    "This folder no longer exists": ""
+    "This folder no longer exists": "Deze map bestaat niet meer"
   },
   "This item already exists": {
-    "This item already exists": ""
+    "This item already exists": "Dit item bestaat al"
   },
   "This item cannot be moved here directly": {
-    "This item cannot be moved here directly": ""
+    "This item cannot be moved here directly": "Dit item kan niet rechtstreeks hierheen worden verplaatst"
   },
   "This item could not be handled": {
-    "This item could not be handled": ""
+    "This item could not be handled": "Dit item kon niet worden verwerkt"
   },
   "This item is in use": {
-    "This item is in use": ""
+    "This item is in use": "Dit item is in gebruik"
   },
   "This item no longer exists": {
-    "This item no longer exists": ""
+    "This item no longer exists": "Dit item bestaat niet meer"
   },
   "Type": {
     "Type": "Type"
@@ -330,18 +330,18 @@
     "Unknown": "Onbekend"
   },
   "Use this folder": {
-    "Use this folder": ""
+    "Use this folder": "Deze map gebruiken"
   },
   "Workspace": {
     "Workspace": "Werkblad"
   },
   "You do not have permission to do this": {
-    "You do not have permission to do this": ""
+    "You do not have permission to do this": "Je hebt geen toestemming om dit te doen"
   },
   "You do not have permission to view this folder": {
-    "You do not have permission to view this folder": ""
+    "You do not have permission to view this folder": "Je hebt geen toestemming om deze map te bekijken"
   },
   "kB": {
-    "kB": ""
+    "kB": "kB"
   }
 }

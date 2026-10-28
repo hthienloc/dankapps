@@ -10,21 +10,22 @@ Item {
     readonly property bool canMaximize: targetWindow.minimumSize.width !== targetWindow.maximumSize.width || targetWindow.minimumSize.height !== targetWindow.maximumSize.height
     readonly property bool canMinimize: targetWindow.minimized !== undefined && Compositor.supportsMinimize
     readonly property bool ownDecorations: Host.ownWindowDecorations
+    readonly property bool frameless: ownDecorations && Compositor.desktop === "kde"
     readonly property var backingWindow: Window.window
 
     anchors.fill: parent
 
-    onOwnDecorationsChanged: applyDecorationHint()
+    onFramelessChanged: applyDecorationHint()
     onBackingWindowChanged: applyDecorationHint()
 
     // Qt cannot re-create the xdg-decoration object on a mapped window, so clearing the hint lands on the next map.
     function applyDecorationHint() {
         if (!backingWindow)
             return;
-        const frameless = (backingWindow.flags & Qt.FramelessWindowHint) !== 0;
-        if (frameless === ownDecorations)
+        const current = (backingWindow.flags & Qt.FramelessWindowHint) !== 0;
+        if (current === frameless)
             return;
-        backingWindow.flags = ownDecorations ? backingWindow.flags | Qt.FramelessWindowHint : backingWindow.flags & ~Qt.FramelessWindowHint;
+        backingWindow.flags = frameless ? backingWindow.flags | Qt.FramelessWindowHint : backingWindow.flags & ~Qt.FramelessWindowHint;
     }
 
     function tryStartMove() {

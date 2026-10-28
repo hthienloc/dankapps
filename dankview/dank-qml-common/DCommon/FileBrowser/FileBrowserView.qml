@@ -20,6 +20,8 @@ FocusScope {
     property string viewMode: "list"
     property int gridZoom: 1
     property int listZoom: 1
+    property int columnZoom: FileBrowserMetrics.defaultColumnZoom
+    property real columnPaneWidth: 0
     property var listColumns: ["size", "modified"]
     property var columnWidths: ({})
     property bool multiSelect: true
@@ -45,7 +47,7 @@ FocusScope {
     property real thumbnailSizeLimit: -1
     property bool networkThumbnails: true
     property var folderJump: null
-    property string unlistedPath: ""
+    property var unlistedPaths: []
     property color paneColor: "transparent"
     property color chipColor: Style.chipSurface
     property real paneRadius: FileBrowserMetrics.paneRadius
@@ -68,7 +70,7 @@ FocusScope {
     readonly property var directory: pool.active ?? pool.empty
     readonly property alias body: viewBody
     readonly property var currentEntry: viewBody.cursorEntry()
-    readonly property var selectedEntries: viewBody.selectedEntries()
+    readonly property var selectedEntries: viewBody.selected
 
     property var _pendingReveal: []
     property bool _revealStarted: false
@@ -84,6 +86,7 @@ FocusScope {
     signal sortRequested(string key)
     signal zoomRequested(string viewMode, int level)
     signal columnResizeRequested(string id, real width)
+    signal columnPaneResizeRequested(real width)
     signal previewToggleRequested
     signal previewResized(real width)
     signal focusRequested
@@ -93,6 +96,7 @@ FocusScope {
     signal locationCancelled
     signal filterRequested(string text)
     signal filterFocusRequested
+    signal navigating(string target)
 
     function navigate(target) {
         _pendingReveal = [];
@@ -200,13 +204,6 @@ FocusScope {
         history.marker = marker();
     }
 
-    function _applyPendingScroll() {
-        if (!restoreScroll.armed || root.directory.loading)
-            return;
-        restoreScroll.armed = false;
-        viewBody.scrollTo(restoreScroll.pending);
-    }
-
     function _applyPendingReveal() {
         if (_pendingReveal.length === 0)
             return;
@@ -237,7 +234,7 @@ FocusScope {
         id: pool
 
         backend: root.backend
-        activePath: root.path === root.unlistedPath ? "" : root.path
+        activePath: root.unlistedPaths.includes(root.path) ? "" : root.path
         includeHidden: root.showHidden
         filters: root.filters
         sortKey: root.sortKey
@@ -258,7 +255,6 @@ FocusScope {
 
         function onListed() {
             root._applyPendingReveal();
-            root._applyPendingScroll();
         }
 
         function onEntriesAdded() {
@@ -273,25 +269,14 @@ FocusScope {
     NavigationHistory {
         id: history
 
+        onEntering: target => root.navigating(target)
         onRestored: saved => {
             if (!saved)
                 return;
             if (saved.cursor)
                 selectionModel.select(saved.cursor);
-            restoreScroll.pending = saved.contentY ?? 0;
-            restoreScroll.armed = true;
-            restoreScroll.restart();
+            viewBody.restoreScroll(saved.contentY ?? 0);
         }
-    }
-
-    Timer {
-        id: restoreScroll
-
-        property real pending: 0
-        property bool armed: false
-
-        interval: 0
-        onTriggered: root._applyPendingScroll()
     }
 
     FileBrowserSidebar {
@@ -440,6 +425,8 @@ FocusScope {
                 viewMode: root.viewMode
                 gridZoom: root.gridZoom
                 listZoom: root.listZoom
+                columnZoom: root.columnZoom
+                columnPaneWidth: root.columnPaneWidth
                 listColumns: root.listColumns
                 columnWidths: root.columnWidths
                 sortKey: root.sortKey
@@ -487,6 +474,7 @@ FocusScope {
                 onSortRequested: key => root.sortRequested(key)
                 onZoomRequested: (mode, level) => root.zoomRequested(mode, level)
                 onColumnResizeRequested: (id, width) => root.columnResizeRequested(id, width)
+                onColumnPaneResizeRequested: width => root.columnPaneResizeRequested(width)
                 onDirectoryReplaced: {
                     if (!root.directory.loading)
                         root._applyPendingReveal();

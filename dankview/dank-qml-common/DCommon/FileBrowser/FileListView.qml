@@ -9,6 +9,7 @@ DListView {
 
     property SelectionModel selection: null
     property real iconSize: Style.iconSize
+    property int zoom: FileBrowserMetrics.defaultListZoom
     property string renamingPath: ""
     property var cutSet: ({})
     property var childCounts: ({})
@@ -22,7 +23,8 @@ DListView {
     property string nameHighlight: ""
 
     readonly property int columnsPerRow: 1
-    readonly property real rowHeight: FileBrowserMetrics.listRowHeightFor(iconSize)
+    readonly property bool compact: zoom <= 0
+    readonly property real rowHeight: FileBrowserMetrics.listRowHeightFor(iconSize, compact)
     readonly property real rowPitch: rowHeight + spacing
     readonly property real contentOrigin: headerItem ? headerItem.y + headerItem.height : originY
 
@@ -37,7 +39,7 @@ DListView {
     signal renameCancelled
 
     function columnWidth(id) {
-        return storedWidths[id] ?? FileColumns.specFor(id)?.width ?? FileBrowserMetrics.columnMinWidth;
+        return FileColumns.widthFor(id, storedWidths);
     }
 
     function visibleRange() {
@@ -61,7 +63,7 @@ DListView {
     spacing: Style.groupedListGap
     cacheBuffer: Math.max(0, height)
     currentIndex: -1
-    reuseItems: true
+    reuseItems: false
     add: null
 
     delegate: FileRow {

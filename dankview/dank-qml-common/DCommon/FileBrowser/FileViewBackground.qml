@@ -10,7 +10,7 @@ Item {
     required property SelectionModel selection
     property string dropPath: ""
 
-    readonly property real scrollMargin: Math.min(Style.spacingXL, view.height / 2)
+    readonly property real scrollMargin: Math.min(FileBrowserMetrics.dragScrollEdge, view.height / 2)
     readonly property real scrollDirection: {
         if (!area.banding || !band.past)
             return 0;
@@ -127,8 +127,9 @@ Item {
             return;
         applyPendingClear();
         const rect = Qt.rect(band.x, band.y, band.width, band.height);
-        const paths = view.indicesIn(rect).map(index => view.model.get(index).path);
-        selection.paths = area.kept.concat(paths.filter(path => !area.kept.includes(path)));
+        const banded = view.indicesIn(rect).map(index => view.model.get(index).path);
+        const fresh = banded.filter(path => !area.kept.includes(path));
+        selection.replace(area.kept.concat(fresh), banded.length > 0 ? banded[banded.length - 1] : "");
     }
 
     RubberBand {
@@ -140,18 +141,10 @@ Item {
         visible: area.banding && past
     }
 
-    FrameAnimation {
-        running: area.banding && band.past && background.scrollDirection !== 0
-
-        onTriggered: {
-            const view = background.view;
-            const maximum = view.originY + Math.max(0, view.contentHeight - view.height);
-            const next = Math.max(view.originY, Math.min(maximum, view.contentY + background.scrollDirection * FileBrowserMetrics.listRowHeight * 12 * frameTime));
-            if (next === view.contentY)
-                return;
-            view.contentY = next;
-            background.updateSelection();
-        }
+    ViewAutoScroll {
+        target: background.view
+        direction: background.scrollDirection
+        onScrolled: background.updateSelection()
     }
 
     FileDropArea {

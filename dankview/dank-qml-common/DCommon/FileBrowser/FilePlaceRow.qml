@@ -12,11 +12,15 @@ StyledButton {
     property string subtitle: ""
     property string tooltipText: ""
     property string iconName: ""
+    property string glyph: ""
+    property string path: ""
     property string actionIcon: ""
     property string actionTooltip: ""
     property real ringValue: -1
     property bool busy: false
     property bool selected: false
+    property bool expandable: false
+    property bool expanded: false
 
     property string dropPath: ""
     property bool springLoad: true
@@ -27,6 +31,7 @@ StyledButton {
     signal middleClicked
 
     readonly property bool showAction: actionIcon !== "" && (hovered || actionArea.containsMouse)
+    readonly property var look: row.path !== "" && Host.appearance ? Host.appearance.lookup(row.path) : null
     readonly property color contentColor: {
         if (!enabled)
             return Style.onSurface_38;
@@ -86,7 +91,7 @@ StyledButton {
 
             Rectangle {
                 anchors.fill: parent
-                radius: Style.fullRadius(width, height)
+                radius: row.ringValue >= 0 ? width / 2 : Style.fullRadius(width, height)
                 color: row.showAction ? Style.primaryContainer : Style.withAlpha(Style.primary, Style.tonalTintAlpha)
 
                 DSpinner {
@@ -97,11 +102,35 @@ StyledButton {
                 }
 
                 FileIcon {
+                    id: placeIcon
+
                     anchors.centerIn: parent
                     visible: !row.busy && !row.showAction
                     iconName: row.iconName
+                    iconOverride: row.look?.icon ?? ""
+                    glyph: row.glyph
                     size: FileBrowserMetrics.sidebarGlyphSize
                     color: Style.primary
+                    tint: row.look?.color || "transparent"
+                }
+
+                Loader {
+                    anchors.right: placeIcon.right
+                    anchors.bottom: placeIcon.bottom
+                    visible: !row.busy && !row.showAction
+                    active: (row.look?.emblem ?? "") !== ""
+                    sourceComponent: Rectangle {
+                        width: FileBrowserMetrics.emblemMinSize
+                        height: width
+                        radius: Style.fullRadius(width, height)
+                        color: Style.surfaceContainerLowest
+
+                        DSVGIcon {
+                            anchors.centerIn: parent
+                            source: Paths.resolveIconPath(row.look?.emblem ?? "")
+                            size: parent.width - Style.spacingXS
+                        }
+                    }
                 }
 
                 DIcon {
@@ -154,6 +183,22 @@ StyledButton {
                 font.pixelSize: Style.fontSizeSmall
                 wrapMode: Text.NoWrap
                 elide: Text.ElideMiddle
+            }
+        }
+
+        DIcon {
+            visible: row.expandable
+            name: "expand_more"
+            size: FileBrowserMetrics.sidebarGlyphSize
+            color: row.contentColor
+            rotation: row.expanded ? 180 : 0
+
+            Behavior on rotation {
+                enabled: FileBrowserMetrics.animationsEnabled
+                DAnim {
+                    duration: Style.expressiveDurations.expressiveFastSpatial
+                    easing.bezierCurve: Style.expressiveCurves.expressiveDefaultSpatial
+                }
             }
         }
     }

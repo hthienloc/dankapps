@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import qs.DCommon.Common
 import qs.DCommon.Widgets
 import "FileColumnsLayout.js" as Layout
@@ -17,13 +18,14 @@ Item {
     readonly property var ancestors: Layout.chainFor(activePath, body.homePath, FilePaths.parentOf)
     readonly property var chain: ancestors.concat([activePath])
     readonly property int activeDepth: ancestors.length
-    readonly property var picked: body.selectedEntries()
+    readonly property var picked: body.selected
     readonly property var pickedEntry: picked.length === 1 ? picked[0] : null
     readonly property string lookaheadPath: pickedEntry?.isDir ? pickedEntry.path : ""
     readonly property bool trailingPane: picked.length > 1 || (pickedEntry !== null && !pickedEntry.isDir)
-    readonly property real columnWidth: Layout.columnWidth(strip.width, FileBrowserMetrics.previewPaneWidth, FileBrowserMetrics.columnMinPaneWidth, FileBrowserMetrics.columnPaneWidth)
+    readonly property real fittedWidth: Math.max(FileBrowserMetrics.columnMinPaneWidth, Layout.columnWidth(strip.width, FileBrowserMetrics.previewPaneWidth, FileBrowserMetrics.columnMinPaneWidth, FileBrowserMetrics.columnPaneWidth) * body.columnZoomFactor)
+    readonly property real columnWidth: body.columnPaneWidth > 0 ? Math.max(FileBrowserMetrics.columnMinPaneWidth, Math.min(FileBrowserMetrics.columnPaneMaxWidth, body.columnPaneWidth)) : fittedWidth
     readonly property real activeEnd: (activeDepth + 1) * columnWidth
-    readonly property real trailingWidth: stripEnd - activeEnd
+    readonly property real trailingWidth: slotEnd - activeEnd
     readonly property var activeList: activeColumn?.list ?? null
     readonly property int columnsPerRow: 1
     readonly property real rowPitch: activeList?.rowPitch ?? 0
@@ -33,6 +35,7 @@ Item {
     readonly property var headerItem: null
 
     property real stripEnd: 0
+    property real slotEnd: 0
     property var activeColumn: null
     property var heldPaths: []
     property var _columns: []
@@ -88,15 +91,23 @@ Item {
         const previous = logicalContentX();
         const target = Layout.revealTarget(previous, depth, columnWidth, FileBrowserMetrics.previewPaneWidth, strip.width);
         scrollAnim.stop();
-        stripEnd = target.stripEnd;
+        slotEnd = target.stripEnd;
+        stripEnd = Math.max(slotEnd, previous + strip.width);
         strip.contentX = physicalContentX(previous);
         const to = physicalContentX(target.contentX);
         if (!animate || !FileBrowserMetrics.animationsEnabled || to === strip.contentX) {
             strip.contentX = to;
+            settleStrip();
             return;
         }
         scrollAnim.to = to;
         scrollAnim.restart();
+    }
+
+    function settleStrip() {
+        const logical = logicalContentX();
+        stripEnd = Math.max(slotEnd, logical + strip.width);
+        strip.contentX = physicalContentX(logical);
     }
 
     function columnFor(path, depth) {
@@ -432,6 +443,7 @@ Item {
                 width: columns.columnWidth - Style.dividerWidth
                 selection: column.active ? columns.body.selection : column.ownSelection
                 iconSize: columns.body.iconSize
+                zoom: columns.body.zoom
                 renamingPath: column.active ? columns.body.renamingPath : ""
                 cutSet: columns.body.cutSet
                 columnIds: []
@@ -483,7 +495,11 @@ Item {
                     if (column.active)
                         columns.body.startDrag(index);
                 }
-                onItemDropped: (index, drop) => columns.body.itemsDropped(column.entryAt(index).path, drop)
+                onItemDropped: (index, drop) => {
+                    const entry = column.entryAt(index);
+                    if (entry)
+                        columns.body.itemsDropped(entry.path, drop);
+                }
                 onItemSpringLoaded: index => {
                     const entry = column.entryAt(index);
                     if (entry?.isDir)
@@ -535,7 +551,34 @@ Item {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 width: Style.dividerWidth
-                color: Style.outlineVariant
+                color: divider.containsMouse || divider.pressed ? Style.primary : Style.outlineVariant
+            }
+
+            MouseArea {
+                id: divider
+
+                property real pressX: 0
+                property real pressWidth: 0
+
+                z: 10
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: Style.spacingS
+                hoverEnabled: true
+                preventStealing: true
+                cursorShape: Qt.SizeHorCursor
+                acceptedButtons: Qt.LeftButton
+                onPressed: mouse => {
+                    pressX = mapToItem(null, mouse.x, 0).x;
+                    pressWidth = columns.columnWidth;
+                }
+                onPositionChanged: mouse => {
+                    if (!pressed)
+                        return;
+                    const delta = (mapToItem(null, mouse.x, 0).x - pressX) / (column.depth + 1);
+                    columns.body.columnPaneResizeRequested(pressWidth + (columns.mirrored ? -delta : delta));
+                }
             }
         }
     }
@@ -551,12 +594,21 @@ Item {
         onWidthChanged: columns.revealActive(columns.activeDepth, false)
         onDragStarted: scrollAnim.stop()
 
+        ScrollBar.horizontal: DHorizontalScrollbar {
+            targetFlickable: strip
+            onPressedChanged: scrollAnim.stop()
+        }
+
         DAnim {
             id: scrollAnim
 
             target: strip
             property: "contentX"
             duration: Style.expressiveDurations.expressiveFastSpatial
+            onRunningChanged: {
+                if (!running)
+                    columns.settleStrip();
+            }
         }
 
         Item {

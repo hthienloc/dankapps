@@ -15,27 +15,47 @@ FocusScope {
     property string description: ""
     property string currentValue: ""
     property var options: []
+    // Parallel to options: when set, currentValue and valueChanged allow sharing a label.
+    property var optionValues: []
     property var optionIcons: []
     property var optionImages: []
     property bool enableFuzzySearch: false
     property var optionIconMap: ({})
     property var optionImageMap: ({})
     property var optionColorMap: ({})
+    // Handlers can fire mid-initialisation before this has a value, so rebuild from it, not from its inputs
+    readonly property var optionKeys: {
+        if (Array.isArray(optionValues) && optionValues.length > 0)
+            return optionValues;
+        return Array.isArray(options) ? options : [];
+    }
+
+    function labelOf(key) {
+        if (!Array.isArray(optionValues) || optionValues.length === 0)
+            return key;
+        const index = optionValues.indexOf(key);
+        if (index < 0 || !Array.isArray(options))
+            return key;
+        return options[index] ?? key;
+    }
 
     function rebuildIconMap() {
         const icons = {};
         const images = {};
-        for (let i = 0; i < options.length; i++) {
-            if (optionIcons.length > i)
-                icons[options[i]] = optionIcons[i];
-            if (optionImages.length > i && optionImages[i])
-                images[options[i]] = optionImages[i];
+        const keys = Array.isArray(optionKeys) ? optionKeys : [];
+        const iconList = Array.isArray(optionIcons) ? optionIcons : [];
+        const imageList = Array.isArray(optionImages) ? optionImages : [];
+        for (let i = 0; i < keys.length; i++) {
+            if (iconList.length > i)
+                icons[keys[i]] = iconList[i];
+            if (imageList.length > i && imageList[i])
+                images[keys[i]] = imageList[i];
         }
         optionIconMap = icons;
         optionImageMap = images;
     }
 
-    onOptionsChanged: rebuildIconMap()
+    onOptionKeysChanged: rebuildIconMap()
     onOptionIconsChanged: rebuildIconMap()
     onOptionImagesChanged: rebuildIconMap()
 
@@ -76,9 +96,9 @@ FocusScope {
     property int selectedIndex: -1
     readonly property var filteredOptions: {
         if (!enableFuzzySearch || searchQuery.length === 0)
-            return options;
+            return optionKeys;
         if (!fzfFinder)
-            return options;
+            return optionKeys;
         return fzfFinder.find(searchQuery).map(r => r.item);
     }
 
@@ -89,8 +109,8 @@ FocusScope {
 
     property int triggerHeight: Style.iconButtonSize
     property real triggerRadius: Style.cornerRadiusXS
-    readonly property int menuItemHeight: Style.menuItemHeight
-    readonly property int menuPadding: Style.spacingS
+    readonly property int menuItemHeight: Style.menuRowHeight
+    readonly property int menuPadding: Style.menuPadding
     readonly property real menuItemRadius: Math.max(0, Style.windowRadius - menuPadding)
     readonly property int menuSpacing: Style.spacingXXS
 
@@ -104,7 +124,7 @@ FocusScope {
 
     readonly property int menuHeight: {
         let h = root.enableFuzzySearch ? root.triggerHeight + Style.spacingXS : 0;
-        if (root.options.length === 0 && root.emptyText !== "")
+        if (root.optionKeys.length === 0 && root.emptyText !== "")
             h += menuItemHeight;
         else
             h += Math.min(root.filteredOptions.length, 10) * (menuItemHeight + menuSpacing);
@@ -112,8 +132,8 @@ FocusScope {
     }
 
     function initFinder() {
-        fzfFinder = new Fzf.Finder(root.options, {
-            "selector": option => option,
+        fzfFinder = new Fzf.Finder(root.optionKeys, {
+            "selector": key => root.labelOf(key),
             "limit": 50,
             "casing": "case-insensitive",
             "sort": true,
@@ -195,7 +215,7 @@ FocusScope {
     }
 
     function showDropdownMenu() {
-        if (root.options.length === 0)
+        if (root.optionKeys.length === 0)
             return;
         if (root.menuOpen)
             return;
@@ -212,7 +232,7 @@ FocusScope {
         closeTimer.stop();
         root.menuClosing = false;
         menu.visible = true;
-        const currentIndex = root.options.indexOf(root.currentValue);
+        const currentIndex = root.optionKeys.indexOf(root.currentValue);
         scrollMenuTo(currentIndex >= 0 ? currentIndex : 0, ListView.Beginning);
         root.selectedIndex = root.filteredOptions.indexOf(root.currentValue);
         transientSurfaceTracker?.setActive(root, true, menu);
@@ -308,7 +328,7 @@ FocusScope {
         Accessible.ignored: root.Accessible.ignored
 
         Accessible.role: Accessible.ComboBox
-        Accessible.name: root.Accessible.name || root.text || root.currentValue
+        Accessible.name: root.Accessible.name || root.text || root.labelOf(root.currentValue)
         Accessible.description: root.Accessible.description || root.description
         onClicked: root.openDropdownMenu()
         Keys.onDownPressed: event => {
@@ -405,14 +425,14 @@ FocusScope {
                 sourceComponent: AppIconRenderer {
                     iconValue: triggerImage.imageValue
                     iconSize: Style.iconSizeMedium
-                    fallbackText: root.currentValue.charAt(0).toUpperCase()
+                    fallbackText: root.labelOf(root.currentValue).charAt(0).toUpperCase()
                 }
             }
 
             StyledText {
                 anchors.verticalCenter: parent.verticalCenter
                 visible: root.showLabel
-                text: root.currentValue !== "" ? root.currentValue : root.emptyText
+                text: root.currentValue !== "" ? root.labelOf(root.currentValue) : root.emptyText
                 font.pixelSize: Style.fontSizeMedium
                 color: !root.enabled ? Style.onSurface_38 : (root.currentValue !== "" ? Style.surfaceText : Style.onSurfaceVariant)
                 width: contentRow.width - (triggerSwatch.visible ? triggerSwatch.width + contentRow.spacing : 0) - (triggerIcon.visible ? triggerIcon.width + contentRow.spacing : 0) - (triggerImage.visible ? triggerImage.width + contentRow.spacing : 0)
@@ -682,7 +702,7 @@ FocusScope {
                         Item {
                             width: parent.width
                             height: root.menuItemHeight
-                            visible: root.options.length === 0 && root.emptyText !== ""
+                            visible: root.optionKeys.length === 0 && root.emptyText !== ""
 
                             StyledText {
                                 anchors.left: parent.left
@@ -701,9 +721,9 @@ FocusScope {
                             id: listView
 
                             width: parent.width
-                            height: parent.height - (root.enableFuzzySearch ? searchContainer.height + Style.spacingXS : 0) - (root.options.length === 0 && root.emptyText !== "" ? root.menuItemHeight : 0)
+                            height: parent.height - (root.enableFuzzySearch ? searchContainer.height + Style.spacingXS : 0) - (root.optionKeys.length === 0 && root.emptyText !== "" ? root.menuItemHeight : 0)
                             clip: true
-                            visible: root.options.length > 0
+                            visible: root.optionKeys.length > 0
                             model: ScriptModel {
                                 values: root.filteredOptions
                             }
@@ -722,7 +742,7 @@ FocusScope {
 
                                 focusPolicy: Qt.NoFocus
                                 Accessible.role: Accessible.ListItem
-                                Accessible.name: modelData
+                                Accessible.name: root.labelOf(modelData)
                                 Accessible.selected: isCurrentValue
                                 onClicked: {
                                     root.currentValue = modelData;
@@ -786,7 +806,7 @@ FocusScope {
 
                                     DIcon {
                                         name: delegateRoot.iconName
-                                        size: Style.iconSizeMedium
+                                        size: Style.menuItemIconSize
                                         color: delegateRoot.contentColor
                                         visible: name !== ""
                                     }
@@ -794,22 +814,22 @@ FocusScope {
                                     Loader {
                                         id: optionImage
 
-                                        width: Style.iconSizeMedium
-                                        height: Style.iconSizeMedium
+                                        width: Style.menuItemIconSize
+                                        height: Style.menuItemIconSize
                                         anchors.verticalCenter: parent.verticalCenter
                                         active: delegateRoot.imageValue !== ""
                                         visible: active
                                         sourceComponent: AppIconRenderer {
                                             iconValue: delegateRoot.imageValue
-                                            iconSize: Style.iconSizeMedium
+                                            iconSize: Style.menuItemIconSize
                                             iconColor: delegateRoot.contentColor
-                                            fallbackText: String(delegateRoot.modelData).charAt(0).toUpperCase()
+                                            fallbackText: root.labelOf(delegateRoot.modelData).charAt(0).toUpperCase()
                                         }
                                     }
 
                                     StyledText {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: delegateRoot.modelData
+                                        text: root.labelOf(delegateRoot.modelData)
                                         font.pixelSize: Style.fontSizeMedium
                                         color: delegateRoot.contentColor
                                         font.weight: delegateRoot.isCurrentValue ? Style.fontWeightMedium : Style.fontWeight

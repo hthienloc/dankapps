@@ -34,8 +34,7 @@ FocusScope {
     readonly property var rows: {
         if (!editing || connecting)
             return [];
-        const target = canComplete ? PathCompletion.target(typed, path, homePath) : null;
-        const completed = target ? PathCompletion.rank(completions, target, homePath, FileBrowserMetrics.suggestionCap) : [];
+        const completed = completionTarget ? PathCompletion.rank(completions, completionTarget, homePath, FileBrowserMetrics.suggestionCap) : [];
         const visited = visitedRows(typed);
         return jumpMode ? PathCompletion.merge(visited, completed) : PathCompletion.merge(completed, visited);
     }

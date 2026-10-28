@@ -6,10 +6,14 @@ import Quickshell
 import qs.DCommon.Common
 
 Singleton {
+    readonly property int densityLevel: Style.densityLevel
+    readonly property real densityStepS: densityLevel * Style.spacingXS
+    readonly property real densityStepM: densityLevel * Style.spacingS
+
     readonly property real headerHeight: Style.buttonHeightS
     readonly property real contentMargin: Style.windowInset
     readonly property real contentSpacing: Style.spacingM
-    readonly property real controlSize: Style.buttonHeightS + Style.spacingXS
+    readonly property real controlSize: Style.buttonHeightS + densityStepS
     readonly property real controlSpacing: Style.spacingS
     readonly property real navPairSegmentWidth: controlSize + Style.spacingS
     readonly property real navPairInnerRadius: Style.cornerRadiusS
@@ -26,8 +30,11 @@ Singleton {
     readonly property var listIconSizes: [Style.iconSizeMedium, Style.iconSize, Style.iconSizeLarge, Style.iconSizeLarge * 1.25, Style.iconSizeLarge * 1.5, Style.iconSizeLarge * 2]
     readonly property int defaultGridZoom: 2
     readonly property int defaultListZoom: 0
+    readonly property int defaultColumnZoom: 2
+    readonly property var columnZoomFactors: [0.7, 0.85, 1, 1.15, 1.35, 1.6]
+    readonly property real columnPaneMaxWidth: Style.sidebarWidth * 2.5
     readonly property real gridTilePadding: Style.spacingM
-    readonly property real gridTileVerticalPadding: Style.spacingL
+    readonly property real gridTileVerticalPadding: Math.max(Style.spacingS, Style.spacingM + densityStepS)
     readonly property real gridTileRadius: Style.cornerRadiusL
     readonly property real gridGap: Style.spacingM
     readonly property real gridNameSpacing: Style.spacingXS
@@ -49,10 +56,13 @@ Singleton {
     readonly property real previewStripSmallWidth: Style.buttonHeightS
     readonly property real previewDrawerMinWidth: Style.sidebarWidth
     readonly property real previewViewMinWidth: Style.sidebarWidth
-    readonly property real previewDrawerRatio: 0.45
+    readonly property real previewDrawerRatio: 0.35
 
-    readonly property real listRowHeight: Style.listItemHeight
+    readonly property real listRowHeight: Style.minimumTouchTargetSize + densityStepM
     readonly property real listRowPadding: Style.spacingL
+    readonly property real listRowGap: Math.max(Style.spacingS, Style.spacingM + densityStepS)
+    readonly property real listCompactGap: Style.spacingS + densityStepS
+    readonly property real listCompactRowHeight: Style.minimumTouchTargetSize * 0.75
     readonly property real nameColumnMinWidth: Style.spacingXL * 6
 
     function iconSizesFor(viewMode) {
@@ -63,8 +73,15 @@ Singleton {
         return viewMode === "grid" ? defaultGridZoom : defaultListZoom;
     }
 
-    function listRowHeightFor(iconSize) {
-        return Math.max(listRowHeight, iconSize + listRowPadding * 2);
+    function listRowHeightFor(iconSize, compact) {
+        if (compact)
+            return Math.max(iconSize + listCompactGap * 2, listCompactRowHeight);
+        return Math.max(listRowHeight, iconSize + listRowGap * 2);
+    }
+
+    function columnZoomFactor(level) {
+        const factors = columnZoomFactors;
+        return factors[Math.max(0, Math.min(factors.length - 1, level))];
     }
     readonly property real columnHeaderHeight: Style.buttonHeightXS
     readonly property real columnHeaderPadding: Style.spacingS
@@ -88,11 +105,11 @@ Singleton {
     readonly property real sidebarWidth: Style.sidebarWidth
     readonly property int sidebarBreakpoint: Style.mediumBreakpoint
     readonly property real sidebarPadding: Style.spacingM
-    readonly property real sidebarIconSize: Style.avatarSize
-    readonly property real sidebarRowHeight: sidebarIconSize + Style.spacingL
+    readonly property real sidebarIconSize: Style.buttonHeightXS + densityStepS
+    readonly property real sidebarRowHeight: Math.max(Style.buttonHeightXS, Style.buttonHeightS + densityStepM)
     readonly property real sidebarRowRadius: Style.cornerRadiusM
-    readonly property real sidebarRowGap: Style.spacingXS
-    readonly property real sidebarGlyphSize: Style.iconSizeMedium
+    readonly property real sidebarRowGap: Math.max(0, Style.groupedListGap + densityLevel * Style.spacingXXS)
+    readonly property real sidebarGlyphSize: densityLevel < -1 ? Style.iconSizeSmall : Style.iconSizeMedium
     readonly property real usageWarnRatio: 0.9
     readonly property real paneRadius: Style.windowRadius
     readonly property real paneMargin: Style.spacingM
@@ -109,6 +126,7 @@ Singleton {
     readonly property real pickerMinHeight: Style.smallBreakpoint
     readonly property real pickerScreenFraction: 0.9
     readonly property int settleInterval: 150
+    readonly property int countPrefetchScreens: 3
     readonly property int skeletonDelay: 150
     readonly property int typeAheadInterval: 1000
     readonly property int springLoadDelay: 700

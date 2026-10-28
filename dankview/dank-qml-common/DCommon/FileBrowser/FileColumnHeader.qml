@@ -11,6 +11,7 @@ Item {
     property var widths: ({})
     property string sortKey: "name"
     property bool sortDescending: false
+    property var columnSortKeys: ({})
     property real nameIndent: 0
     property color backgroundColor: "transparent"
 
@@ -19,7 +20,7 @@ Item {
     signal columnsMenuRequested(real pointX, real pointY)
 
     function columnWidth(id) {
-        return widths[id] ?? FileColumns.specFor(id)?.width ?? FileBrowserMetrics.columnMinWidth;
+        return FileColumns.widthFor(id, widths);
     }
 
     implicitHeight: FileBrowserMetrics.columnHeaderHeight
@@ -119,7 +120,7 @@ Item {
 
                 width: header.columnWidth(modelData)
                 columnId: modelData
-                sortsBy: FileColumns.sortKeyFor(modelData)
+                sortsBy: header.columnSortKeys[modelData] ?? FileColumns.sortKeyFor(modelData)
                 align: FileColumns.specFor(modelData)?.align ?? Text.AlignLeft
 
                 MouseArea {

@@ -4,7 +4,6 @@ import QtQuick
 import QtQuick.Controls
 import qs.DCommon.Common
 import qs.DCommon.Widgets
-import "PathCompletion.js" as PathCompletion
 
 Popup {
     id: root
@@ -13,7 +12,7 @@ Popup {
     property var rows: []
     property string errorText: ""
     property int highlightIndex: -1
-    readonly property real rowHeight: Style.menuItemHeight
+    readonly property real rowHeight: Style.menuRowHeight
 
     signal chosen(var row)
 
@@ -43,6 +42,7 @@ Popup {
     x: I18n.isRtl ? (anchorItem?.width ?? 0) - width : 0
     y: (anchorItem?.height ?? 0) + Style.spacingXS
     width: Math.max(anchorItem?.width ?? 0, FileBrowserMetrics.suggestionMinWidth)
+    margins: 0
     padding: Style.spacingXS
     modal: false
     dim: false
@@ -51,8 +51,7 @@ Popup {
     onRowsChanged: {
         if (highlightIndex >= rows.length)
             highlightIndex = -1;
-        list.savedY = list.originY;
-        list.positionViewAtBeginning();
+        list.resetScroll();
     }
     onHighlightIndexChanged: {
         if (highlightIndex >= 0)
@@ -89,7 +88,7 @@ Popup {
                 anchors.leftMargin: Style.spacingM
                 anchors.verticalCenter: parent.verticalCenter
                 name: "error"
-                size: Style.iconSizeMedium
+                size: Style.menuItemIconSize
                 color: Style.error
             }
 
@@ -144,7 +143,7 @@ Popup {
                     anchors.leftMargin: Style.spacingM
                     anchors.verticalCenter: parent.verticalCenter
                     name: entry.modelData.kind === "visited" ? "history" : "folder"
-                    size: Style.iconSizeMedium
+                    size: Style.menuItemIconSize
                     color: Style.surfaceVariantText
                 }
 
@@ -156,7 +155,7 @@ Popup {
                     anchors.verticalCenter: parent.verticalCenter
                     width: Math.min(implicitWidth, parent.width * FileBrowserMetrics.suggestionHintRatio)
                     visible: entry.modelData.hint !== ""
-                    text: PathCompletion.markup(entry.modelData.hint, entry.modelData.hintMarks, Style.primary)
+                    text: FileFormat.markRanges(entry.modelData.hint, entry.modelData.hintMarks, Style.primary)
                     textFormat: Text.StyledText
                     color: Style.surfaceVariantText
                     font.pixelSize: Style.fontSizeSmall
@@ -171,7 +170,7 @@ Popup {
                     anchors.right: entryHint.visible ? entryHint.left : parent.right
                     anchors.rightMargin: Style.spacingM
                     anchors.verticalCenter: parent.verticalCenter
-                    text: PathCompletion.markup(entry.modelData.name, entry.modelData.nameMarks, Style.primary)
+                    text: FileFormat.markRanges(entry.modelData.name, entry.modelData.nameMarks, Style.primary)
                     textFormat: Text.StyledText
                     color: Style.surfaceText
                     font.pixelSize: Style.fontSizeMedium

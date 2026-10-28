@@ -2,10 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.DCommon.Common
+import "NaturalSort.js" as NaturalSort
 
-// A results list with the DirectoryModel surface FileViewBody reads, fed by
-// Host.files.search instead of a watch. Results arrive in batches and are
-// appended in daemon order; nothing re-sorts.
 QtObject {
     id: root
 
@@ -16,34 +14,46 @@ QtObject {
     property string thumbnailSize: "normal"
     property bool thumbnailsEnabled: true
     property real thumbnailSizeLimit: -1
+    property string sortKey: ""
+    property bool sortDescending: false
 
     property bool active: false
     property bool loading: false
     property string error: ""
     property string errorCode: ""
     property bool truncated: false
+    property bool partial: false
     property int unreadable: 0
     property int total: 0
     property int limit: 0
     property string searchId: ""
+    property string servedBy: ""
+    property string indexPhase: ""
+    property int depthLimit: 0
 
     readonly property string path: rootPath
     readonly property bool available: backend?.connected === true && typeof backend?.search === "function"
     readonly property ListModel entries: ListModel {}
     readonly property int count: entries.count
-    readonly property bool hasMore: false
     readonly property bool pollOnFocus: false
-    readonly property string watchId: ""
 
     property int _firstVisible: -1
     property int _lastVisible: -1
     property var _token: null
     property var _pending: []
+    property var _rows: []
+    property var _byPath: new Map()
+    property int _seq: 0
 
     signal listed
     signal pathReset
-    signal gone
     signal finished
+
+    readonly property ThumbnailRequests _thumbnails: ThumbnailRequests {
+        backend: root.backend
+        size: root.thumbnailSize
+        sizeLimit: root.thumbnailSizeLimit
+    }
 
     readonly property Connections _backendLink: Connections {
         target: root.backend
@@ -59,16 +69,14 @@ QtObject {
         }
     }
 
+    onSortKeyChanged: _resort()
+    onSortDescendingChanged: _resort()
+
     Component.onDestruction: cancel()
 
     function start() {
         cancel();
-        entries.clear();
-        total = 0;
-        truncated = false;
-        unreadable = 0;
-        error = "";
-        errorCode = "";
+        _reset();
         active = true;
         pathReset();
         if (rootPath === "")
@@ -117,11 +125,7 @@ QtObject {
     function clear() {
         cancel();
         active = false;
-        entries.clear();
-        total = 0;
-        truncated = false;
-        error = "";
-        errorCode = "";
+        _reset();
         pathReset();
     }
 
@@ -130,21 +134,35 @@ QtObject {
             start();
     }
 
+    function setSort(key) {
+        if (key === sortKey) {
+            sortDescending = !sortDescending;
+            return;
+        }
+        sortKey = key;
+        sortDescending = false;
+    }
+
     function loadMore() {
     }
 
-    function indexOfName(name) {
-        for (let i = 0; i < entries.count; i++) {
-            if (entries.get(i).name === name)
-                return i;
-        }
-        return -1;
+    function indexOfPath(target) {
+        const row = _byPath.get(target);
+        return row ? _position(row) : -1;
     }
 
-    function indexOfPath(target) {
-        for (let i = 0; i < entries.count; i++) {
-            if (entries.get(i).path === target)
-                return i;
+    function _position(row) {
+        let low = 0;
+        let high = _rows.length - 1;
+        while (low <= high) {
+            const mid = (low + high) >> 1;
+            const order = _compare(_rows[mid], row);
+            if (order === 0)
+                return mid;
+            if (order < 0)
+                low = mid + 1;
+            else
+                high = mid - 1;
         }
         return -1;
     }
@@ -155,33 +173,98 @@ QtObject {
         _firstVisible = first;
         _lastVisible = last;
         const paths = [];
-        for (let i = first; i <= Math.min(last, entries.count - 1); i++) {
-            const entry = entries.get(i);
-            if (!entry.thumbnailable || entry.thumbnail !== "")
-                continue;
-            if (thumbnailSizeLimit >= 0 && entry.size > thumbnailSizeLimit)
-                continue;
-            paths.push(entry.path);
+        for (let i = first; i <= Math.min(last, _rows.length - 1); i++) {
+            if (_thumbnails.wanted(_rows[i]))
+                paths.push(_rows[i].path);
         }
-        if (paths.length === 0)
-            return;
-        backend.thumbnails(paths, thumbnailSize, "", result => {
-            if (result.error)
-                return;
-            for (const item of result.results || []) {
-                if (!item.thumbnail)
-                    continue;
+        _thumbnails.request(paths, "", items => {
+            for (const item of items) {
                 const index = indexOfPath(item.path);
-                if (index >= 0)
-                    entries.setProperty(index, "thumbnail", item.thumbnail);
+                if (index < 0)
+                    continue;
+                _rows[index].thumbnail = item.thumbnail;
+                entries.setProperty(index, "thumbnail", item.thumbnail);
             }
         });
+    }
+
+    function _reset() {
+        _thumbnails.reset();
+        entries.clear();
+        _rows = [];
+        _byPath = new Map();
+        _seq = 0;
+        total = 0;
+        truncated = false;
+        partial = false;
+        unreadable = 0;
+        servedBy = "";
+        indexPhase = "";
+        depthLimit = 0;
+        error = "";
+        errorCode = "";
     }
 
     function _fail(code, message) {
         cancel();
         error = message;
         errorCode = code;
+    }
+
+    function _compare(a, b) {
+        let order = 0;
+        switch (sortKey) {
+        case "name":
+            order = a.nameKey.localeCompare(b.nameKey);
+            break;
+        case "size":
+            order = a.size - b.size;
+            break;
+        case "mtime":
+            order = a.mtimeMs - b.mtimeMs;
+            break;
+        case "location":
+            order = _parent(a.path).localeCompare(_parent(b.path));
+            break;
+        default:
+            order = (b.score ?? 0) - (a.score ?? 0);
+            break;
+        }
+        if (order === 0)
+            return a.seq - b.seq;
+        return sortDescending ? -order : order;
+    }
+
+    function _parent(path) {
+        return path.substring(0, path.lastIndexOf("/"));
+    }
+
+    function _insert(entry) {
+        entry.seq = _seq++;
+        entry.nameKey = NaturalSort.key(entry.name);
+        let low = 0;
+        let high = _rows.length;
+        while (low < high) {
+            const mid = (low + high) >> 1;
+            if (_compare(_rows[mid], entry) <= 0)
+                low = mid + 1;
+            else
+                high = mid;
+        }
+        _rows.splice(low, 0, entry);
+        _byPath.set(entry.path, entry);
+        entries.insert(low, entry);
+    }
+
+    function _resort() {
+        if (_rows.length === 0)
+            return;
+        const rows = _rows.slice();
+        rows.sort(_compare);
+        _rows = rows;
+        entries.clear();
+        entries.append(rows);
+        listed();
     }
 
     function _onEvent(data) {
@@ -192,14 +275,21 @@ QtObject {
         if (data.searchId !== searchId)
             return;
         switch (data.kind) {
+        case "backend":
+            servedBy = data.backend || "";
+            indexPhase = data.phase || "";
+            depthLimit = data.depthLimit || 0;
+            break;
         case "results":
-            entries.append(Array.from(data.entries || []));
-            total = data.count || entries.count;
+            for (const entry of data.entries || [])
+                _insert(entry);
+            total = data.count || _rows.length;
             listed();
             break;
         case "done":
-            total = data.count || entries.count;
+            total = data.count || _rows.length;
             truncated = data.truncated === true;
+            partial = data.partial === true;
             unreadable = data.unreadable || 0;
             searchId = "";
             _token = null;

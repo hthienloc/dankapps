@@ -103,7 +103,8 @@ Item {
                 grabToImage(res => {
                     if (grabPath !== root._cacheTarget)
                         return;
-                    res.saveToFile(grabPath);
+                    if (res.saveToFile(grabPath))
+                        ImageCacheIndex.add(grabPath.substring(grabPath.lastIndexOf("/") + 1));
                 }, Qt.size(Math.round(width * scale), Math.round(height * scale)));
                 return;
             }
@@ -137,8 +138,13 @@ Item {
             staticImg.source = encoded;
             return;
         }
+        const cacheName = `${hash}@${maxCacheSize}x${maxCacheSize}.png`;
         _originalSource = encoded;
-        _cacheTarget = `${Paths.stringify(Paths.imagecache)}/${hash}@${maxCacheSize}x${maxCacheSize}.png`;
+        _cacheTarget = `${Paths.stringify(Paths.imagecache)}/${cacheName}`;
+        if (ImageCacheIndex.ready && !ImageCacheIndex.has(cacheName)) {
+            staticImg.loadOriginal();
+            return;
+        }
         _fromCache = true;
         staticImg.sourceSize = undefined;
         staticImg.source = _cacheTarget;

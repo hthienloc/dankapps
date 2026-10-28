@@ -23,7 +23,20 @@ MouseArea {
     property int transitionDuration: Style.shorterDuration
     property var transitionCurve: Style.expressiveCurves.standardDecel
 
-    readonly property real stateOpacity: disabled ? 0 : (control ? control.down : pressed) ? Style.stateLayerPressed : focused ? Style.stateLayerFocus : hovered ? Style.stateLayerHover : 0
+    readonly property bool isPressed: control ? control.down : pressed
+    // the held ripple is the pressed layer whenever it can draw
+    readonly property bool rippleDrawsPress: enableRipple && !Style.reduceMotion && Style.currentAnimationSpeed !== Style.AnimationSpeed.None
+    readonly property real stateOpacity: {
+        if (disabled)
+            return 0;
+        if (isPressed && !rippleDrawsPress)
+            return Style.stateLayerPressed;
+        if (focused)
+            return Style.stateLayerFocus;
+        if (hovered)
+            return Style.stateLayerHover;
+        return 0;
+    }
     readonly property bool controlPressed: control ? control.pressed : false
 
     anchors.fill: parent
@@ -48,16 +61,21 @@ MouseArea {
     }
 
     onPressed: mouse => {
-        if (!disabled && enableRipple) {
-            rippleLayer.trigger(mouse.x, mouse.y);
-        }
+        if (!disabled && enableRipple)
+            rippleLayer.trigger(mouse.x, mouse.y, true);
     }
+    onReleased: rippleLayer.release()
+    onCanceled: rippleLayer.release()
 
     onControlPressedChanged: {
-        if (!controlPressed || disabled || !enableRipple)
+        if (!controlPressed) {
+            rippleLayer.release();
+            return;
+        }
+        if (disabled || !enableRipple)
             return;
         const point = mapFromItem(control, control.pressX, control.pressY);
-        rippleLayer.trigger(point.x, point.y);
+        rippleLayer.trigger(point.x, point.y, true);
     }
 
     Rectangle {

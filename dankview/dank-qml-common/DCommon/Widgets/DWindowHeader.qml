@@ -20,7 +20,7 @@ Item {
     default property alias actions: extraActions.data
 
     readonly property bool compositorDecorated: controls !== null && !Host.ownWindowDecorations
-    readonly property bool hasActions: extraActions.children.length > 0
+    readonly property bool hasActions: extraActions.implicitWidth > 0
     readonly property bool collapsed: compositorDecorated && !hasActions
     readonly property bool centered: titleAlignment === Text.AlignHCenter
     readonly property real edgeInset: horizontalPadding >= 0 ? horizontalPadding : Style.windowInset

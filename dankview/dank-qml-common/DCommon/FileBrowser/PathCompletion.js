@@ -212,17 +212,3 @@ function tab(text, rows, highlight) {
         "highlight": 0
     };
 }
-
-function escape(text) {
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function markup(text, marks, color) {
-    let out = "";
-    let at = 0;
-    for (const mark of marks) {
-        out += escape(text.substring(at, mark[0])) + `<font color="${color}"><b>` + escape(text.substring(mark[0], mark[1])) + "</b></font>";
-        at = mark[1];
-    }
-    return out + escape(text.substring(at));
-}

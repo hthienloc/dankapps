@@ -33,7 +33,7 @@ FloatingWindow {
     property bool shouldHaveFocus: visible
     property bool allowFocusOverride: false
     property bool shouldBeVisible: visible
-    property bool allowStacking: true
+    property bool allowStacking: true // !TODO: plugin compat, unused since the browser became a floating window
 
     readonly property var _screen: screen ?? (Quickshell.screens.length > 0 ? Quickshell.screens[0] : null)
     readonly property int screenWidth: _screen?.width ?? 1920

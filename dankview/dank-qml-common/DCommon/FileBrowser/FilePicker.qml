@@ -57,6 +57,7 @@ FocusScope {
 
     property string _error: ""
     property string _overwriteTarget: ""
+    property string _rememberedPath: ""
     property bool _restoring: false
 
     signal accepted(var paths)
@@ -74,6 +75,7 @@ FocusScope {
         showHidden = saved.showHidden ?? defaultShowHidden;
         _error = "";
         _overwriteTarget = "";
+        _rememberedPath = "";
         nameField.text = defaultName;
         browser.restoreState({
             "path": ""
@@ -227,10 +229,17 @@ FocusScope {
     }
 
     function _finish(paths) {
+        _rememberPath();
+        accepted(paths);
+    }
+
+    function _rememberPath() {
+        if (browser.path === "" || browser.path === _rememberedPath)
+            return;
+        _rememberedPath = browser.path;
         _persist({
             "lastPath": browser.path
         });
-        accepted(paths);
     }
 
     function _persist(patch) {
@@ -340,16 +349,14 @@ FocusScope {
         if (autoReset)
             reset();
     }
+    Component.onDestruction: _rememberPath()
+    onRejected: _rememberPath()
 
     Connections {
         target: browser
 
         function onPathChanged() {
             root._error = "";
-            if (browser.path !== "")
-                root._persist({
-                    "lastPath": browser.path
-                });
         }
     }
 

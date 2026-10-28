@@ -26,7 +26,7 @@ Item {
     signal locationSelected(string displayName, string coordinates)
 
     readonly property real fieldHeight: Style.fieldHeightLarge
-    readonly property real resultRowHeight: Style.menuItemHeight
+    readonly property real resultRowHeight: Style.menuRowHeight
 
     function applyCurrentLocation() {
         if (locationInput.getActiveFocus()) {
@@ -277,7 +277,7 @@ Item {
 
                         DIcon {
                             name: "place"
-                            size: Style.iconSizeMedium
+                            size: Style.menuItemIconSize
                             color: Style.onSurfaceVariant
                             anchors.verticalCenter: parent.verticalCenter
                         }

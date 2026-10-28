@@ -52,15 +52,15 @@ Singleton {
     readonly property color secondary: theme?.secondary ?? "#CCC2DC"
     readonly property color surface: theme?.surface ?? "#141218"
     readonly property color surfaceText: theme?.surfaceText ?? "#e6e0e9"
-    readonly property color surfaceVariant: theme?.surfaceVariant ?? "#49454e"
-    readonly property color surfaceVariantText: theme?.surfaceVariantText ?? "#cac4cf"
+    readonly property color surfaceVariant: theme?.surfaceVariant ?? "#49454F"
+    readonly property color surfaceVariantText: theme?.surfaceVariantText ?? "#CAC4D0"
     readonly property color surfaceTint: theme?.surfaceTint ?? "#D0BCFF"
     readonly property color background: theme?.background ?? "#141218"
-    readonly property color outline: theme?.outline ?? "#948f99"
-    readonly property color surfaceContainer: theme?.surfaceContainer ?? "#211f24"
-    readonly property color surfaceContainerHigh: theme?.surfaceContainerHigh ?? "#2b292f"
+    readonly property color outline: theme?.outline ?? "#938F99"
+    readonly property color surfaceContainer: theme?.surfaceContainer ?? "#211F26"
+    readonly property color surfaceContainerHigh: theme?.surfaceContainerHigh ?? "#2B2930"
     readonly property color error: theme?.error ?? "#F2B8B5"
-    readonly property color errorContainer: theme?.errorContainer ?? surfaceContainerHigh
+    readonly property color errorContainer: theme?.errorContainer ?? "#8C1D18"
     readonly property color warning: theme?.warning ?? "#FF9800"
     readonly property color tertiary: theme?.tertiary ?? "#EFB8C8"
     readonly property color surfaceContainerLowest: theme?.surfaceContainerLowest ?? "#0f0d13"
@@ -72,6 +72,8 @@ Singleton {
     readonly property color cardSurface: theme?.cardSurface ?? surfaceContainer
     readonly property color chipSurface: theme?.chipSurface ?? surfaceContainerHigh
     readonly property color chipSurfaceNested: theme?.chipSurfaceNested ?? surfaceContainerHighest
+    readonly property color tooltipSurface: theme?.tooltipSurface ?? surfaceContainerHighest
+    readonly property color tooltipText: theme?.tooltipText ?? Contrast.readableOn(tooltipSurface, [surfaceText, contrastLight, contrastDark])
     readonly property color outlineVariant: theme?.outlineVariant ?? "#49454f"
     readonly property color secondaryContainer: theme?.secondaryContainer ?? "#4a4458"
     readonly property color tertiaryContainer: theme?.tertiaryContainer ?? "#633b48"
@@ -87,6 +89,7 @@ Singleton {
     property color onErrorContainer
     property color onTertiaryContainer
     property color onSelectedContainer
+    readonly property color onSurface_10: theme?.onSurface_10 ?? withAlpha(onSurface, 0.1)
     readonly property color onSurface_12: theme?.onSurface_12 ?? withAlpha(onSurface, 0.12)
     readonly property color onSurface_38: theme?.onSurface_38 ?? withAlpha(onSurface, 0.38)
     readonly property color onSurfaceVariant_30: theme?.onSurfaceVariant_30 ?? withAlpha(onSurfaceVariant, 0.3)
@@ -95,12 +98,12 @@ Singleton {
         Binding {
             target: root
             property: "onSurfaceVariant_40"
-            value: root.theme?.onSurfaceVariant_40 ?? "#66cac4cf"
+            value: root.theme?.onSurfaceVariant_40 ?? "#66CAC4D0"
         },
         Binding {
             target: root
             property: "onErrorContainer"
-            value: root.theme?.onErrorContainer ?? root.onSurface
+            value: root.theme?.onErrorContainer ?? "#F9DEDC"
         },
         Binding {
             target: root
@@ -244,6 +247,10 @@ Singleton {
         return root["cornerRadius" + token.toUpperCase()];
     }
 
+    readonly property int densityLevel: theme?.densityLevel ?? 0
+    readonly property real menuItemIconSize: densityLevel < -1 ? iconSizeSmall : iconSizeMedium
+    readonly property real menuRowHeight: menuItemHeight + densityLevel * spacingXS
+    readonly property real menuPadding: spacingS + densityLevel * spacingXXS
     readonly property real groupedListGap: theme?.groupedListGap ?? spacingXXS
     readonly property real groupedListInnerRadius: theme?.groupedListInnerRadius ?? cornerRadiusXS
     readonly property real groupedListOuterRadius: theme?.groupedListOuterRadius ?? cornerRadiusL
@@ -279,7 +286,7 @@ Singleton {
     readonly property real sliderTrackHeight: theme?.sliderTrackHeight ?? 16
     readonly property real sliderHandleWidth: theme?.sliderHandleWidth ?? 4
     readonly property real sliderHandleWidthPressed: theme?.sliderHandleWidthPressed ?? 2
-    readonly property real sliderHandleHeight: theme?.sliderHandleHeight ?? 28
+    readonly property real sliderHandleHeight: theme?.sliderHandleHeight ?? 44
     readonly property real sliderHandleGap: theme?.sliderHandleGap ?? 6
     readonly property real sliderTrackHeightS: theme?.sliderTrackHeightS ?? 24
     readonly property real sliderHandleHeightS: theme?.sliderHandleHeightS ?? 36
@@ -349,8 +356,8 @@ Singleton {
     readonly property real launcherScreenMargin: theme?.launcherScreenMargin ?? 100
 
     readonly property real fieldDefaultWidth: theme?.fieldDefaultWidth ?? 200
-    readonly property real fieldHeight: theme?.fieldHeight ?? Math.round(fontSizeMedium * 3)
-    readonly property real fieldHeightLarge: theme?.fieldHeightLarge ?? 48
+    readonly property real fieldHeight: theme?.fieldHeight ?? Math.round(fontSizeMedium * 3) + densityLevel * spacingXS
+    readonly property real fieldHeightLarge: theme?.fieldHeightLarge ?? 48 + densityLevel * spacingXS
     readonly property real outlinedFieldLabelLineHeight: theme?.outlinedFieldLabelLineHeight ?? 16
     readonly property real textFieldSpatialStiffness: theme?.textFieldSpatialStiffness ?? 800
     readonly property real textFieldSpatialDampingRatio: theme?.textFieldSpatialDampingRatio ?? 1
@@ -473,16 +480,37 @@ Singleton {
             spreadPx: 0,
             alpha: 0.3
         })
+    readonly property var elevationLevel4: theme?.elevationLevel4 ?? ({
+            blurPx: 16,
+            offsetX: 0,
+            offsetY: 8,
+            spreadPx: 0,
+            alpha: 0.32
+        })
+    readonly property var elevationLevel5: theme?.elevationLevel5 ?? ({
+            blurPx: 24,
+            offsetX: 0,
+            offsetY: 12,
+            spreadPx: 0,
+            alpha: 0.35
+        })
 
     readonly property real stateLayerHover: theme?.stateLayerHover ?? 0.08
-    readonly property real stateLayerFocus: theme?.stateLayerFocus ?? 0.12
-    readonly property real stateLayerPressed: theme?.stateLayerPressed ?? 0.12
+    readonly property real stateLayerFocus: theme?.stateLayerFocus ?? 0.1
+    readonly property real stateLayerPressed: theme?.stateLayerPressed ?? 0.1
     readonly property real stateLayerDrag: theme?.stateLayerDrag ?? 0.16
 
+    // [stiffness, damping] at unit mass; *Spatial and *Effects are Compose ExpressiveMotionTokens with the damping ratio converted
     readonly property var springSpecs: theme?.springSpecs ?? ({
             "expressive": [560, 37],
             "fast": [220, 23],
-            "default": [300, 24]
+            "default": [300, 24],
+            "fastSpatial": [800, 33.9],
+            "defaultSpatial": [380, 31.2],
+            "slowSpatial": [200, 22.6],
+            "fastEffects": [3800, 123.3],
+            "defaultEffects": [1600, 80],
+            "slowEffects": [800, 56.6]
         })
     readonly property var springDampingScales: theme?.springDampingScales ?? [1.22, 1.0, 0.82]
     readonly property bool springMotionDisabled: theme?.springMotionDisabled ?? (currentAnimationBaseDuration <= 0)

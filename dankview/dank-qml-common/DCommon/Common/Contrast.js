@@ -33,6 +33,25 @@ function readableOn(background, candidates, target = 4.5) {
     return best;
 }
 
+function worstRatio(color, backgrounds) {
+    return Math.min(...backgrounds.map(background => ratio(color, background)));
+}
+
+function readableOnAll(backgrounds, candidates, target = 4.5) {
+    let best = candidates[0];
+    let bestRatio = -1;
+    for (const candidate of candidates) {
+        const worst = worstRatio(candidate, backgrounds);
+        if (worst >= target)
+            return candidate;
+        if (worst <= bestRatio)
+            continue;
+        best = candidate;
+        bestRatio = worst;
+    }
+    return best;
+}
+
 function subtleTint(base, tint, onColor, amount, target = 4.5) {
     if (ratio(base, onColor) < target)
         return base;

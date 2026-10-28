@@ -171,7 +171,7 @@ FocusScope {
         width: Math.max(root.faceSize, digitRow.implicitWidth) + Style.spacingXL * 3
         height: cardColumn.implicitHeight + Style.spacingXL * 2
         anchors.centerIn: parent
-        radius: Style.windowRadius
+        radius: Style.cornerRadiusXL
         color: Style.cardSurface
         border.width: Style.layerOutlineWidth
         border.color: Style.outlineMedium

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.DCommon.Common
 import qs.DCommon.Widgets
+import "TypeAhead.js" as TypeAhead
 
 FocusScope {
     id: body
@@ -13,10 +14,13 @@ FocusScope {
     property string viewMode: "list"
     property int gridZoom: 1
     property int listZoom: 1
+    property int columnZoom: FileBrowserMetrics.defaultColumnZoom
+    property real columnPaneWidth: 0
     property var listColumns: ["size", "modified"]
     property var columnWidths: ({})
     property string sortKey: "name"
     property bool sortDescending: false
+    property var columnSortKeys: ({})
     property bool showHidden: false
     property bool multiSelect: true
     property bool dragEnabled: true
@@ -30,6 +34,7 @@ FocusScope {
     property string renamingPath: ""
     property var cutSet: ({})
     property var childCounts: ({})
+    property var countsPending: ({})
     property bool singleClickActivates: false
     property bool typeAheadEnabled: true
     property string typeAheadMode: "jump"
@@ -41,16 +46,19 @@ FocusScope {
     property bool previewKeys: false
     property var directoryPool: null
     property bool slowListing: false
+    property var selected: []
     property real _lastActivation: 0
+    property real _pendingScroll: -1
 
     readonly property var view: viewLoader.item
     readonly property bool columnsMode: viewMode === "columns" && directoryPool !== null
     readonly property bool columnsScroll: header !== null && viewMode === "list"
     readonly property int zoom: viewMode === "grid" ? gridZoom : listZoom
+    readonly property real columnZoomFactor: FileBrowserMetrics.columnZoomFactor(columnZoom)
     readonly property var iconSizes: FileBrowserMetrics.iconSizesFor(viewMode)
     readonly property real iconSize: iconSizes[Math.max(0, Math.min(iconSizes.length - 1, zoom))]
-    readonly property var fittingColumns: {
-        let available = width - iconSize - FileBrowserMetrics.listRowPadding * 3 - FileBrowserMetrics.nameColumnMinWidth;
+    readonly property string fittingKey: {
+        let available = width - iconSize - FileBrowserMetrics.listRowPadding * 2 - FileBrowserMetrics.listRowGap - FileBrowserMetrics.nameColumnMinWidth;
         const kept = [];
         for (const id of listColumns) {
             const needed = columnWidthFor(id) + FileBrowserMetrics.columnGap;
@@ -59,8 +67,9 @@ FocusScope {
             available -= needed;
             kept.push(id);
         }
-        return kept;
+        return kept.join(",");
     }
+    readonly property var fittingColumns: fittingKey === "" ? [] : fittingKey.split(",")
     readonly property bool listing: directory.loading && directory.count === 0
     readonly property bool empty: !directory.loading && directory.error === "" && directory.count === 0
     readonly property var dragScrollTarget: dragScrollTargetFor(FileDragHover.area)
@@ -91,6 +100,7 @@ FocusScope {
     signal sortRequested(string key)
     signal zoomRequested(string viewMode, int level)
     signal columnResizeRequested(string id, real width)
+    signal columnPaneResizeRequested(real width)
     signal previewKeyRequested(string action, int step)
     signal directoryReplaced
     signal filterRequested(string text)
@@ -132,11 +142,18 @@ FocusScope {
     }
 
     function selectedEntries() {
-        if (selection.count === 0)
-            return [];
+        return selected;
+    }
+
+    function _refreshSelected() {
+        if (selection.count === 0) {
+            selected = [];
+            return;
+        }
         if (selection.count === 1) {
             const entry = entryAt(directory.indexOfPath(selection.paths[0]));
-            return entry ? [entry] : [];
+            selected = entry ? [entry] : [];
+            return;
         }
         const found = new Map();
         for (let i = 0; i < directory.count; i++) {
@@ -144,7 +161,14 @@ FocusScope {
             if (selection.contains(entry.path))
                 found.set(entry.path, entry);
         }
-        return selection.paths.map(selected => found.get(selected)).filter(entry => entry !== undefined);
+        selected = selection.paths.map(path => found.get(path)).filter(entry => entry !== undefined);
+    }
+
+    function _syncEntries() {
+        selection.prune(directory.entries);
+        if (renamingPath !== "" && directory.indexOfPath(renamingPath) < 0)
+            renamingPath = "";
+        _refreshSelected();
     }
 
     function beginRename(target) {
@@ -158,18 +182,54 @@ FocusScope {
             renameRequested(target, name);
     }
 
+    function scrollTarget() {
+        return columnsMode ? view?.activeList ?? null : view;
+    }
+
     function scrollOffset() {
-        const target = view?.activeList ?? view;
+        const target = scrollTarget();
         return target ? target.contentY - target.originY : 0;
     }
 
     function scrollTo(offset) {
-        const target = view?.activeList ?? view;
+        const target = scrollTarget();
         if (!target)
             return;
-        if (typeof target.forceLayout === "function")
-            target.forceLayout();
+        target.forceLayout();
         target.contentY = target.originY + Math.max(0, Math.min(offset, target.contentHeight - target.height));
+    }
+
+    function restoreScroll(offset) {
+        _pendingScroll = Math.max(0, offset);
+        scrollSettle.restart();
+    }
+
+    function resetScroll() {
+        if (columnsMode)
+            return;
+        view?.resetScroll();
+    }
+
+    function _applyPendingScroll() {
+        if (_pendingScroll < 0 || directory.loading)
+            return;
+        const offset = _pendingScroll;
+        _pendingScroll = -1;
+        scrollTo(offset);
+    }
+
+    function _settleScroll() {
+        if (_pendingScroll >= 0) {
+            _applyPendingScroll();
+            return;
+        }
+        resetScroll();
+    }
+
+    function dropOn(index, drop) {
+        const entry = entryAt(index);
+        if (entry)
+            itemsDropped(entry.path, drop);
     }
 
     function enterCursor() {
@@ -220,8 +280,11 @@ FocusScope {
     }
 
     function zoomBy(step) {
-        const level = Math.max(0, Math.min(iconSizes.length - 1, zoom + step));
-        if (level === zoom)
+        const inColumns = viewMode === "columns";
+        const current = inColumns ? columnZoom : zoom;
+        const levels = inColumns ? FileBrowserMetrics.columnZoomFactors.length : iconSizes.length;
+        const level = Math.max(0, Math.min(levels - 1, current + step));
+        if (level === current)
             return;
         zoomRequested(viewMode, level);
     }
@@ -315,30 +378,20 @@ FocusScope {
         return Math.max(1, Math.floor(view.height / view.rowPitch));
     }
 
-    function typeAheadTarget(count, nameAt, current, prefix, text) {
-        const repeated = prefix !== "" && Array.from(prefix).every(letter => letter === text);
-        const needle = repeated ? text : prefix + text;
-        const start = repeated && current >= 0 ? current + 1 : 0;
-        for (let step = 0; step < count; step++) {
-            const index = (start + step) % count;
-            if (nameAt(index).toLowerCase().startsWith(needle))
-                return index;
-        }
-        return -1;
-    }
-
     function typeAhead(text) {
         if (typeAheadMode === "filter") {
             typeAheadTimer.prefix = "";
             filterRequested(text);
             return;
         }
-        const letter = text.toLowerCase();
-        const target = typeAheadTarget(directory.count, index => directory.entries.get(index).name, cursorIndex(), typeAheadTimer.prefix, letter);
-        typeAheadTimer.prefix += letter;
+        const match = TypeAhead.next(directory.count, index => directory.entries.get(index).name, cursorIndex(), typeAheadTimer.prefix, text);
+        typeAheadTimer.prefix = match.prefix;
+        if (match.index < 0) {
+            typeAheadTimer.stop();
+            return;
+        }
         typeAheadTimer.restart();
-        if (target >= 0)
-            jumpTo(target, Qt.NoModifier);
+        jumpTo(match.index, Qt.NoModifier);
     }
 
     function springLoad(index) {
@@ -370,15 +423,18 @@ FocusScope {
         if (!countFolders || viewMode !== "list" || !fittingColumns.includes("size"))
             return;
         const wanted = [];
-        for (let i = first; i <= Math.min(last, directory.count - 1); i++) {
+        for (let i = Math.max(0, first); i <= Math.min(last, directory.count - 1); i++) {
             const entry = entryAt(i);
-            if (!entry?.isDir || childCounts[entry.path] !== undefined)
+            if (!entry?.isDir || childCounts[entry.path] !== undefined || countsPending[entry.path])
                 continue;
             wanted.push(entry.path);
+            countsPending[entry.path] = true;
         }
         if (wanted.length === 0 || !directory.backend)
             return;
         directory.backend.count(wanted, showHidden, result => {
+            for (const path of wanted)
+                delete body.countsPending[path];
             if (result.error)
                 return;
             const merged = Object.assign({}, body.childCounts);
@@ -390,9 +446,17 @@ FocusScope {
         });
     }
 
+    function prefetchCounts() {
+        if (!view || columnsMode)
+            return;
+        const range = view.visibleRange();
+        const rows = range[1] - range[0] + 1;
+        requestCounts(range[0] - rows, range[1] + rows * FileBrowserMetrics.countPrefetchScreens);
+    }
+
     function selectedBytes() {
         let total = 0;
-        for (const entry of selectedEntries()) {
+        for (const entry of selected) {
             if (entry.size < 0)
                 return -1;
             total += entry.size;
@@ -415,27 +479,20 @@ FocusScope {
             return;
         const range = view.visibleRange();
         directory.requestThumbnails(range[0], range[1]);
-        requestCounts(range[0], range[1]);
+        prefetchCounts();
         if (range[1] >= directory.count - 1)
             directory.loadMore();
     }
 
     onViewModeChanged: renamingPath = ""
-    function resetScroll() {
-        const target = view?.activeList ?? view;
-        if (!target || columnsMode)
-            return;
-        if (target.savedY !== undefined)
-            target.savedY = target.originY;
-        target.positionViewAtBeginning();
-    }
-
     onDirectoryChanged: {
         selection.clear();
         renamingPath = "";
+        typeAheadTimer.prefix = "";
         childCounts = ({});
-        if (!columnsMode)
-            scrollReset.restart();
+        countsPending = ({});
+        _pendingScroll = -1;
+        scrollSettle.restart();
         directoryReplaced();
     }
     onListingChanged: {
@@ -453,25 +510,45 @@ FocusScope {
 
     Connections {
         target: body.directory
+        ignoreUnknownSignals: true
 
         function onPathReset() {
             body.selection.clear();
             body.renamingPath = "";
+            typeAheadTimer.prefix = "";
             body.childCounts = ({});
+            body.countsPending = ({});
             body.view?.positionViewAtBeginning();
         }
 
         function onListed() {
-            body.selection.prune(body.directory.entries);
+            body._syncEntries();
+            body._applyPendingScroll();
             body.settleNow();
+        }
+
+        function onEntriesAdded() {
+            body._refreshSelected();
+        }
+
+        function onEntriesRemoved() {
+            body._syncEntries();
+        }
+    }
+
+    Connections {
+        target: body.selection
+
+        function onPathsChanged() {
+            body._refreshSelected();
         }
     }
 
     Timer {
-        id: scrollReset
+        id: scrollSettle
 
         interval: 0
-        onTriggered: body.resetScroll()
+        onTriggered: body._settleScroll()
     }
 
     Timer {
@@ -497,17 +574,10 @@ FocusScope {
         onTriggered: body.settleNow()
     }
 
-    FrameAnimation {
-        running: body.dragScrollTarget !== null && body.dragScrollDirection !== 0
-        onTriggered: {
-            const target = body.dragScrollTarget;
-            const maximum = target.originY + Math.max(0, target.contentHeight - target.height);
-            const next = Math.max(target.originY, Math.min(maximum, target.contentY + body.dragScrollDirection * FileBrowserMetrics.listRowHeight * FileBrowserMetrics.dragScrollRowsPerSecond * frameTime));
-            if (next === target.contentY)
-                return;
-            target.contentY = next;
-            FileDragHover.scrolled = true;
-        }
+    ViewAutoScroll {
+        target: body.dragScrollTarget
+        direction: body.dragScrollDirection
+        onScrolled: FileDragHover.scrolled = true
     }
 
     Keys.onPressed: event => handleKey(event)
@@ -616,7 +686,6 @@ FocusScope {
             break;
         case Qt.Key_Slash:
         case Qt.Key_Question:
-            // Left to the host: search and help, never a name prefix.
             return;
         default:
             if (!typeAheadEnabled || (modifiers !== Qt.NoModifier && modifiers !== Qt.ShiftModifier))
@@ -655,6 +724,7 @@ FocusScope {
 
             selection: body.selection
             iconSize: body.iconSize
+            zoom: body.zoom
             renamingPath: body.renamingPath
             cutSet: body.cutSet
             childCounts: body.childCounts
@@ -672,7 +742,7 @@ FocusScope {
             onItemMiddleClicked: index => body.middleClick(index)
             onItemContextMenu: (index, pointX, pointY, modifiers) => body.forwardItemMenu(listView, index, pointX, pointY, modifiers)
             onItemDragStarted: index => body.startDrag(index)
-            onItemDropped: (index, drop) => body.itemsDropped(body.entryAt(index).path, drop)
+            onItemDropped: (index, drop) => body.dropOn(index, drop)
             onItemSpringLoaded: index => body.springLoad(index)
             onRenameSubmitted: (target, name) => body.finishRename(target, name)
             onRenameCancelled: body.finishRename("", "")
@@ -715,7 +785,7 @@ FocusScope {
             onItemMiddleClicked: index => body.middleClick(index)
             onItemContextMenu: (index, pointX, pointY, modifiers) => body.forwardItemMenu(gridView, index, pointX, pointY, modifiers)
             onItemDragStarted: index => body.startDrag(index)
-            onItemDropped: (index, drop) => body.itemsDropped(body.entryAt(index).path, drop)
+            onItemDropped: (index, drop) => body.dropOn(index, drop)
             onItemSpringLoaded: index => body.springLoad(index)
             onRenameSubmitted: (target, name) => body.finishRename(target, name)
             onRenameCancelled: body.finishRename("", "")
@@ -735,7 +805,8 @@ FocusScope {
         widths: body.columnWidths
         sortKey: body.sortKey
         sortDescending: body.sortDescending
-        nameIndent: body.iconSize + FileBrowserMetrics.listRowPadding * 2
+        columnSortKeys: body.columnSortKeys
+        nameIndent: body.iconSize + FileBrowserMetrics.listRowPadding + FileBrowserMetrics.listRowGap
         backgroundColor: body.surfaceColor
         onSortRequested: key => body.sortRequested(key)
         onColumnsMenuRequested: (pointX, pointY) => {
@@ -786,7 +857,7 @@ FocusScope {
         anchors.fill: viewLoader
         anchors.topMargin: body.view?.headerItem?.height ?? 0
         visible: body.slowListing && !body.columnsMode
-        rowHeight: body.viewMode === "grid" ? body.iconSize : FileBrowserMetrics.listRowHeightFor(body.iconSize)
+        rowHeight: body.viewMode === "grid" ? body.iconSize : FileBrowserMetrics.listRowHeightFor(body.iconSize, body.zoom <= 0)
     }
 
     StyledText {

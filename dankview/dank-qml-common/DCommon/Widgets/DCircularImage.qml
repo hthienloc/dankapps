@@ -14,10 +14,20 @@ Rectangle {
     property real ringWidth: 0
     property color ringColor: Style.surfaceVariant
     property bool hasImage: imageSource !== ""
-    // AnimatedImage decodes local files on the GUI thread whatever `asynchronous` says, so only formats that can animate get probed.
-    readonly property bool shouldProbe: imageSource !== "" && !imageSource.startsWith("image://") && /\.(gif|webp|apng)(\?.*)?$/i.test(imageSource)
-    property bool isAnimated: false
-    property bool probeSettled: false
+    // AnimatedImage decodes local files on the GUI thread whatever `asynchronous` says, so only animatable extensions get probed. AccountsService stores icon copies without an extension, so bare names probe too.
+    readonly property bool shouldProbe: {
+        if (imageSource === "" || imageSource.startsWith("image://"))
+            return false;
+        const name = imageSource.split("?")[0].split("/").pop();
+        const dot = name.lastIndexOf(".");
+        if (dot <= 0)
+            return true;
+        return /^(gif|webp|apng)$/i.test(name.slice(dot + 1));
+    }
+    property string settledSource: ""
+    property string animatedSource: ""
+    readonly property bool probeSettled: settledSource !== "" && settledSource === imageSource
+    readonly property bool isAnimated: animatedSource !== "" && animatedSource === imageSource
     readonly property var activeImage: {
         if (isAnimated)
             return probe;
@@ -31,9 +41,15 @@ Rectangle {
 
     signal imageSaved(string filePath)
 
-    onImageSourceChanged: {
-        isAnimated = false;
-        probeSettled = false;
+    function settleProbe() {
+        if (probe.status === Image.Error) {
+            settledSource = probe.source;
+            return;
+        }
+        if (probe.status !== Image.Ready)
+            return;
+        animatedSource = probe.frameCount > 1 ? probe.source : "";
+        settledSource = probe.source;
     }
 
     property string _pendingSavePath: ""
@@ -102,20 +118,12 @@ Rectangle {
             mipmap: true
             cache: root.cacheImages
             visible: root.activeImage === probe && probe.status === Image.Ready && root.imageSource !== ""
-            source: root.shouldProbe && (root.isAnimated || staticImage.status !== Image.Ready) ? root.imageSource : ""
-            onStatusChanged: {
-                if (status === Image.Error) {
-                    root.probeSettled = true;
-                    return;
-                }
-                if (status !== Image.Ready)
-                    return;
-                root.isAnimated = root.shouldProbe && frameCount > 1;
-                root.probeSettled = true;
-            }
+            source: root.shouldProbe && staticImage.status !== Image.Ready ? root.imageSource : ""
+            // Local files load synchronously inside the source write, so settling here would re-enter the source binding.
+            onStatusChanged: Qt.callLater(root.settleProbe)
         }
 
-        // Takes over once the probe settles on a non-animated image, then latches.
+        // Takes over once the probe settles on a non-animated image.
         Image {
             id: staticImage
             anchors.fill: parent
@@ -127,13 +135,7 @@ Rectangle {
             visible: root.activeImage === staticImage && staticImage.status === Image.Ready && root.imageSource !== ""
             sourceSize.width: Math.max(1, Math.ceil(width * Screen.devicePixelRatio))
             sourceSize.height: Math.max(1, Math.ceil(height * Screen.devicePixelRatio))
-            source: {
-                if (!root.shouldProbe)
-                    return root.imageSource;
-                if ((root.probeSettled && !root.isAnimated) || staticImage.status !== Image.Null)
-                    return root.imageSource;
-                return "";
-            }
+            source: !root.shouldProbe || (root.probeSettled && !root.isAnimated) ? root.imageSource : ""
         }
     }
 

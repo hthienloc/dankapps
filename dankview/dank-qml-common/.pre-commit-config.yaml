@@ -8,7 +8,7 @@ repos:
   - repo: local
     hooks:
       - id: common-tests
-        name: common shape, surface and widget tests
+        name: common tests
         entry: node tests/run.mjs
         language: system
         files: ^(DCommon/|Common/|Services/|tests/|\.pre-commit-config\.yaml$|\.github/workflows/prek\.yml$)

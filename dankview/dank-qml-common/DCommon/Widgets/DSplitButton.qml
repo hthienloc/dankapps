@@ -144,7 +144,7 @@ Item {
         height: root.height
         topInset: (height - root.visualHeight) / 2
         bottomInset: topInset
-        color: enabled ? root.containerColor : root.variant === "outlined" ? "transparent" : Style.onSurface_12
+        color: enabled ? root.containerColor : root.variant === "outlined" ? "transparent" : Style.onSurface_10
         radius: outerRadius
         topLeftRadius: outerOnLeft ? outerRadius : innerRadius
         bottomLeftRadius: topLeftRadius

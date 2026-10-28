@@ -1,21 +1,21 @@
 {
   "%1 items": {
-    "%1 items": ""
+    "%1 items": "%1 elem"
   },
   "%1 selected": {
-    "%1 selected": ""
+    "%1 selected": "%1 kiválasztva"
   },
   "1 item": {
-    "1 item": ""
+    "1 item": "1 elem"
   },
   "1 selected": {
-    "1 selected": ""
+    "1 selected": "1 kiválasztva"
   },
   "A file with this name already exists. Do you want to overwrite it?": {
     "A file with this name already exists. Do you want to overwrite it?": "Egy ilyen nevű fájl már létezik. Felül szeretnéd írni?"
   },
   "A name cannot be empty or contain a slash": {
-    "A name cannot be empty or contain a slash": ""
+    "A name cannot be empty or contain a slash": "A név nem lehet üres, és nem tartalmazhat perjelet"
   },
   "AM": {
     "AM": "DE"
@@ -27,19 +27,19 @@
     "Ascending": "Növekvő"
   },
   "B": {
-    "B": ""
+    "B": "B"
   },
   "Back": {
     "Back": "Vissza"
   },
   "Backspace": {
-    "Backspace": ""
+    "Backspace": "Backspace"
   },
   "Binary file": {
-    "Binary file": ""
+    "Binary file": "Bináris fájl"
   },
   "Broken link": {
-    "Broken link": ""
+    "Broken link": "Törött hivatkozás"
   },
   "Cancel": {
     "Cancel": "Mégse"
@@ -51,7 +51,7 @@
     "Clear": "Törlés"
   },
   "Clear the selection": {
-    "Clear the selection": ""
+    "Clear the selection": "Kijelölés törlése"
   },
   "Close": {
     "Close": "Bezárás"
@@ -72,7 +72,7 @@
     "Create": "Létrehozás"
   },
   "Created": {
-    "Created": ""
+    "Created": "Létrehozva"
   },
   "Decrease": {
     "Decrease": "Csökkentés"
@@ -90,10 +90,10 @@
     "Edit": "Szerkesztés"
   },
   "Enter": {
-    "Enter": ""
+    "Enter": "Enter"
   },
   "Enter filename...": {
-    "Enter filename...": "Írd be a fájlnevet..."
+    "Enter filename...": "Írd be a fájlnevet…"
   },
   "File": {
     "File": "Fájl"
@@ -102,40 +102,40 @@
     "File Already Exists": "A fájl már létezik"
   },
   "File System": {
-    "File System": ""
+    "File System": "Fájlrendszer"
   },
   "Files - %1": {
     "Files - %1": "Fájlok - %1"
   },
   "Files are unavailable because the file service is not running": {
-    "Files are unavailable because the file service is not running": ""
+    "Files are unavailable because the file service is not running": "A fájlok nem érhetők el, mert a fájlszolgáltatás nem fut"
   },
   "First %1 of %2": {
-    "First %1 of %2": ""
+    "First %1 of %2": "Első %1 / %2"
   },
   "Folder": {
     "Folder": "Mappa"
   },
   "Folder name": {
-    "Folder name": ""
+    "Folder name": "Mappanév"
   },
   "Forward": {
-    "Forward": ""
+    "Forward": "Előre"
   },
   "Fun": {
     "Fun": "Szórakozás"
   },
   "GB": {
-    "GB": ""
+    "GB": "GB"
   },
   "Grid view": {
-    "Grid view": ""
+    "Grid view": "Rácsnézet"
   },
   "Hibernate": {
     "Hibernate": "Hibernálás"
   },
   "Hide keyboard": {
-    "Hide keyboard": ""
+    "Hide keyboard": "Billentyűzet elrejtése"
   },
   "Hide password": {
     "Hide password": "Jelszó elrejtése"
@@ -153,13 +153,13 @@
     "Home": "Kezdőlap"
   },
   "Hour": {
-    "Hour": ""
+    "Hour": "Óra"
   },
   "Increase": {
     "Increase": "Növelés"
   },
   "List view": {
-    "List view": ""
+    "List view": "Listanézet"
   },
   "Location": {
     "Location": "Hely"
@@ -168,7 +168,7 @@
     "Log Out": "Kijelentkezés"
   },
   "MB": {
-    "MB": ""
+    "MB": "MB"
   },
   "Maximize": {
     "Maximize": "Maximalizálás"
@@ -180,7 +180,7 @@
     "Minimize": "Minimalizálás"
   },
   "Minute": {
-    "Minute": ""
+    "Minute": "Perc"
   },
   "Modified": {
     "Modified": "Módosítva"
@@ -195,10 +195,10 @@
     "Navigation": "Navigáció"
   },
   "New folder": {
-    "New folder": ""
+    "New folder": "Új mappa"
   },
   "No locations found": {
-    "No locations found": ""
+    "No locations found": "Nem találhatók helyek"
   },
   "Numbers": {
     "Numbers": "Számok"
@@ -213,13 +213,13 @@
     "Overwrite": "Felülírás"
   },
   "Owner": {
-    "Owner": ""
+    "Owner": "Tulajdonos"
   },
   "PM": {
     "PM": "DÉ"
   },
   "Permissions": {
-    "Permissions": ""
+    "Permissions": "Engedélyek"
   },
   "Power Off": {
     "Power Off": "Leállítás"
@@ -243,34 +243,34 @@
     "Restore": "Visszaállítás"
   },
   "Review changes": {
-    "Review changes": ""
+    "Review changes": "Változtatások áttekintése"
   },
   "Saturation %1%, brightness %2%": {
-    "Saturation %1%, brightness %2%": ""
+    "Saturation %1%, brightness %2%": "Telítettség: %1%, fényerő: %2%"
   },
   "Save": {
     "Save": "Mentés"
   },
   "Search for a location...": {
-    "Search for a location...": "Hely keresése..."
+    "Search for a location...": "Hely keresése…"
   },
   "Search...": {
     "Search...": "Keresés…"
   },
   "Searching...": {
-    "Searching...": ""
+    "Searching...": "Keresés…"
   },
   "Select File": {
     "Select File": "Fájl kiválasztása"
   },
   "Select time": {
-    "Select time": ""
+    "Select time": "Idő kiválasztása"
   },
   "Shift": {
-    "Shift": ""
+    "Shift": "Shift"
   },
   "Show hidden files": {
-    "Show hidden files": ""
+    "Show hidden files": "Rejtett fájlok megjelenítése"
   },
   "Show password": {
     "Show password": "Jelszó megjelenítése"
@@ -282,7 +282,7 @@
     "Sort By": "Rendezés"
   },
   "Space": {
-    "Space": ""
+    "Space": "Szóköz"
   },
   "Status": {
     "Status": "Állapot"
@@ -297,31 +297,31 @@
     "System": "Rendszer"
   },
   "TB": {
-    "TB": ""
+    "TB": "TB"
   },
   "This folder could not be opened": {
-    "This folder could not be opened": ""
+    "This folder could not be opened": "A mappa nem nyitható meg"
   },
   "This folder is empty": {
-    "This folder is empty": ""
+    "This folder is empty": "Ez a mappa üres"
   },
   "This folder no longer exists": {
-    "This folder no longer exists": ""
+    "This folder no longer exists": "Ez a mappa már nem létezik"
   },
   "This item already exists": {
-    "This item already exists": ""
+    "This item already exists": "Ez az elem már létezik"
   },
   "This item cannot be moved here directly": {
-    "This item cannot be moved here directly": ""
+    "This item cannot be moved here directly": "Ez az elem közvetlenül nem helyezhető át ide"
   },
   "This item could not be handled": {
-    "This item could not be handled": ""
+    "This item could not be handled": "Az elem feldolgozása sikertelen"
   },
   "This item is in use": {
-    "This item is in use": ""
+    "This item is in use": "Ez az elem használatban van"
   },
   "This item no longer exists": {
-    "This item no longer exists": ""
+    "This item no longer exists": "Ez az elem már nem létezik"
   },
   "Type": {
     "Type": "Típus"
@@ -336,12 +336,12 @@
     "Workspace": "Munkaterület"
   },
   "You do not have permission to do this": {
-    "You do not have permission to do this": ""
+    "You do not have permission to do this": "Nincs jogosultságod a művelet végrehajtásához"
   },
   "You do not have permission to view this folder": {
-    "You do not have permission to view this folder": ""
+    "You do not have permission to view this folder": "Nincs jogosultságod a mappa megtekintéséhez"
   },
   "kB": {
-    "kB": ""
+    "kB": "kB"
   }
 }

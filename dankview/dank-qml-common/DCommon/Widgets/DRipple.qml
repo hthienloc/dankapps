@@ -18,12 +18,17 @@ Item {
 
     anchors.fill: parent
 
-    function trigger(x, y) {
+    // hold keeps the ripple as the pressed state layer until release() is called
+    function trigger(x, y, hold = false) {
         if (!enableRipple || Style.reduceMotion || Style.currentAnimationSpeed === Style.AnimationSpeed.None)
             return;
         if (!fxItem)
             fxItem = fxComponent.createObject(root);
-        fxItem.trigger(x, y);
+        fxItem.trigger(x, y, hold);
+    }
+
+    function release() {
+        fxItem?.release();
     }
 
     Component {
@@ -36,18 +41,31 @@ Item {
             property real rippleX: 0
             property real rippleY: 0
             property real rippleMaxRadius: 0
-            readonly property alias animating: rippleAnim.running
+            property bool held: false
+            readonly property bool animating: held || growAnim.running || autoFade.running || releaseFade.running
 
-            function trigger(x, y) {
+            function trigger(x, y, hold) {
                 rippleX = x;
                 rippleY = y;
                 const dist = (ox, oy) => ox * ox + oy * oy;
                 rippleMaxRadius = Math.sqrt(Math.max(dist(x, y), dist(x, height - y), dist(width - x, y), dist(width - x, height - y)));
-                rippleAnim.restart();
+                held = hold;
+                releaseFade.stop();
+                autoFade.stop();
+                growAnim.restart();
+                if (!hold)
+                    autoFade.restart();
+            }
+
+            function release() {
+                if (!held)
+                    return;
+                held = false;
+                releaseFade.restart();
             }
 
             SequentialAnimation {
-                id: rippleAnim
+                id: growAnim
 
                 PropertyAction {
                     target: rippleFx
@@ -67,36 +85,45 @@ Item {
                 PropertyAction {
                     target: rippleFx
                     property: "rippleOpacity"
-                    value: 0.10
+                    value: Style.stateLayerPressed
                 }
+                DAnim {
+                    target: rippleFx
+                    property: "rippleRadius"
+                    from: 0
+                    to: fx.rippleMaxRadius
+                    duration: root.animationDuration
+                    easing.bezierCurve: Style.expressiveCurves.standardDecel
+                }
+            }
 
-                ParallelAnimation {
-                    DAnim {
-                        target: rippleFx
-                        property: "rippleRadius"
-                        from: 0
-                        to: fx.rippleMaxRadius
-                        duration: root.animationDuration
-                        easing.bezierCurve: Style.expressiveCurves.standardDecel
-                    }
-                    SequentialAnimation {
-                        PauseAnimation {
-                            duration: Math.round(root.animationDuration * 0.6)
-                        }
-                        DAnim {
-                            target: rippleFx
-                            property: "rippleOpacity"
-                            to: 0
-                            duration: root.animationDuration
-                            easing.bezierCurve: Style.expressiveCurves.standard
-                        }
-                    }
+            SequentialAnimation {
+                id: autoFade
+
+                PauseAnimation {
+                    duration: Math.round(root.animationDuration * 0.6)
                 }
+                DAnim {
+                    target: rippleFx
+                    property: "rippleOpacity"
+                    to: 0
+                    duration: root.animationDuration
+                    easing.bezierCurve: Style.expressiveCurves.standard
+                }
+            }
+
+            DAnim {
+                id: releaseFade
+                target: rippleFx
+                property: "rippleOpacity"
+                to: 0
+                duration: Style.expressiveDurations.expressiveEffects
+                easing.bezierCurve: Style.expressiveCurves.expressiveEffects
             }
 
             ShaderEffect {
                 id: rippleFx
-                visible: rippleAnim.running
+                visible: fx.animating
 
                 property real rippleCenterX: 0
                 property real rippleCenterY: 0
