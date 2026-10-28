@@ -16,7 +16,7 @@ Rectangle {
     radius: Theme.cornerRadiusXL
     color: Theme.withAlpha(Theme.surfaceContainerLow, 0.96)
     border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeCard)
-    border.width: Theme.layerOutlineWidth
+    border.width: Style.layerOutlineWidth
 
     component M3Card: Rectangle {
         Layout.fillWidth: true
@@ -83,19 +83,20 @@ Rectangle {
             font.family: isMono ? Theme.monoFontFamily : Theme.fontFamily
             font.pixelSize: Theme.fontSizeSmall
             font.weight: Font.Normal
-            color: infoRowMouse.containsMouse && clickable ? Theme.primary : Theme.surfaceText
+            color: infoRowHover.hovered && clickable ? Theme.primary : Theme.surfaceText
             elide: Text.ElideMiddle
 
             Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
         }
 
-        MouseArea {
-            id: infoRowMouse
-            anchors.fill: parent
+        HoverHandler {
+            id: infoRowHover
+            cursorShape: infoRowRoot.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor
+        }
+
+        TapHandler {
             enabled: infoRowRoot.clickable
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: infoRowRoot.clicked()
+            onTapped: infoRowRoot.clicked()
         }
     }
 

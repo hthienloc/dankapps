@@ -91,7 +91,7 @@ T.Control {
         anchors.fill: parent
         visible: root.paintBackground
         color: root.rowColor
-        border.width: Theme.layerOutlineWidth
+        border.width: Style.layerOutlineWidth
         border.color: Theme.outlineMedium
         topLeftRadius: root.topRadius
         topRightRadius: root.topRadius

@@ -78,7 +78,7 @@ Rectangle {
     bottomLeftRadius: bottomRadius
     bottomRightRadius: bottomRadius
     color: active ? SettingsMetrics.selectedRowColor : SettingsMetrics.sidebarRowColor
-    border.width: Theme.layerOutlineWidth
+    border.width: Style.layerOutlineWidth
     border.color: Theme.outlineMedium
 
     Behavior on color {

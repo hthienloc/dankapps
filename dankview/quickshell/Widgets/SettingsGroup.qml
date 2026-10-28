@@ -125,7 +125,7 @@ Item {
             bottomLeftRadius: last ? Theme.groupedListOuterRadius : Theme.groupedListInnerRadius
             bottomRightRadius: last ? Theme.groupedListOuterRadius : Theme.groupedListInnerRadius
             color: root.highlighted ? Theme.blend(root.slotColor, Theme.primary, SettingsMetrics.highlightBlend) : root.slotColor
-            border.width: Theme.layerOutlineWidth
+            border.width: Style.layerOutlineWidth
             border.color: Theme.outlineMedium
 
             Behavior on color {

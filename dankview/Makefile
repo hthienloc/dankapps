@@ -12,7 +12,7 @@ APPLICATIONS_DIR=$(DATA_DIR)/applications
 QUICKSHELL_DIR=$(DATA_DIR)/quickshell/$(SHELL_NAME)
 SHELL_DIR=quickshell
 
-.PHONY: all build dev run clean test fmt vet update-common install uninstall install-user uninstall-user help
+.PHONY: all build dev run clean test fmt vet install uninstall install-user uninstall-user help
 
 all: build
 
@@ -36,9 +36,6 @@ fmt:
 
 vet:
 	@$(MAKE) -C $(CORE_DIR) vet
-
-update-common:
-	git submodule update --remote --merge dank-qml-common
 
 install: build
 	@install -D -m 755 $(BUILD_DIR)/$(BINARY_NAME) $(DESTDIR)$(INSTALL_DIR)/$(BINARY_NAME)

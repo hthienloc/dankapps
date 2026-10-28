@@ -63,9 +63,21 @@ yay -S dankview-git
 
 #### Dependencies
 
-- [Dux Shell](https://github.com/duxlabs-dev/dux-shell) (required; formerly DankMaterialShell)
-- [Quickshell](https://quickshell.outfoxxed.me/)
-- Go 1.21+
+- [Dux Shell](https://github.com/duxlabs-dev/dux-shell) 2.0.0 or newer (required; formerly DankMaterialShell)
+- [Quickshell](https://quickshell.outfoxxed.me/) 0.3.2 or newer
+- Go 1.26.7 or newer (required by `core/go.mod`)
+
+#### Install the 0.1.0 source release
+
+```bash
+git clone https://github.com/hthienloc/dankapps.git
+cd dankapps
+git checkout dankview-v0.1.0
+cd dankview
+make install-user
+```
+
+The AUR package remains available for Arch Linux. Use the tagged source steps above to build this exact release.
 
 #### Build Commands
 

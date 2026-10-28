@@ -45,7 +45,7 @@ dankview/
 ├── README.md                # End-user documentation and shortcuts
 ├── DEVELOPMENT.md           # Developer & architecture reference (this file)
 ├── distro/                  # Desktop files and packaging manifests
-├── dank-qml-common/         # Submodule: shared Dux Shell widgets & styling tokens (DCommon)
+├── dank-qml-common/         # Vendored snapshot of shared Dux Shell widgets & styling tokens
 │   └── DCommon/
 │       ├── Common/          # Theme, Style, M3Elevation, Icons, Animation curves
 │       └── Widgets/         # DButton, DIconButton, DCarousel, DListView, DToggle...
@@ -127,9 +127,9 @@ Always leverage components from `qs.DCommon.Widgets` before implementing custom 
 ## 5. Development & Testing Workflow
 
 ### Prerequisites
-- [Dux Shell](https://github.com/duxlabs-dev/dux-shell) (required runtime environment; formerly DankMaterialShell)
-- Go 1.21+
-- `quickshell` (Wayland Qt 6 environment)
+- [Dux Shell](https://github.com/duxlabs-dev/dux-shell) 2.0.0 or newer (required runtime environment; formerly DankMaterialShell)
+- [Quickshell](https://quickshell.outfoxxed.me/) 0.3.2 or newer
+- Go 1.26.7 or newer (required by `core/go.mod`)
 - `dms` CLI (for trash, wallpaper, clipboard & system operations)
 
 ### Common Commands
@@ -139,7 +139,7 @@ Always leverage components from `qs.DCommon.Widgets` before implementing custom 
 make -C core build
 
 # 2. Run unit tests
-go test -v ./dankview/core/...
+make test
 
 # 3. Fast local run with current source
 make run [path/to/image.png]
@@ -168,5 +168,5 @@ make install-user
      ```qml
      if (!root.visible) return
      ```
-3. **Submodule Synchronization**:
-   - Update `dank-qml-common` via `make update-common` or `git submodule update --init --recursive`.
+3. **Shared QML Synchronization**:
+   - `dank-qml-common` is vendored as ordinary tracked files, not a submodule. When updating it, sync the desired upstream snapshot into this directory and commit those file changes with the app; the parent repository does not track nested Git metadata.

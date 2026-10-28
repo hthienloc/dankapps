@@ -97,7 +97,7 @@ FocusScope {
             anchors.fill: parent
             radius: Style.cornerRadiusXL
             color: SettingsMetrics.windowBgColor
-            border.width: Theme.layerOutlineWidth
+            border.width: Style.layerOutlineWidth
             border.color: Theme.outlineMedium
             clip: true
 
@@ -148,7 +148,7 @@ FocusScope {
                         anchors.bottomMargin: SettingsMetrics.paneMargin
                         radius: SettingsMetrics.paneRadius
                         color: SettingsMetrics.paneColor
-                        border.width: Theme.layerOutlineWidth
+                        border.width: Style.layerOutlineWidth
                         border.color: Theme.outlineMedium
                         clip: true
 

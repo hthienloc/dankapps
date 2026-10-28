@@ -43,7 +43,7 @@ cd dankapps/<app> && make install-user
 
 - [DMS](https://github.com/AvengeMedia/DankMaterialShell) (theme, CLI, IPC)
 - [Quickshell](https://quickshell.outfoxxed.me/)
-- Go 1.21+
+- Go 1.21+ overall; [DankView](./dankview/) and DankVideo require Go 1.26.7+ (see their app documentation).
 
 ## Structure
 
@@ -63,4 +63,3 @@ dankapps/
 ## License
 
 [MIT](./LICENSE)
-
