@@ -274,16 +274,16 @@ Item {
 
             DHeroCard {
                 brand: "DankView"
-                caption: "Part of the Dank Linux suite."
+                caption: "Part of the Dux Shell ecosystem."
 
                 DButton {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "Support Dank Linux"
+                    text: "Support Dux Labs"
                     iconName: "favorite"
                     shape: "round"
                     backgroundColor: Theme.primaryContainer
                     textColor: Theme.onPrimaryContainer
-                    onClicked: Qt.openUrlExternally("https://ko-fi.com/danklinux")
+                    onClicked: Qt.openUrlExternally("https://ko-fi.com/duxlabs")
                 }
             }
 
@@ -318,9 +318,9 @@ Item {
                 SettingsRow {
                     iconName: "menu_book"
                     title: "Docs"
-                    subtitle: "danklinux.com/docs"
+                    subtitle: "duxlabs.dev/docs/dms/installation"
                     clickable: true
-                    onClicked: Qt.openUrlExternally("https://danklinux.com/docs")
+                    onClicked: Qt.openUrlExternally("https://duxlabs.dev/docs/dms/installation")
 
                     DIcon {
                         anchors.verticalCenter: parent.verticalCenter

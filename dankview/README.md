@@ -1,9 +1,9 @@
 # DankView (`dview`)
 
-Image viewer for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell).
+Image viewer for [Dux Shell](https://github.com/duxlabs-dev/dux-shell), formerly DankMaterialShell (DMS).
 
 > [!IMPORTANT]
-> **DMS Required**: DankView is designed specifically as a first-party viewer within the DankMaterialShell desktop environment. It relies directly on DMS theme tokens, `dms` CLI utilities (trash, wallpaper, notifications), and DMS IPC services. It is not intended for standalone use outside DMS.
+> **Dux Shell Required**: DankView is designed as a first-party viewer for Dux Shell. It currently integrates with DMS-compatible theme tokens, the `dms` CLI (trash, wallpaper, notifications), and DMS IPC services. It is not intended for standalone use.
 
 <p align="center">
   <img src="assets/preview.png" alt="DankView Preview" width="49%">
@@ -29,7 +29,7 @@ Image viewer for [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMa
 | | `v` | Flip vertically |
 | **Actions** | `c` / `Ctrl + C` | Copy image to clipboard |
 | | `x` / `Ctrl + X` | Toggle Crop tool |
-| | `a` | Annotate image in Quick Capture (via DMS IPC) |
+| | `a` | Annotate image in Quick Capture (via Dux Shell IPC) |
 | | `s` / `Ctrl + S` | Save As / Export image |
 | | `p` / `Ctrl + P` | Print image |
 | | `w` / `Ctrl + W` | Set as wallpaper |
@@ -63,7 +63,7 @@ yay -S dankview-git
 
 #### Dependencies
 
-- [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell) (required)
+- [Dux Shell](https://github.com/duxlabs-dev/dux-shell) (required; formerly DankMaterialShell)
 - [Quickshell](https://quickshell.outfoxxed.me/)
 - Go 1.21+
 
@@ -98,7 +98,7 @@ Measured on Linux (Wayland / Niri) opening a 4K image (3839×2159 PNG, 345 KB), 
 
 > [!NOTE]
 > - **Gwenview** leads in startup speed thanks to precompiled native C++ binaries and preloaded system Qt/KDE shared libraries.
-> - **DankView** outperforms modern GTK4/Libadwaita viewers (Loupe) by ~1.3s while offering native Material 3 Expressive styling and DMS Matugen palette integration.
+> - **DankView** outperforms modern GTK4/Libadwaita viewers (Loupe) by ~1.3s while offering native Material 3 Expressive styling and Dux Shell Matugen palette integration.
 > - **Loupe** incurs additional overhead from its Glycin sandboxed IPC decoding architecture.
 
 ## Credits & Acknowledgements
@@ -111,4 +111,3 @@ Special thanks to the community members who helped shape the design and concepti
 ## License
 
 MIT
-

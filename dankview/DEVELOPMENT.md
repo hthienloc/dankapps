@@ -8,7 +8,7 @@ This document describes the architecture, codebase organization, design patterns
 
 DankView is built as a hybrid application:
 - **Go Backend (`core/`)**: High-performance CLI, headless data provider, directory scanner with natural sorting, fast EXIF parsing, trash operations, and system font discovery.
-- **Quickshell Frontend (`quickshell/`)**: Hardware-accelerated Qt 6 / QML Wayland application styled with Material 3 and DankMaterialShell (`DCommon`) design tokens.
+- **Quickshell Frontend (`quickshell/`)**: Hardware-accelerated Qt 6 / QML Wayland application styled with Material 3 and Dux Shell (`DCommon`) design tokens. Dux Shell was formerly DankMaterialShell (DMS); integration identifiers remain DMS-compatible.
 
 ```
                     ┌────────────────────────────┐
@@ -45,7 +45,7 @@ dankview/
 ├── README.md                # End-user documentation and shortcuts
 ├── DEVELOPMENT.md           # Developer & architecture reference (this file)
 ├── distro/                  # Desktop files and packaging manifests
-├── dank-qml-common/         # Submodule: shared DMS widgets & styling tokens (DCommon)
+├── dank-qml-common/         # Submodule: shared Dux Shell widgets & styling tokens (DCommon)
 │   └── DCommon/
 │       ├── Common/          # Theme, Style, M3Elevation, Icons, Animation curves
 │       └── Widgets/         # DButton, DIconButton, DCarousel, DListView, DToggle...
@@ -127,7 +127,7 @@ Always leverage components from `qs.DCommon.Widgets` before implementing custom 
 ## 5. Development & Testing Workflow
 
 ### Prerequisites
-- [DankMaterialShell (DMS)](https://github.com/AvengeMedia/DankMaterialShell) (required runtime environment)
+- [Dux Shell](https://github.com/duxlabs-dev/dux-shell) (required runtime environment; formerly DankMaterialShell)
 - Go 1.21+
 - `quickshell` (Wayland Qt 6 environment)
 - `dms` CLI (for trash, wallpaper, clipboard & system operations)

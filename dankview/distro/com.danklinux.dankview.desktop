@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=DankView
-Comment=Image viewer for DMS
+Comment=Image viewer for Dux Shell
 GenericName=Image Viewer
 Exec=dview %F
 Icon=com.danklinux.dankview
