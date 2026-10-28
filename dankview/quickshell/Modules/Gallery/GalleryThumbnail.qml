@@ -13,6 +13,7 @@ Item {
     property bool isTrashMode: false
     property string thumbnailLayout: SettingsData.galleryThumbnailLayout
     property int masonryColumn: -1
+    property var navigationPaths: []
 
     width: tileSize
     height: thumbnailLayout === "masonry"
@@ -180,7 +181,7 @@ Item {
             onClicked: {
                 if (root.imageItem) {
                     if (root.isSelectionMode) ImageService.toggleSelect(root.imageItem.path)
-                    else ImageService.openImageFromGallery(root.imageItem.path, root.imageItem.thumbnail || "")
+                    else ImageService.openImageFromGallery(root.imageItem.path, root.imageItem.thumbnail || "", root.navigationPaths)
                 }
             }
         }

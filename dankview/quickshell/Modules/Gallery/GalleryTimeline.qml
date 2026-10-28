@@ -94,6 +94,18 @@ Item {
         return result
     }
 
+    readonly property var navigationPaths: {
+        const paths = []
+        for (let i = 0; i < filteredGroups.length; i++) {
+            const images = filteredGroups[i].images
+            for (let j = 0; j < images.length; j++) {
+                if (images[j] && images[j].path)
+                    paths.push(images[j].path)
+            }
+        }
+        return paths
+    }
+
     readonly property var targetTileSizes: [100, 135, 170, 230, 320]
     readonly property int zoomIdx: Math.max(0, Math.min(4, (ImageService.galleryZoomLevel || 3) - 1))
     readonly property int targetTileSize: targetTileSizes[zoomIdx]
@@ -550,6 +562,7 @@ Item {
                         flickable: null
                         imageItem: modelData
                         tileSize: root.tileWidth
+                        navigationPaths: root.navigationPaths
                     }
                 }
             }
@@ -562,6 +575,7 @@ Item {
                 columns: root.columns
                 tileWidth: root.tileWidth
                 spacing: 10
+                navigationPaths: root.navigationPaths
             }
         }
 

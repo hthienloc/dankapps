@@ -10,6 +10,7 @@ Item {
     property real spacing: 10
     property bool isTrashMode: false
     property real contentHeight: 0
+    property var navigationPaths: []
 
     function relayout() {
         const bottoms = new Array(Math.max(1, columns)).fill(0)
@@ -64,6 +65,7 @@ Item {
             tileSize: root.tileWidth
             thumbnailLayout: "masonry"
             isTrashMode: root.isTrashMode
+            navigationPaths: root.navigationPaths
             x: masonryColumn * (root.tileWidth + root.spacing)
             y: masonryY
 

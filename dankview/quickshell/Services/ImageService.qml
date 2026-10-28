@@ -1084,16 +1084,20 @@ Singleton {
         galleryProc.running = true;
     }
 
-    function openImageFromGallery(filePath, thumbPath) {
+    function openImageFromGallery(filePath, thumbPath, navigationPaths) {
         _navToken++;
         previewThumbnail = thumbPath || "";
-        fileList = [filePath];
-        currentIndex = 0;
+        const galleryPaths = Array.isArray(navigationPaths) ? navigationPaths.filter(path => !!path) : [];
+        const galleryIndex = galleryPaths.indexOf(filePath);
+        const hasGalleryNavigation = galleryIndex >= 0;
+        fileList = hasGalleryNavigation ? galleryPaths : [filePath];
+        currentIndex = hasGalleryNavigation ? galleryIndex : 0;
         galleryMode = false;
         Qt.callLater(() => {
             recordRecentImage(filePath, thumbPath);
         });
-        loadDirectoryFor(filePath);
+        if (!hasGalleryNavigation)
+            loadDirectoryFor(filePath);
     }
 
     function backToGallery() {
