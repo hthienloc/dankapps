@@ -11,14 +11,21 @@ Item {
     property var imageItem: null
     property real tileSize: 160
     property bool isTrashMode: false
+    property string thumbnailLayout: SettingsData.galleryThumbnailLayout
+    property int masonryColumn: -1
 
     width: tileSize
-    height: tileSize
+    height: thumbnailLayout === "masonry"
+        ? width / Math.max(0.25, Math.min(4, imageAspectRatio))
+        : tileSize
 
     readonly property bool isSelected: imageItem ? ImageService.isSelected(imageItem.path) : false
     readonly property bool isFav: imageItem ? ImageService.isFavorite(imageItem.path) : false
     readonly property bool isSelectionMode: ImageService.gallerySelectedCount > 0
     readonly property bool isCardHovered: cardHover.hovered
+    readonly property real imageAspectRatio: thumbImg.status === Image.Ready && thumbImg.implicitHeight > 0
+        ? thumbImg.implicitWidth / thumbImg.implicitHeight
+        : 1
 
     Rectangle {
         id: card
@@ -36,7 +43,7 @@ Item {
         Image {
             id: thumbImg
             anchors.fill: parent
-            fillMode: Image.PreserveAspectCrop
+            fillMode: root.thumbnailLayout === "crop" ? Image.PreserveAspectCrop : Image.PreserveAspectFit
             asynchronous: true
             cache: true
             source: {

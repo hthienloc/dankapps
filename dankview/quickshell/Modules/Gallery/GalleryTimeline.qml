@@ -538,18 +538,30 @@ Item {
 
             Grid {
                 Layout.fillWidth: true
+                Layout.preferredHeight: visible ? implicitHeight : 0
+                visible: SettingsData.galleryThumbnailLayout !== "masonry"
                 columns: root.columns
                 columnSpacing: 10
                 rowSpacing: 10
 
                 Repeater {
-                    model: modelData.images
+                    model: SettingsData.galleryThumbnailLayout === "masonry" ? [] : groupDelegate.groupImages
                     delegate: GalleryThumbnail {
                         flickable: null
                         imageItem: modelData
                         tileSize: root.tileWidth
                     }
                 }
+            }
+
+            MasonryGrid {
+                Layout.fillWidth: true
+                Layout.preferredHeight: visible ? implicitHeight : 0
+                visible: SettingsData.galleryThumbnailLayout === "masonry"
+                model: SettingsData.galleryThumbnailLayout === "masonry" ? groupDelegate.groupImages : []
+                columns: root.columns
+                tileWidth: root.tileWidth
+                spacing: 10
             }
         }
 

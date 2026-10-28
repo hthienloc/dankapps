@@ -175,6 +175,19 @@ Item {
             }
 
             SettingsCard {
+                title: "Gallery appearance"
+
+                SettingsButtonGroupRow {
+                    text: "Thumbnail layout"
+                    description: "Choose how photos are framed in the gallery"
+                    model: ["Crop", "Fit", "Masonry"]
+                    values: ["crop", "fit", "masonry"]
+                    value: SettingsData.galleryThumbnailLayout
+                    onValueSelected: value => SettingsData.setGalleryThumbnailLayout(value)
+                }
+            }
+
+            SettingsCard {
                 title: "Manage folders"
 
                 SettingsRow {

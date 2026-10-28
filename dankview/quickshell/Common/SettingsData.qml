@@ -67,6 +67,20 @@ Singleton {
 
     // Gallery preferences
     property alias galleryLandingPage: adapter.galleryLandingPage
+    property alias galleryCropThumbnails: adapter.galleryCropThumbnails
+    readonly property string galleryThumbnailLayout: {
+        const layout = adapter.galleryThumbnailLayout;
+        if (layout === "crop" || layout === "fit" || layout === "masonry")
+            return layout;
+        return adapter.galleryCropThumbnails ? "crop" : "fit";
+    }
+
+    function setGalleryThumbnailLayout(layout) {
+        if (layout !== "crop" && layout !== "fit" && layout !== "masonry")
+            return;
+        adapter.galleryThumbnailLayout = layout;
+        adapter.galleryCropThumbnails = layout === "crop";
+    }
 
     Component.onCompleted: {
         Paths.mkdir(configDir);
@@ -119,6 +133,8 @@ Singleton {
             property bool autoHideControls: true
             property bool showCheckerboard: true
             property string galleryLandingPage: "gallery"
+            property bool galleryCropThumbnails: true
+            property string galleryThumbnailLayout: ""
         }
     }
 }

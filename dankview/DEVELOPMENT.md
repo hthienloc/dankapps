@@ -99,6 +99,7 @@ Sorting adheres to human-expected numerical chunk ordering (`file1`, `file2`, `f
   - Favorites: `~/.config/dview/favorites.json`
   - Album layout: `~/.config/dview/albums.json`
   - Recents: `~/.config/dview/recents.json` (Debounced at 200ms to eliminate concurrent disk I/O thrashing).
+- **UI preferences**: `~/.config/dankview/ui-settings.json`, including the Gallery thumbnail layout (`Crop`, `Fit`, or `Masonry`; `Crop` by default).
 
 ### 2. Gallery Modules
 - **`GalleryTimeline.qml`**:

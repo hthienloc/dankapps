@@ -140,13 +140,14 @@ Item {
             // Grid of Trashed Images (Reusing GalleryThumbnail with isTrashMode)
             Grid {
                 Layout.fillWidth: true
+                Layout.preferredHeight: visible ? implicitHeight : 0
+                visible: root.filteredTrash.length > 0 && SettingsData.galleryThumbnailLayout !== "masonry"
                 columns: root.columns
                 columnSpacing: 10
                 rowSpacing: 10
-                visible: root.filteredTrash.length > 0
 
                 Repeater {
-                    model: root.filteredTrash
+                    model: SettingsData.galleryThumbnailLayout === "masonry" ? [] : root.filteredTrash
 
                     delegate: GalleryThumbnail {
                         imageItem: modelData
@@ -154,6 +155,17 @@ Item {
                         isTrashMode: true
                     }
                 }
+            }
+
+            MasonryGrid {
+                Layout.fillWidth: true
+                Layout.preferredHeight: visible ? implicitHeight : 0
+                visible: root.filteredTrash.length > 0 && SettingsData.galleryThumbnailLayout === "masonry"
+                model: SettingsData.galleryThumbnailLayout === "masonry" ? root.filteredTrash : []
+                columns: root.columns
+                tileWidth: root.tileWidth
+                spacing: 10
+                isTrashMode: true
             }
         }
     }
