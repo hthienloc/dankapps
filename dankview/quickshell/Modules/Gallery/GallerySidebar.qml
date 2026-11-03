@@ -8,296 +8,164 @@ import qs.DCommon.Widgets
 Item {
     id: root
 
-    readonly property bool collapsed: true
-    width: 80
+    readonly property var primaryItems: [
+        {
+            text: "Timeline",
+            icon: "timeline"
+        },
+        {
+            text: "Favorites",
+            icon: "favorite"
+        },
+        {
+            text: "Albums",
+            icon: "collections_bookmark"
+        }
+    ]
+    readonly property var quickAccessItems: ImageService.quickAccessFolderAlbums.map(album => ({
+                text: album.name,
+                icon: "folder"
+            }))
+    readonly property real quickAccessHeadingHeight: quickAccessItems.length > 0 ? 24 : 0
+    readonly property real quickAccessAvailableHeight: Math.max(0, height - primaryNavigation.implicitHeight - utilityNavigation.implicitHeight - quickAccessHeadingHeight - Theme.spacingM * 2 - Theme.spacingS * 4)
+    readonly property var utilityItems: [
+        {
+            text: "Trash",
+            icon: "delete",
+            badgeCount: ImageService.trashCount
+        },
+        {
+            text: "Settings",
+            icon: "settings"
+        }
+    ]
+    readonly property int primaryIndex: {
+        if (ImageService.galleryTab === "albums")
+            return 2;
+        if (ImageService.galleryTab !== "gallery" && ImageService.galleryTab !== "timeline")
+            return -1;
+        if (ImageService.selectedCategory === "Favorites")
+            return 1;
+        return ImageService.selectedCategory === "All" || !ImageService.selectedCategory ? 0 : -1;
+    }
+    readonly property int quickAccessIndex: {
+        if (ImageService.galleryTab !== "gallery" && ImageService.galleryTab !== "timeline")
+            return -1;
+        return ImageService.quickAccessFolderAlbums.findIndex(album => album.name === ImageService.selectedCategory);
+    }
+    readonly property int utilityIndex: ImageService.settingsOpen ? 1 : ImageService.galleryTab === "trash" ? 0 : -1
+
+    implicitWidth: Style.navigationRailWidth
+    width: implicitWidth
     clip: true
 
-    component NavItem: Item {
-        id: navItem
-        property string itemKey: ""
-        property string itemText: ""
-        property string itemIcon: ""
-        property int badgeCount: 0
+    function activatePrimary(index) {
+        if (index === primaryIndex)
+            ImageService.requestScrollToTop();
 
-        readonly property bool isSelected: {
-            if (itemKey === "gallery") {
-                return (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline")
-                    && (ImageService.selectedCategory === "All" || !ImageService.selectedCategory)
-            }
-            if (itemKey === "favorites") {
-                return (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline")
-                    && ImageService.selectedCategory === "Favorites"
-            }
-            if (itemKey === "trash") {
-                return ImageService.galleryTab === "trash"
-            }
-            if (itemKey === "settings") {
-                return ImageService.settingsOpen
-            }
-            if (itemKey.startsWith("qa:")) {
-                const catName = itemKey.substring(3);
-                return (ImageService.galleryTab === "gallery" || ImageService.galleryTab === "timeline")
-                    && ImageService.selectedCategory === catName
-            }
-            return ImageService.galleryTab === itemKey
-        }
-
-        Layout.fillWidth: true
-        Layout.preferredHeight: root.collapsed ? 58 : 50
-
-        // Expanded mode: Full pill
-        Rectangle {
-            id: expandedPill
-            anchors.fill: parent
-            radius: height / 2
-            visible: !root.collapsed
-            opacity: !root.collapsed ? 1.0 : 0.0
-            color: navItem.isSelected
-                ? Theme.primary
-                : (navMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent")
-
-            scale: navMouse.pressed ? M3E.rowPressScale : 1.0
-
-            Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
-            Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-            Behavior on opacity { DAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: Style.spacingL
-                anchors.rightMargin: Style.spacingL
-                spacing: Style.spacingM
-
-                DIcon {
-                    name: navItem.itemIcon
-                    size: Style.iconSize
-                    filled: navItem.isSelected
-                    color: navItem.isSelected ? Theme.onPrimary : Theme.surfaceText
-                }
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: navItem.itemText
-                    font.pixelSize: Theme.fontSizeMedium
-                    font.weight: navItem.isSelected ? Theme.fontWeightBold : Theme.fontWeightMedium
-                    color: navItem.isSelected ? Theme.onPrimary : Theme.surfaceText
-                    elide: Text.ElideRight
-                }
-
-                Rectangle {
-                    visible: navItem.badgeCount > 0
-                    Layout.alignment: Qt.AlignVCenter
-                    height: 18
-                    width: Math.max(18, expBadgeText.implicitWidth + 8)
-                    radius: 9
-                    color: navItem.isSelected ? Theme.surfaceContainerLowest : Theme.error
-
-                    StyledText {
-                        id: expBadgeText
-                        anchors.centerIn: parent
-                        text: navItem.badgeCount > 99 ? "99+" : navItem.badgeCount
-                        font.pixelSize: 10
-                        font.weight: Theme.fontWeightBold
-                        color: navItem.isSelected ? Theme.primary : Theme.onError
-                    }
-                }
-            }
-        }
-
-        // Collapsed mode: Compact rail item (oval pill indicator + label below)
-        Item {
-            id: collapsedRailItem
-            anchors.fill: parent
-            visible: root.collapsed
-            opacity: root.collapsed ? 1.0 : 0.0
-
-            Behavior on opacity { DAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
-
-            Rectangle {
-                id: railIndicator
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                width: 56
-                height: 32
-                radius: 16
-                color: navItem.isSelected
-                    ? Theme.primary
-                    : (navMouse.containsMouse ? Theme.surfaceContainerHighest : "transparent")
-
-                scale: navMouse.pressed ? M3E.rowPressScale : 1.0
-
-                Behavior on color { DColorAnim { duration: M3E.effectsFastMs; easing.bezierCurve: M3E.curveFastEffects } }
-                Behavior on scale { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-
-                DIcon {
-                    anchors.centerIn: parent
-                    name: navItem.itemIcon
-                    size: Style.iconSize
-                    filled: navItem.isSelected
-                    color: navItem.isSelected ? Theme.onPrimary : Theme.surfaceText
-                }
-
-                Rectangle {
-                    visible: navItem.badgeCount > 0
-                    anchors.top: parent.top
-                    anchors.topMargin: -2
-                    anchors.right: parent.right
-                    anchors.rightMargin: 4
-                    height: 14
-                    width: Math.max(14, badgeText.implicitWidth + 6)
-                    radius: 7
-                    color: navItem.isSelected ? Theme.surfaceContainerLowest : Theme.error
-                    z: 5
-
-                    StyledText {
-                        id: badgeText
-                        anchors.centerIn: parent
-                        text: navItem.badgeCount > 99 ? "99+" : navItem.badgeCount
-                        font.pixelSize: 9
-                        font.weight: Theme.fontWeightBold
-                        color: navItem.isSelected ? Theme.primary : Theme.onError
-                    }
-                }
-            }
-
-            StyledText {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: railIndicator.bottom
-                anchors.topMargin: 4
-                text: navItem.itemText
-                font.pixelSize: 11
-                font.weight: navItem.isSelected ? Theme.fontWeightBold : Theme.fontWeightMedium
-                color: navItem.isSelected ? Theme.primary : Theme.surfaceVariantText
-            }
-        }
-
-        DTooltipHost {
-            anchors.fill: parent
-            text: navItem.itemText
-            visible: root.collapsed
-        }
-
-        MouseArea {
-            id: navMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (navItem.itemKey === "settings") {
-                    ImageService.settingsOpen = !ImageService.settingsOpen
-                    return
-                }
-
-                if (navItem.isSelected) {
-                    ImageService.requestScrollToTop()
-                }
-
-                if (navItem.itemKey === "gallery") {
-                    ImageService.selectedCategory = "All"
-                    ImageService.galleryTab = "gallery"
-                } else if (navItem.itemKey === "favorites") {
-                    ImageService.selectedCategory = "Favorites"
-                    ImageService.galleryTab = "gallery"
-                } else if (navItem.itemKey.startsWith("qa:")) {
-                    ImageService.selectedCategory = navItem.itemKey.substring(3)
-                    ImageService.galleryTab = "gallery"
-                } else if (navItem.itemKey === "trash") {
-                    ImageService.galleryTab = "trash"
-                } else {
-                    ImageService.galleryTab = navItem.itemKey
-                }
-            }
+        if (index === 0) {
+            ImageService.selectedCategory = "All";
+            ImageService.galleryTab = "gallery";
+        } else if (index === 1) {
+            ImageService.selectedCategory = "Favorites";
+            ImageService.galleryTab = "gallery";
+        } else if (index === 2) {
+            ImageService.galleryTab = "albums";
         }
     }
 
-    Rectangle {
-        id: bg
+    function activateQuickAccess(index) {
+        const album = ImageService.quickAccessFolderAlbums[index];
+        if (!album)
+            return;
+
+        if (index === quickAccessIndex)
+            ImageService.requestScrollToTop();
+        ImageService.selectedCategory = album.name;
+        ImageService.galleryTab = "gallery";
+    }
+
+    function activateUtility(index) {
+        if (index === 0) {
+            if (utilityIndex === 0)
+                ImageService.requestScrollToTop();
+            ImageService.galleryTab = "trash";
+        } else if (index === 1) {
+            ImageService.settingsOpen = !ImageService.settingsOpen;
+        }
+    }
+
+    ColumnLayout {
         anchors.fill: parent
-        color: "transparent"
+        anchors.topMargin: Theme.spacingM
+        anchors.bottomMargin: Theme.spacingM
+        anchors.leftMargin: Theme.spacingXS
+        anchors.rightMargin: Theme.spacingXS
+        spacing: Theme.spacingS
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.topMargin: Style.spacingM
-            anchors.bottomMargin: Style.spacingM
-            anchors.leftMargin: root.collapsed ? Style.spacingXS : Style.spacingM
-            anchors.rightMargin: root.collapsed ? Style.spacingXS : Style.spacingM
-            spacing: root.collapsed ? Style.spacingM : Style.spacingS
+        DNavigationBar {
+            id: primaryNavigation
 
-            // === Top Navigation Items: Timeline, Favorites, Albums ===
-            Repeater {
-                model: [
-                    { key: "gallery",   text: "Timeline",  icon: "timeline" },
-                    { key: "favorites", text: "Favorites", icon: "favorite" },
-                    { key: "albums",    text: "Albums",    icon: "collections_bookmark" }
-                ]
+            Layout.fillWidth: true
+            Layout.preferredHeight: implicitHeight
+            orientation: Qt.Vertical
+            evenlySpaced: false
+            spacing: Theme.spacingS
+            model: root.primaryItems
+            currentIndex: root.primaryIndex
+            onActivated: index => root.activatePrimary(index)
+        }
 
-                delegate: NavItem {
-                    required property var modelData
-                    itemKey: modelData.key
-                    itemText: modelData.text
-                    itemIcon: modelData.icon
-                }
+        Item {
+            id: quickAccessHeading
+
+            Layout.fillWidth: true
+            Layout.preferredHeight: root.quickAccessHeadingHeight
+            visible: root.quickAccessItems.length > 0
+
+            StyledText {
+                anchors.left: parent.left
+                anchors.leftMargin: Theme.spacingM
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Quick access"
+                font.pixelSize: Theme.fontSizeSmall - 1
+                font.weight: Theme.fontWeightBold
+                color: Theme.surfaceVariantText
             }
+        }
 
-            // === Quick Access Section Header ===
-            Item {
-                Layout.fillWidth: true
-                Layout.preferredHeight: qaRepeater.count > 0 ? (root.collapsed ? 12 : 28) : 0
-                visible: qaRepeater.count > 0
-                clip: true
+        DNavigationBar {
+            id: quickAccessNavigation
 
-                StyledText {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
-                    anchors.leftMargin: Style.spacingM
-                    visible: !root.collapsed
-                    text: "Quick access"
-                    font.pixelSize: Theme.fontSizeSmall - 1
-                    font.weight: Theme.fontWeightBold
-                    color: Theme.surfaceVariantText
-                }
+            Layout.fillWidth: true
+            Layout.minimumHeight: 0
+            Layout.preferredHeight: Math.min(implicitHeight, root.quickAccessAvailableHeight)
+            Layout.maximumHeight: root.quickAccessAvailableHeight
+            visible: root.quickAccessItems.length > 0
+            orientation: Qt.Vertical
+            evenlySpaced: false
+            spacing: Theme.spacingS
+            model: root.quickAccessItems
+            currentIndex: root.quickAccessIndex
+            onActivated: index => root.activateQuickAccess(index)
+        }
 
-                Rectangle {
-                    visible: root.collapsed
-                    anchors.centerIn: parent
-                    width: 32
-                    height: 1
-                    color: M3E.stroke(Theme.outlineVariant, M3E.strokeDivider)
-                }
-            }
+        Item {
+            Layout.fillHeight: true
+            Layout.minimumHeight: 0
+        }
 
-            // === Quick Access Folders ===
-            Repeater {
-                id: qaRepeater
-                model: ImageService.quickAccessFolderAlbums
+        DNavigationBar {
+            id: utilityNavigation
 
-                delegate: NavItem {
-                    required property var modelData
-                    itemKey: "qa:" + modelData.name
-                    itemText: modelData.name
-                    itemIcon: "folder"
-                }
-            }
-
-            // Expanding spacer pushing Trash & Settings to the bottom
-            Item {
-                Layout.fillHeight: true
-            }
-
-            // === Trash Item ===
-            NavItem {
-                itemKey: "trash"
-                itemText: "Trash"
-                itemIcon: "delete"
-                badgeCount: ImageService.trashCount
-            }
-
-            // === Bottom Item: Settings ===
-            NavItem {
-                itemKey: "settings"
-                itemText: "Settings"
-                itemIcon: "settings"
-            }
+            Layout.fillWidth: true
+            Layout.preferredHeight: implicitHeight
+            orientation: Qt.Vertical
+            evenlySpaced: false
+            spacing: Theme.spacingS
+            model: root.utilityItems
+            currentIndex: root.utilityIndex
+            onActivated: index => root.activateUtility(index)
         }
     }
 }

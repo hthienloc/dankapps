@@ -190,6 +190,30 @@ T.Control {
                         visible: !editButton.revealed
                     }
 
+                    Rectangle {
+                        readonly property int badgeCount: Math.max(0, Number(destination.modelData?.badgeCount ?? 0))
+
+                        visible: badgeCount > 0
+                        anchors.top: indicator.top
+                        anchors.topMargin: -2
+                        anchors.right: indicator.right
+                        anchors.rightMargin: 4
+                        z: 1
+                        height: 14
+                        width: Math.max(14, badgeText.implicitWidth + 6)
+                        radius: height / 2
+                        color: destination.selected ? Style.surfaceContainerLowest : Style.errorContainer
+
+                        StyledText {
+                            id: badgeText
+                            anchors.centerIn: parent
+                            text: parent.badgeCount > 99 ? "99+" : parent.badgeCount
+                            font.pixelSize: 9
+                            font.weight: Style.fontWeightBold
+                            color: destination.selected ? Style.secondary : Style.onErrorContainer
+                        }
+                    }
+
                     StyledText {
                         id: label
                         x: Style.spacingXS
