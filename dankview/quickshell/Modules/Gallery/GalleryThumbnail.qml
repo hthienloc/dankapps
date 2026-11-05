@@ -21,6 +21,7 @@ Item {
         : tileSize
 
     readonly property bool isSelected: imageItem ? ImageService.isSelected(imageItem.path) : false
+    readonly property bool isRangePreview: imageItem ? ImageService.isRangePreview(imageItem.path) : false
     readonly property bool isFav: imageItem ? ImageService.isFavorite(imageItem.path) : false
     readonly property bool isSelectionMode: ImageService.gallerySelectedCount > 0
     readonly property bool isCardHovered: cardHover.hovered
@@ -39,6 +40,19 @@ Item {
 
         HoverHandler {
             id: cardHover
+        }
+
+        HoverHandler {
+            id: rangeHover
+            acceptedModifiers: Qt.ShiftModifier
+            onHoveredChanged: {
+                if (root.isTrashMode || !root.imageItem)
+                    return;
+                if (hovered)
+                    ImageService.previewSelectionRange(root.imageItem.path, root.navigationPaths);
+                else if (ImageService.rangePreviewTargetPath === root.imageItem.path)
+                    ImageService.clearSelectionRangePreview();
+            }
         }
 
         Image {
@@ -63,11 +77,11 @@ Item {
             radius: 0
             color: root.isSelected
                 ? Theme.withAlpha(Theme.primary, root.isCardHovered ? 0.22 : 0.16)
-                : "transparent"
+                : (root.isRangePreview ? Theme.withAlpha(Theme.primary, 0.12) : "transparent")
             border.color: root.isSelected
                 ? Theme.primary
-                : (root.isCardHovered ? Theme.withAlpha(Theme.surfaceText, 0.4) : "transparent")
-            border.width: root.isSelected ? 3 : (root.isCardHovered ? 1 : 0)
+                : (root.isRangePreview ? Theme.withAlpha(Theme.primary, 0.6) : (root.isCardHovered ? Theme.withAlpha(Theme.surfaceText, 0.4) : "transparent"))
+            border.width: root.isSelected ? 3 : (root.isRangePreview ? 2 : (root.isCardHovered ? 1 : 0))
 
             Behavior on color { ColorAnimation { duration: Theme.shortDuration } }
             Behavior on border.color { ColorAnimation { duration: Theme.shortDuration } }
@@ -122,8 +136,13 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (root.imageItem) ImageService.toggleSelect(root.imageItem.path)
+                onClicked: mouse => {
+                    if (!root.imageItem)
+                        return;
+                    if (!root.isTrashMode && (mouse.modifiers & Qt.ShiftModifier))
+                        ImageService.selectRange(root.imageItem.path, root.navigationPaths);
+                    else
+                        ImageService.toggleSelect(root.imageItem.path);
                 }
             }
         }
@@ -178,9 +197,11 @@ Item {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             z: -1
-            onClicked: {
+            onClicked: mouse => {
                 if (root.imageItem) {
-                    if (root.isSelectionMode) ImageService.toggleSelect(root.imageItem.path)
+                    if (!root.isTrashMode && (mouse.modifiers & Qt.ShiftModifier))
+                        ImageService.selectRange(root.imageItem.path, root.navigationPaths)
+                    else if (root.isSelectionMode) ImageService.toggleSelect(root.imageItem.path)
                     else ImageService.openImageFromGallery(root.imageItem.path, root.imageItem.thumbnail || "", root.navigationPaths)
                 }
             }

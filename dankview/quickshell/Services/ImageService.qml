@@ -94,6 +94,7 @@ Singleton {
 
     onGalleryTabChanged: {
         searchBarCollapsed = false;
+        clearSelectionRangePreview();
         if (galleryTab !== "albums" && albumsEditMode) cancelEditAlbums();
         if (galleryTab === "trash") loadTrash();
     }
@@ -112,7 +113,11 @@ Singleton {
         searchDebounce.restart()
         if (searchQuery !== "") searchBarCollapsed = false
     }
-    onSelectedCategoryChanged: searchBarCollapsed = false
+    onSelectedCategoryChanged: {
+        searchBarCollapsed = false;
+        clearSelectionRangePreview();
+    }
+    onSearchQueryDebouncedChanged: clearSelectionRangePreview()
     onSearchActiveChanged: {
         if (!searchActive) {
             searchDebounce.stop()
@@ -121,6 +126,9 @@ Singleton {
     }
     property var galleryFavorites: ({})
     property var gallerySelectedFiles: ({})
+    property string gallerySelectionAnchorPath: ""
+    property string rangePreviewTargetPath: ""
+    property var galleryRangePreviewFiles: ({})
     property bool isGalleryLoading: false
     property string previewThumbnail: ""
 
@@ -775,10 +783,76 @@ Singleton {
         const sel = Object.assign({}, gallerySelectedFiles);
         if (sel[filePath]) {
             delete sel[filePath];
+            if (gallerySelectionAnchorPath === filePath) {
+                const remainingPaths = Object.keys(sel);
+                gallerySelectionAnchorPath = remainingPaths.length > 0 ? remainingPaths[remainingPaths.length - 1] : "";
+            }
         } else {
             sel[filePath] = true;
+            gallerySelectionAnchorPath = filePath;
         }
         gallerySelectedFiles = sel;
+        clearSelectionRangePreview();
+    }
+
+    function previewSelectionRange(filePath, orderedPaths) {
+        if (!gallerySelectionAnchorPath || !filePath || !orderedPaths || orderedPaths.length === 0) {
+            clearSelectionRangePreview();
+            return;
+        }
+
+        const anchorIndex = orderedPaths.indexOf(gallerySelectionAnchorPath);
+        const targetIndex = orderedPaths.indexOf(filePath);
+        if (anchorIndex < 0 || targetIndex < 0 || anchorIndex === targetIndex) {
+            clearSelectionRangePreview();
+            return;
+        }
+
+        const first = Math.min(anchorIndex, targetIndex);
+        const last = Math.max(anchorIndex, targetIndex);
+        const preview = {};
+        for (let i = first; i <= last; i++) {
+            if (orderedPaths[i]) preview[orderedPaths[i]] = true;
+        }
+        galleryRangePreviewFiles = preview;
+        rangePreviewTargetPath = filePath;
+    }
+
+    function selectRange(filePath, orderedPaths) {
+        if (!filePath) {
+            clearSelectionRangePreview();
+            return;
+        }
+
+        if (!gallerySelectionAnchorPath || !orderedPaths || orderedPaths.length === 0) {
+            selectGroup([filePath]);
+            return;
+        }
+
+        const anchorIndex = orderedPaths.indexOf(gallerySelectionAnchorPath);
+        const targetIndex = orderedPaths.indexOf(filePath);
+        if (anchorIndex < 0 || targetIndex < 0) {
+            selectGroup([filePath]);
+            return;
+        }
+
+        const first = Math.min(anchorIndex, targetIndex);
+        const last = Math.max(anchorIndex, targetIndex);
+        const sel = Object.assign({}, gallerySelectedFiles);
+        for (let i = first; i <= last; i++) {
+            if (orderedPaths[i]) sel[orderedPaths[i]] = true;
+        }
+        gallerySelectedFiles = sel;
+        clearSelectionRangePreview();
+    }
+
+    function isRangePreview(filePath) {
+        return !!galleryRangePreviewFiles[filePath];
+    }
+
+    function clearSelectionRangePreview() {
+        galleryRangePreviewFiles = ({});
+        rangePreviewTargetPath = "";
     }
 
     function selectGroup(paths) {
@@ -788,6 +862,8 @@ Singleton {
             if (paths[i]) sel[paths[i]] = true;
         }
         gallerySelectedFiles = sel;
+        gallerySelectionAnchorPath = paths[paths.length - 1] || "";
+        clearSelectionRangePreview();
     }
 
     function deselectGroup(paths) {
@@ -797,6 +873,11 @@ Singleton {
             if (paths[i]) delete sel[paths[i]];
         }
         gallerySelectedFiles = sel;
+        if (paths.indexOf(gallerySelectionAnchorPath) >= 0) {
+            const remainingPaths = Object.keys(sel);
+            gallerySelectionAnchorPath = remainingPaths.length > 0 ? remainingPaths[remainingPaths.length - 1] : "";
+        }
+        clearSelectionRangePreview();
     }
 
     function toggleSelectGroup(paths) {
@@ -844,6 +925,8 @@ Singleton {
 
     function clearSelection() {
         gallerySelectedFiles = ({});
+        gallerySelectionAnchorPath = "";
+        clearSelectionRangePreview();
     }
 
     function selectAll() {
@@ -881,6 +964,8 @@ Singleton {
                 sel[matching[i]] = true;
             }
             gallerySelectedFiles = sel;
+            gallerySelectionAnchorPath = matching[matching.length - 1] || "";
+            clearSelectionRangePreview();
         }
     }
 

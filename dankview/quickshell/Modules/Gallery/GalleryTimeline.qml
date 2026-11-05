@@ -93,6 +93,7 @@ Item {
 
         return result
     }
+    onFilteredGroupsChanged: ImageService.clearSelectionRangePreview()
 
     readonly property var navigationPaths: {
         const paths = []
