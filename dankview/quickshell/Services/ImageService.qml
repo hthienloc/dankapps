@@ -1810,7 +1810,21 @@ Singleton {
 
     function copyToClipboard() {
         if (!currentFilePath) return;
-        copySingleImageToClipboard(currentFilePath);
+        if (normalizedRotation === 0 && !flipH && !flipV) {
+            copySingleImageToClipboard(currentFilePath);
+            return;
+        }
+
+        copyProc.command = [
+            "bash", "-o", "pipefail", "-c",
+            'args=("$1"); if [[ "$3" == 1 ]]; then args+=(-flop); fi; if [[ "$4" == 1 ]]; then args+=(-flip); fi; if [[ "$2" != 0 ]]; then args+=(-rotate "$2"); fi; magick "${args[@]}" png:- | dms cl copy -t image/png',
+            "copyProc",
+            currentFilePath,
+            normalizedRotation,
+            flipH ? "1" : "0",
+            flipV ? "1" : "0"
+        ];
+        copyProc.running = true;
     }
 
     function copyPathToClipboard() {
