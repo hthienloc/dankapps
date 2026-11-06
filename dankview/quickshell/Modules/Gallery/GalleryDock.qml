@@ -39,6 +39,16 @@ Item {
     }
 
     // Unified M3E Floating Pill Container that morphs across contextual action states
+    ElevationShadow {
+        anchors.centerIn: dockPill
+        width: dockPill.width
+        height: dockPill.height
+        z: -1
+        targetRadius: dockPill.radius
+        targetColor: dockPill.color
+        level: Style.elevationLevel2
+    }
+
     Rectangle {
         id: dockPill
         anchors.centerIn: parent
@@ -62,14 +72,6 @@ Item {
                 duration: M3E.effectsFastMs
                 easing.bezierCurve: M3E.curveFastEffects
             }
-        }
-
-        ElevationShadow {
-            anchors.fill: parent
-            z: -1
-            targetRadius: parent.radius
-            targetColor: parent.color
-            level: Style.elevationLevel2
         }
 
         // === 2. Edit Albums State (Cancel / Confirm) ===
