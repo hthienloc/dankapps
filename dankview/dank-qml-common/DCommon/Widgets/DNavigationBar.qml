@@ -199,18 +199,18 @@ T.Control {
                         anchors.right: indicator.right
                         anchors.rightMargin: 4
                         z: 1
-                        height: 14
-                        width: Math.max(14, badgeText.implicitWidth + 6)
+                        height: 18
+                        width: Math.max(18, badgeText.implicitWidth + 10)
                         radius: height / 2
-                        color: destination.selected ? Style.surfaceContainerLowest : Style.errorContainer
+                        color: destination.selected ? Style.surfaceContainerLowest : Style.primaryContainer
 
                         StyledText {
                             id: badgeText
                             anchors.centerIn: parent
                             text: parent.badgeCount > 99 ? "99+" : parent.badgeCount
-                            font.pixelSize: 9
+                            font.pixelSize: 10
                             font.weight: Style.fontWeightBold
-                            color: destination.selected ? Style.secondary : Style.onErrorContainer
+                            color: destination.selected ? Style.secondary : Style.onPrimaryContainer
                         }
                     }
 
