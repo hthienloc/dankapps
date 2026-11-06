@@ -205,7 +205,10 @@ FloatingWindow {
                 }
                 break;
             case Qt.Key_Escape:
-                if (ImageService.galleryMode && ImageService.gallerySelectedCount > 0) {
+                if (ImageService.galleryMode && galleryView.filterSortDialogOpen) {
+                    galleryView.closeFilterSortDialog();
+                    event.accepted = true;
+                } else if (ImageService.galleryMode && ImageService.gallerySelectedCount > 0) {
                     ImageService.clearSelection();
                     event.accepted = true;
                 } else if (ImageService.uiLocked) {

@@ -10,6 +10,11 @@ Item {
 
     property var windowControls: null
     property var targetWindow: null
+    readonly property bool filterSortDialogOpen: filterDialog.opened
+
+    function closeFilterSortDialog() {
+        filterDialog.close()
+    }
 
     focus: true
     Keys.onPressed: event => {
