@@ -269,7 +269,6 @@ Item {
                         smallItemWidth: Style.listItemHeight
                         itemRadius: Style.cornerRadiusM
                         spacing: 10
-                        interactive: false
                         snapMode: ListView.NoSnap
                         cacheBuffer: 2000
                         reuseItems: true
@@ -282,7 +281,7 @@ Item {
                         function scrollBy(wheel) {
                             const isHoriz = Math.abs(wheel.angleDelta.x) > Math.abs(wheel.angleDelta.y) || Math.abs(wheel.pixelDelta.x) > Math.abs(wheel.pixelDelta.y);
                             const rawDelta = isHoriz
-                                ? (wheel.angleDelta.x !== 0 ? wheel.angleDelta.x : wheel.pixelDelta.x * 6)
+                                ? (wheel.angleDelta.x !== 0 ? wheel.angleDelta.x : wheel.pixelDelta.x * 10)
                                 : (wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y * 6);
 
                             if (rawDelta === 0) {
@@ -302,7 +301,7 @@ Item {
                             }
 
                             wheelAccumulator += rawDelta;
-                            if (Math.abs(wheelAccumulator) >= 60) {
+                            if (Math.abs(wheelAccumulator) >= (isHoriz ? 50 : 60)) {
                                 const stepDir = wheelAccumulator < 0 ? 1 : -1;
                                 wheelAccumulator = 0;
                                 scrollSingleItem(stepDir);
