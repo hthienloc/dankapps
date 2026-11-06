@@ -312,7 +312,9 @@ FloatingWindow {
                 ImageCanvas {
                     id: canvas
                     anchors.fill: parent
-                    topInset: (headerBarBg.height > 0 ? headerBarBg.height : 40) + Style.spacingM
+                    topInset: ImageService.uiLocked
+                        ? Style.spacingM
+                        : (headerBarBg.height > 0 ? headerBarBg.height : 40) + Style.spacingM
                     bottomInset: (editFab.height > 0 ? editFab.height : Style.buttonHeightM) + editFab.anchors.bottomMargin + Style.spacingM
                     minBottomInset: Style.spacingM
                     safeCenterWidth: {
