@@ -480,8 +480,19 @@ Singleton {
     }
 
     function confirmEditAlbums() {
+        const currentSnapshot = {
+            addedFolders: (albumsConfig.addedFolders || []).slice(),
+            removedFolders: (albumsConfig.removedFolders || []).slice(),
+            quickAccess: Array.isArray(albumsConfig.quickAccess) ? albumsConfig.quickAccess.slice() : quickAccessFolderAlbums.map(a => a.name),
+            albumOrder: (albumsConfig.albumOrder || []).slice()
+        };
+        const hasChanges = JSON.stringify(currentSnapshot) !== JSON.stringify(_albumsConfigSnapshot);
+
         albumsEditMode = false;
         _albumsConfigSnapshot = null;
+        if (!hasChanges)
+            return;
+
         saveAlbumsConfig();
         showToast("Saved album layout");
     }
