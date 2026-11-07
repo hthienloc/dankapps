@@ -319,47 +319,6 @@ Item {
                         onClicked: ImageService.restoreRemovedFolders()
                     }
                 }
-
-
-                // Edit button (triggers bottom dock morph to Cancel / Confirm)
-                Rectangle {
-                    visible: !root.editMode
-                    implicitHeight: Style.buttonHeightXS
-                    implicitWidth: editBtnRow.implicitWidth + Style.spacingL
-                    radius: M3E.tileRadius(editBtnMouse.pressed, editBtnMouse.containsMouse, false)
-                    color: editBtnMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
-                    border.color: M3E.stroke(Theme.outlineVariant, M3E.strokeControl)
-                    border.width: 1
-
-                    Behavior on radius { DAnim { duration: M3E.spatialFastMs; easing.bezierCurve: M3E.curveFastSpatial } }
-
-                    RowLayout {
-                        id: editBtnRow
-                        anchors.centerIn: parent
-                        spacing: Style.spacingXS
-
-                        DIcon {
-                            name: "edit"
-                            size: Style.iconSizeSmall
-                            color: Theme.surfaceText
-                        }
-
-                        StyledText {
-                            text: "Edit"
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.weight: Theme.fontWeightMedium
-                            color: Theme.surfaceText
-                        }
-                    }
-
-                    MouseArea {
-                        id: editBtnMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: ImageService.startEditAlbums()
-                    }
-                }
             }
 
             // Search feedback
@@ -526,6 +485,18 @@ Item {
                 }
             }
         }
+    }
+
+    DFab {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: Style.spacingXL
+        anchors.bottomMargin: Style.spacingXL
+        z: 30
+        visible: !root.editMode
+        iconName: "edit"
+        colorRole: "primary"
+        onClicked: ImageService.startEditAlbums()
     }
 
     // Drop Insertion Gap Indicator
