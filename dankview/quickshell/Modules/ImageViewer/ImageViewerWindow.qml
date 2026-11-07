@@ -24,6 +24,14 @@ FloatingWindow {
         anchors.fill: parent
         focus: true
 
+        Connections {
+            target: ImageService
+            function onGalleryModeChanged() {
+                if (!ImageService.galleryMode)
+                    rootContent.forceActiveFocus()
+            }
+        }
+
         // Keyboard navigation and shortcuts
         Keys.onPressed: event => {
             switch (event.key) {
