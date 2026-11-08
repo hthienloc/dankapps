@@ -399,64 +399,18 @@ Item {
                                             anchors.verticalCenter: parent.verticalCenter
                                         }
 
-                                        Rectangle {
+                                        DActionButton {
                                             id: expandBtn
-                                            width: 28
-                                            height: 28
-                                            radius: 14
+                                            buttonSize: Theme.buttonHeightXXS
+                                            iconName: "expand_more"
+                                            iconSize: Theme.chipIconSize
+                                            iconColor: alarmCard.isExpanded ? Theme.primary : Theme.surfaceVariantText
+                                            backgroundColor: alarmCard.isExpanded
+                                                ? Theme.withAlpha(Theme.primary, 0.16)
+                                                : Theme.withAlpha(Theme.surfaceVariant, 0.25)
+                                            tooltipText: alarmCard.isExpanded ? "Collapse options" : "Customize alarm"
                                             anchors.verticalCenter: parent.verticalCenter
-                                            activeFocusOnTab: true
-                                            Accessible.role: Accessible.Button
-                                            Accessible.name: alarmCard.isExpanded ? "Collapse options" : "Customize alarm"
-                                            Accessible.onPressAction: ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index
-                                            Keys.onSpacePressed: event => {
-                                                ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
-                                                event.accepted = true;
-                                            }
-                                            Keys.onReturnPressed: event => {
-                                                ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
-                                                event.accepted = true;
-                                            }
-                                            Keys.onEnterPressed: event => {
-                                                ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
-                                                event.accepted = true;
-                                            }
-                                            border.width: activeFocus ? Theme.outlineWidthFocused : 0
-                                            border.color: Theme.focusRingColor
-                                            color: expandMouse.pressed
-                                                ? Theme.withAlpha(Theme.primary, 0.25)
-                                                : (expandMouse.containsMouse || alarmCard.isExpanded
-                                                    ? Theme.withAlpha(Theme.surfaceText, Theme.stateLayerHover * 1.4)
-                                                    : Theme.withAlpha(Theme.surfaceVariant, 0.25))
-
-                                            DIcon {
-                                                anchors.centerIn: parent
-                                                name: "expand_more"
-                                                size: Theme.chipIconSize
-                                                color: alarmCard.isExpanded ? Theme.primary : Theme.surfaceVariantText
-                                                rotation: alarmCard.isExpanded ? 180 : 0
-
-                                                Behavior on rotation {
-                                                    enabled: Theme.animationsEnabled
-                                                    NumberAnimation { duration: ClockMetrics.transitionDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: ClockMetrics.curveFastSpatial }
-                                                }
-                                            }
-
-                                            MouseArea {
-                                                id: expandMouse
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
-                                                }
-                                            }
-
-                                            DTooltipHost {
-                                                target: expandBtn
-                                                hoverArea: expandMouse
-                                                text: alarmCard.isExpanded ? "Collapse options" : "Customize alarm"
-                                            }
+                                            onClicked: ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index
                                         }
                                     }
                                 }
@@ -732,41 +686,16 @@ Item {
                                         }
 
                                         // Quick Preset Chips (Weekdays, Weekends, Every day, One-time)
-                                        Flow {
+                                        DFilterChips {
                                             width: parent.width
-                                            spacing: 6
-
-                                            Repeater {
-                                                model: root.repeatPresets
-
-                                                Rectangle {
-                                                    required property var modelData
-                                                    readonly property bool isActivePreset: alarmCard.scheduleSummary === modelData.label
-
-                                                    width: presetText.implicitWidth + 16
-                                                    height: 24
-                                                    radius: Theme.cornerRadiusM
-                                                    color: isActivePreset
-                                                        ? Theme.primary
-                                                        : (presetMouse.containsMouse ? Theme.surfaceContainer : Theme.withAlpha(Theme.surfaceVariant, 0.35))
-
-                                                    StyledText {
-                                                        id: presetText
-                                                        anchors.centerIn: parent
-                                                        text: modelData.label
-                                                        font.pixelSize: Theme.fontSizeSmall
-                                                        font.weight: isActivePreset ? Font.Bold : Font.Medium
-                                                        color: isActivePreset ? Theme.onPrimary : Theme.surfaceVariantText
-                                                    }
-
-                                                    MouseArea {
-                                                        id: presetMouse
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: ClockService.updateAlarmDays(alarmCard.index, modelData.days.slice())
-                                                    }
-                                                }
+                                            chipHeight: Theme.buttonHeightXXS
+                                            chipPadding: Theme.spacingM
+                                            showCounts: false
+                                            model: root.repeatPresets.map(p => ({ label: p.label }))
+                                            currentIndex: root.repeatPresets.findIndex(p => p.label === alarmCard.scheduleSummary)
+                                            onSelectionChanged: idx => {
+                                                if (idx >= 0 && idx < root.repeatPresets.length)
+                                                    ClockService.updateAlarmDays(alarmCard.index, root.repeatPresets[idx].days.slice());
                                             }
                                         }
                                     }
@@ -778,69 +707,24 @@ Item {
                                         opacity: 0.5
                                     }
 
-                                    // Alarm Sound Selector + Preview
-                                    Item {
+                                    // Alarm Sound Selector using DFilterChips
+                                    DFilterChips {
                                         width: parent.width
-                                        height: soundFlow.implicitHeight
-
-                                        Flow {
-                                            id: soundFlow
-                                            width: parent.width
-                                            spacing: 6
-
-                                            Repeater {
-                                                model: ClockService.alarmSounds
-
-                                                Rectangle {
-                                                    required property var modelData
-                                                    readonly property bool isSelectedSound: alarmCard.soundId === modelData.id
-
-                                                    width: soundRow.implicitWidth + 16
-                                                    height: 28
-                                                    radius: 14
-                                                    color: isSelectedSound
-                                                        ? Theme.secondaryContainer
-                                                        : (soundMouse.containsMouse ? Theme.surfaceContainer : Theme.withAlpha(Theme.surfaceVariant, 0.3))
-                                                    border.width: isSelectedSound ? 1 : 0
-                                                    border.color: Theme.primary
-
-                                                    Row {
-                                                        id: soundRow
-                                                        anchors.centerIn: parent
-                                                        spacing: 5
-
-                                                        DIcon {
-                                                            name: modelData.icon
-                                                            size: Theme.iconSizeSmall
-                                                            color: isSelectedSound ? Theme.primary : Theme.surfaceVariantText
-                                                            anchors.verticalCenter: parent.verticalCenter
-                                                        }
-
-                                                        StyledText {
-                                                            text: modelData.name
-                                                            font.pixelSize: Theme.fontSizeSmall
-                                                            font.weight: isSelectedSound ? Font.Bold : Font.Medium
-                                                            color: isSelectedSound ? Theme.onSecondaryContainer : Theme.surfaceText
-                                                            anchors.verticalCenter: parent.verticalCenter
-                                                        }
-                                                    }
-
-                                                    MouseArea {
-                                                        id: soundMouse
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: ClockService.updateAlarmSound(alarmCard.index, modelData.id)
-                                                    }
-                                                }
-                                            }
+                                        chipHeight: Theme.buttonHeightXXS
+                                        chipPadding: Theme.spacingM
+                                        showCounts: false
+                                        model: ClockService.alarmSounds.map(s => ({ label: s.name, icon: s.icon, value: s.id }))
+                                        currentIndex: Math.max(0, ClockService.alarmSounds.findIndex(s => s.id === alarmCard.soundId))
+                                        onSelectionChanged: idx => {
+                                            if (idx >= 0 && idx < ClockService.alarmSounds.length)
+                                                ClockService.updateAlarmSound(alarmCard.index, ClockService.alarmSounds[idx].id);
                                         }
                                     }
 
-                                    // Snooze Duration Selector (5m, 10m, 15m, 30m)
+                                    // Snooze Duration Selector (5m, 10m, 15m, 30m) using DButtonGroup
                                     Item {
                                         width: parent.width
-                                        height: 26
+                                        height: snoozeGroup.height
 
                                         StyledText {
                                             anchors.left: parent.left
@@ -851,41 +735,20 @@ Item {
                                             color: Theme.surfaceVariantText
                                         }
 
-                                        Row {
+                                        DButtonGroup {
+                                            id: snoozeGroup
                                             anchors.right: parent.right
                                             anchors.verticalCenter: parent.verticalCenter
-                                            spacing: 5
-
-                                            Repeater {
-                                                model: ClockService.snoozeOptions
-
-                                                Rectangle {
-                                                    required property int modelData
-                                                    readonly property bool isSnoozeSelected: alarmCard.snoozeMin === modelData
-
-                                                    width: 38
-                                                    height: 24
-                                                    radius: Theme.cornerRadiusM
-                                                    color: isSnoozeSelected
-                                                        ? Theme.primaryContainer
-                                                        : (snoozeMouse.containsMouse ? Theme.surfaceContainer : Theme.withAlpha(Theme.surfaceVariant, 0.3))
-
-                                                    StyledText {
-                                                        anchors.centerIn: parent
-                                                        text: `${modelData}m`
-                                                        font.pixelSize: Theme.fontSizeSmall
-                                                        font.weight: isSnoozeSelected ? Font.Bold : Font.Medium
-                                                        color: isSnoozeSelected ? Theme.onPrimaryContainer : Theme.surfaceVariantText
-                                                    }
-
-                                                    MouseArea {
-                                                        id: snoozeMouse
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: ClockService.updateAlarmSnooze(alarmCard.index, modelData)
-                                                    }
-                                                }
+                                            size: "small"
+                                            selectionMode: "single"
+                                            checkEnabled: false
+                                            minButtonWidth: 42
+                                            buttonPadding: Theme.spacingS
+                                            model: ClockService.snoozeOptions.map(m => `${m}m`)
+                                            currentIndex: Math.max(0, ClockService.snoozeOptions.indexOf(alarmCard.snoozeMin))
+                                            onSelectionChanged: (idx, sel) => {
+                                                if (sel && idx >= 0 && idx < ClockService.snoozeOptions.length)
+                                                    ClockService.updateAlarmSnooze(alarmCard.index, ClockService.snoozeOptions[idx]);
                                             }
                                         }
                                     }
@@ -910,41 +773,14 @@ Item {
                                                 onClicked: ClockService.skipAlarmOnce(alarmCard.index)
                                             }
 
-                                            Rectangle {
+                                            DButton {
                                                 visible: alarmCard.alarmDays.length === 0
-                                                width: delAfterRow.implicitWidth + 16
-                                                height: 28
-                                                radius: 14
-                                                color: alarmCard.deleteAfterGoesOff
-                                                    ? Theme.primaryContainer
-                                                    : Theme.withAlpha(Theme.surfaceVariant, 0.35)
-
-                                                Row {
-                                                    id: delAfterRow
-                                                    anchors.centerIn: parent
-                                                    spacing: 5
-
-                                                    DIcon {
-                                                        name: alarmCard.deleteAfterGoesOff ? "check_box" : "check_box_outline_blank"
-                                                        size: Theme.iconSizeSmall
-                                                        color: alarmCard.deleteAfterGoesOff ? Theme.primary : Theme.surfaceVariantText
-                                                        anchors.verticalCenter: parent.verticalCenter
-                                                    }
-
-                                                    StyledText {
-                                                        text: "Delete after goes off"
-                                                        font.pixelSize: Theme.fontSizeSmall
-                                                        font.weight: Font.Medium
-                                                        color: alarmCard.deleteAfterGoesOff ? Theme.onPrimaryContainer : Theme.surfaceVariantText
-                                                        anchors.verticalCenter: parent.verticalCenter
-                                                    }
-                                                }
-
-                                                MouseArea {
-                                                    anchors.fill: parent
-                                                    cursorShape: Qt.PointingHandCursor
-                                                    onClicked: ClockService.updateAlarmDeleteAfter(alarmCard.index, !alarmCard.deleteAfterGoesOff)
-                                                }
+                                                text: "Delete after goes off"
+                                                iconName: alarmCard.deleteAfterGoesOff ? "check_box" : "check_box_outline_blank"
+                                                buttonHeight: Theme.buttonHeightXS
+                                                backgroundColor: alarmCard.deleteAfterGoesOff ? Theme.primaryContainer : Theme.secondaryContainer
+                                                textColor: alarmCard.deleteAfterGoesOff ? Theme.onPrimaryContainer : Theme.onSecondaryContainer
+                                                onClicked: ClockService.updateAlarmDeleteAfter(alarmCard.index, !alarmCard.deleteAfterGoesOff)
                                             }
                                         }
 

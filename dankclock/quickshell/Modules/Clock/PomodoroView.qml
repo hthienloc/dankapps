@@ -172,110 +172,38 @@ Item {
                         }
                     }
 
-                    // Integrated Cycle Phase Pill Group (Active on current Focus / Break step)
-                    Rectangle {
+                    // Integrated Cycle Phase Selector using DButtonGroup (labelOnlySelected expands active phase)
+                    DButtonGroup {
                         id: cyclePillGroup
                         anchors.horizontalCenter: parent.horizontalCenter
-                        width: cycleStepsRow.implicitWidth + 10
-                        height: 40
-                        radius: 20
-                        color: Theme.surfaceContainerLow
-                        border.width: 1
-                        border.color: Theme.outlineVariant
-
-                        Row {
-                            id: cycleStepsRow
-                            anchors.centerIn: parent
-                            spacing: 4
-
-                            Repeater {
-                                model: Math.max(1, ClockService.pomodoroTargetCycles) * 2
-
-                                Rectangle {
-                                    id: stepPill
-                                    required property int index
-
-                                    readonly property int totalSteps: Math.max(1, ClockService.pomodoroTargetCycles) * 2
-                                    readonly property bool isLongBreak: index === totalSteps - 1
-                                    readonly property bool isFocus: index % 2 === 0
-                                    readonly property int focusNum: Math.floor(index / 2) + 1
-                                    readonly property bool isActive: index === root.activeCycleStepIdx
-                                    readonly property bool isCompleted: index < root.activeCycleStepIdx
-
-                                    readonly property color stepAccent: isLongBreak
-                                        ? "#6ba5e7"
-                                        : (isFocus ? Theme.primary : "#6ec78c")
-                                    readonly property string stepIcon: isLongBreak
-                                        ? "self_improvement"
-                                        : (isFocus ? "psychology" : "coffee")
-                                    readonly property string stepLabel: isLongBreak
-                                        ? "Long Break"
-                                        : (isFocus ? `Focus ${focusNum}` : "Break")
-
-                                    width: isActive ? (stepContentRow.implicitWidth + 20) : 34
-                                    height: 30
-                                    radius: 15
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    color: isActive
-                                        ? stepAccent
-                                        : (stepMouse.containsMouse
-                                            ? Theme.surfaceContainerHighest
-                                            : (isCompleted ? Theme.withAlpha(stepAccent, 0.18) : "transparent"))
-
-                                    Behavior on width {
-                                        enabled: Theme.animationsEnabled
-                                        NumberAnimation { duration: ClockMetrics.transitionDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: ClockMetrics.curveFastSpatial }
-                                    }
-                                    Behavior on color {
-                                        enabled: Theme.animationsEnabled
-                                        ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                    }
-
-                                    Row {
-                                        id: stepContentRow
-                                        anchors.centerIn: parent
-                                        spacing: 5
-
-                                        DIcon {
-                                            visible: stepPill.isActive || !stepPill.isFocus
-                                            name: stepPill.stepIcon
-                                            size: Theme.iconSizeSmall
-                                            color: stepPill.isActive
-                                                ? "#111315"
-                                                : (stepPill.isCompleted ? stepPill.stepAccent : Theme.surfaceVariantText)
-                                            anchors.verticalCenter: parent.verticalCenter
-                                        }
-
-                                        StyledText {
-                                            visible: stepPill.isActive || stepPill.isFocus
-                                            text: stepPill.isActive ? stepPill.stepLabel : String(stepPill.focusNum)
-                                            font.pixelSize: Theme.fontSizeSmall
-                                            font.weight: (stepPill.isActive || stepPill.isCompleted) ? Font.Bold : Font.Medium
-                                            color: stepPill.isActive
-                                                ? "#111315"
-                                                : (stepPill.isCompleted ? stepPill.stepAccent : Theme.surfaceVariantText)
-                                            anchors.verticalCenter: parent.verticalCenter
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        id: stepMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: {
-                                            if (!stepPill.isActive)
-                                                ClockService.setPomodoroStep(stepPill.index);
-                                        }
-                                    }
-
-                                    DTooltipHost {
-                                        target: stepPill
-                                        hoverArea: stepMouse
-                                        text: stepPill.stepLabel
-                                    }
-                                }
+                        size: "small"
+                        selectionMode: "single"
+                        checkEnabled: false
+                        labelOnlySelected: true
+                        minButtonWidth: 36
+                        buttonPadding: Theme.spacingM
+                        selectedColor: root.phaseColor
+                        selectedContentColor: "#111315"
+                        model: {
+                            const count = Math.max(1, ClockService.pomodoroTargetCycles) * 2;
+                            const items = [];
+                            for (let i = 0; i < count; i++) {
+                                const isLongBreak = i === count - 1;
+                                const isFocus = i % 2 === 0;
+                                const focusNum = Math.floor(i / 2) + 1;
+                                const label = isLongBreak ? "Long Break" : (isFocus ? `Focus ${focusNum}` : "Break");
+                                items.push({
+                                    icon: isLongBreak ? "self_improvement" : (isFocus ? "psychology" : "coffee"),
+                                    text: label,
+                                    tooltip: label
+                                });
                             }
+                            return items;
+                        }
+                        currentIndex: root.activeCycleStepIdx
+                        onSelectionChanged: (idx, sel) => {
+                            if (sel && idx !== root.activeCycleStepIdx)
+                                ClockService.setPomodoroStep(idx);
                         }
                     }
 
@@ -384,62 +312,24 @@ Item {
                             }
                         }
 
-                        // Segmented Day / Week / Month Pill Group
-                        Rectangle {
+                        // Segmented Day / Week / Month Selector using DButtonGroup
+                        DButtonGroup {
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
-                            width: periodRow.implicitWidth + 6
-                            height: 30
-                            radius: 15
-                            color: Theme.surfaceContainerHighest
-
-                            Row {
-                                id: periodRow
-                                anchors.centerIn: parent
-                                spacing: 2
-
-                                Repeater {
-                                    model: [
-                                        { id: "day", label: "Day" },
-                                        { id: "week", label: "Week" },
-                                        { id: "month", label: "Month" }
-                                    ]
-
-                                    Rectangle {
-                                        id: periodChip
-                                        required property var modelData
-                                        readonly property bool selected: root.statsPeriod === modelData.id
-
-                                        width: periodLabel.implicitWidth + 20
-                                        height: 24
-                                        radius: Theme.cornerRadiusM
-                                        color: selected
-                                            ? root.phaseColor
-                                            : (periodMouse.containsMouse ? Theme.withAlpha(Theme.surfaceVariant, 0.4) : "transparent")
-
-                                        Behavior on color {
-                                            enabled: Theme.animationsEnabled
-                                            ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                        }
-
-                                        StyledText {
-                                            id: periodLabel
-                                            anchors.centerIn: parent
-                                            text: periodChip.modelData.label
-                                            font.pixelSize: Theme.fontSizeSmall
-                                            font.weight: periodChip.selected ? Font.Bold : Font.Medium
-                                            color: periodChip.selected ? "#111315" : Theme.surfaceVariantText
-                                        }
-
-                                        MouseArea {
-                                            id: periodMouse
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: root.statsPeriod = periodChip.modelData.id
-                                        }
-                                    }
-                                }
+                            size: "small"
+                            selectionMode: "single"
+                            checkEnabled: false
+                            minButtonWidth: 48
+                            buttonPadding: Theme.spacingM
+                            selectedColor: root.phaseColor
+                            selectedContentColor: "#111315"
+                            model: ["Day", "Week", "Month"]
+                            currentIndex: root.statsPeriod === "month" ? 2 : (root.statsPeriod === "week" ? 1 : 0)
+                            onSelectionChanged: (idx, sel) => {
+                                if (!sel)
+                                    return;
+                                const periods = ["day", "week", "month"];
+                                root.statsPeriod = periods[idx];
                             }
                         }
                     }

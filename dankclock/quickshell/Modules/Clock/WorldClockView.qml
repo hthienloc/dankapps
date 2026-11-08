@@ -194,53 +194,26 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: Theme.spacingXS
 
-                            // Quick -1h / +1h Step Chips
-                            Rectangle {
-                                width: 36
-                                height: 24
-                                radius: Theme.cornerRadiusM
-                                color: minusHourMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.withAlpha(Theme.surfaceVariant, 0.35)
+                            DButton {
+                                text: "-1h"
+                                buttonHeight: Theme.buttonHeightXXS
+                                minimumWidth: 44
+                                backgroundColor: Theme.secondaryContainer
+                                textColor: Theme.onSecondaryContainer
+                                tooltipText: "Step back 1 hour"
                                 anchors.verticalCenter: parent.verticalCenter
-
-                                StyledText {
-                                    anchors.centerIn: parent
-                                    text: "-1h"
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    font.weight: Font.Bold
-                                    color: Theme.surfaceText
-                                }
-
-                                MouseArea {
-                                    id: minusHourMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: root.scrubMinutesOffset = Math.max(-720, root.scrubMinutesOffset - 60)
-                                }
+                                onClicked: root.scrubMinutesOffset = Math.max(-720, root.scrubMinutesOffset - 60)
                             }
 
-                            Rectangle {
-                                width: 36
-                                height: 24
-                                radius: Theme.cornerRadiusM
-                                color: plusHourMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.withAlpha(Theme.surfaceVariant, 0.35)
+                            DButton {
+                                text: "+1h"
+                                buttonHeight: Theme.buttonHeightXXS
+                                minimumWidth: 44
+                                backgroundColor: Theme.secondaryContainer
+                                textColor: Theme.onSecondaryContainer
+                                tooltipText: "Step forward 1 hour"
                                 anchors.verticalCenter: parent.verticalCenter
-
-                                StyledText {
-                                    anchors.centerIn: parent
-                                    text: "+1h"
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    font.weight: Font.Bold
-                                    color: Theme.surfaceText
-                                }
-
-                                MouseArea {
-                                    id: plusHourMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: root.scrubMinutesOffset = Math.min(720, root.scrubMinutesOffset + 60)
-                                }
+                                onClicked: root.scrubMinutesOffset = Math.min(720, root.scrubMinutesOffset + 60)
                             }
                         }
                     }
