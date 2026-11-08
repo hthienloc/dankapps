@@ -6,11 +6,14 @@ Rectangle {
 
     property alias text: label.text
     property alias textColor: label.color
+    property string reserveText: ""
     property real maximumWidth: Infinity
     property var tooltipText: null
     readonly property bool truncated: label.truncated
+    readonly property string reserveTemplate: (reserveText || text).replace(/\d/g, Fonts.widestDigit(label.font))
+    readonly property real reservedLabelWidth: Math.ceil(Math.max(label.implicitWidth, reserveText !== "" ? Fonts.textWidth(label.font, reserveTemplate) : 0))
 
-    implicitWidth: text ? Math.min(maximumWidth, Math.max(implicitHeight, Math.ceil(label.implicitWidth) + Style.spacingS * 2)) : implicitHeight
+    implicitWidth: text ? Math.min(maximumWidth, Math.max(implicitHeight, reservedLabelWidth + Style.spacingS * 2)) : implicitHeight
     implicitHeight: text ? Math.max(Style.spacingL + Style.spacingXS, Math.ceil(labelMetrics.tightBoundingRect.height) + Style.spacingXS * 2) : Style.spacingXS + Style.spacingXXS
     baselineOffset: label.y + label.baselineOffset
     radius: height / 2

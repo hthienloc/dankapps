@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F5EFF7"/>
+      <stop offset="100%" stop-color="#D0BCFF"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#381E72"/>
+      <stop offset="60%" stop-color="#4F378B"/>
+      <stop offset="100%" stop-color="#7F67BE"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD8E4"/>
+      <stop offset="100%" stop-color="#FFB787"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="6" y="6" width="52" height="52" rx="14" fill="url(#body)"/>
+  <rect x="6.5" y="6.5" width="51" height="51" rx="13.5" fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.6"/>
+
+  <circle cx="32" cy="32" r="20" fill="url(#panel)"/>
+  <circle cx="32" cy="32" r="16.5" fill="none" stroke="#D0BCFF" stroke-width="1.5" stroke-dasharray="3 5" opacity="0.7"/>
+
+  <line x1="32" y1="32" x2="32" y2="20" stroke="#EADDFF" stroke-width="3.2" stroke-linecap="round"/>
+  <line x1="32" y1="32" x2="41" y2="36" stroke="url(#accent)" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="3" fill="url(#accent)"/>
+</svg>

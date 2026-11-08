@@ -13,6 +13,7 @@ T.Control {
     property int orientation: Qt.Horizontal
     property bool editable: false
     property bool evenlySpaced: true
+    property real labelFontSize: Style.fontSizeSmall
     readonly property bool vertical: orientation === Qt.Vertical
     readonly property int count: destinations.count
     readonly property real destinationHeight: Math.max(Style.navigationHeight, ...items.children.map(item => item.implicitHeight))
@@ -220,7 +221,7 @@ T.Control {
                         y: indicator.y + indicator.height + Style.spacingXS
                         width: parent.width - Style.spacingXS * 2
                         text: destination.modelData?.text ?? ""
-                        font.pixelSize: Style.fontSizeSmall
+                        font.pixelSize: root.labelFontSize
                         font.weight: Style.fontWeightMedium
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.Wrap

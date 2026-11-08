@@ -1,0 +1,4 @@
+core/bin/
+*.swp
+*~
+.DS_Store

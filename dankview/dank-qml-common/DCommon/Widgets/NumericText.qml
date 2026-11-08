@@ -1,26 +1,97 @@
 import QtQuick
 import qs.DCommon.Common
 
-StyledText {
+Item {
     id: root
 
+    property string text: ""
     property string reserveText: ""
-    readonly property real reservedWidth: reserveText !== "" ? Math.max(implicitWidth, reserveMetrics.width) : implicitWidth
+    readonly property alias contentHeight: metricsText.contentHeight
+    property alias isMonospace: metricsText.isMonospace
+    property alias fontToken: metricsText.fontToken
+    property alias font: metricsText.font
+    property alias color: metricsText.color
+    property int horizontalAlignment: Text.AlignHCenter
+    property int verticalAlignment: Text.AlignVCenter
+    property int wrapMode: Text.NoWrap
+    property int elide: Text.ElideNone
+    property alias renderType: metricsText.renderType
 
-    isMonospace: true
-    wrapMode: Text.NoWrap
-    font.features: {
-        "tnum": 1
+    readonly property bool useFlowText: (wrapMode !== Text.NoWrap || elide !== Text.ElideNone) && width < reservedWidth
+    readonly property string widestDigit: Fonts.widestDigit(metricsText.font)
+    readonly property real digitCellWidth: Math.ceil(Fonts.textWidth(metricsText.font, widestDigit))
+    readonly property var cells: text.match(/\d|\D+/g) || []
+    readonly property string reserveTemplate: (reserveText || text).replace(/\d/g, widestDigit)
+    readonly property real reserveTemplateCellsWidth: {
+        if (reserveText === "")
+            return 0;
+        const rCells = reserveText.match(/\d|\D+/g) || [];
+        let total = 0;
+        for (let i = 0; i < rCells.length; ++i) {
+            const c = rCells[i];
+            total += /^\d$/.test(c) ? digitCellWidth : Math.ceil(Fonts.textWidth(metricsText.font, c));
+        }
+        return total;
+    }
+    readonly property real reservedWidth: Math.ceil(Math.max(cellsRow.implicitWidth, metricsText.implicitWidth, Fonts.textWidth(metricsText.font, reserveTemplate), reserveTemplateCellsWidth))
+
+    implicitWidth: reservedWidth
+    implicitHeight: useFlowText ? metricsText.implicitHeight : Math.max(metricsText.implicitHeight, cellsRow.implicitHeight)
+    width: implicitWidth
+    height: implicitHeight
+    baselineOffset: useFlowText ? metricsText.baselineOffset : (cellsRow.y + metricsText.baselineOffset)
+
+    StyledText {
+        id: metricsText
+        visible: root.useFlowText
+        width: root.width
+        height: root.height
+        text: root.text
+        horizontalAlignment: root.horizontalAlignment
+        verticalAlignment: root.verticalAlignment
+        wrapMode: root.wrapMode
+        elide: root.elide
     }
 
-    StyledTextMetrics {
-        id: reserveMetrics
-        isMonospace: root.isMonospace
-        font.pixelSize: root.font.pixelSize
-        font.family: root.font.family
-        font.weight: root.font.weight
-        font.hintingPreference: root.font.hintingPreference
-        font.features: root.font.features
-        text: root.reserveText
+    Row {
+        id: cellsRow
+        visible: !root.useFlowText
+        y: {
+            if (root.verticalAlignment === Text.AlignTop)
+                return 0;
+            if (root.verticalAlignment === Text.AlignBottom)
+                return root.height - height;
+            return Math.round((root.height - height) / 2);
+        }
+        x: {
+            if (root.horizontalAlignment === Text.AlignLeft)
+                return 0;
+            if (root.horizontalAlignment === Text.AlignRight)
+                return root.width - width;
+            return Math.round((root.width - width) / 2);
+        }
+        LayoutMirroring.enabled: false
+
+        Repeater {
+            model: root.cells.length
+
+            StyledText {
+                required property int index
+                readonly property string cellText: root.cells[index] ?? ""
+                readonly property bool isDigit: /^\d$/.test(cellText)
+
+                text: cellText
+                isMonospace: root.isMonospace
+                fontToken: root.fontToken
+                font: root.font
+                color: root.color
+                renderType: root.renderType
+                width: isDigit ? root.digitCellWidth : implicitWidth
+                horizontalAlignment: isDigit ? Text.AlignHCenter : Text.AlignLeft
+                verticalAlignment: root.verticalAlignment
+                wrapMode: Text.NoWrap
+                elide: Text.ElideNone
+            }
+        }
     }
 }
