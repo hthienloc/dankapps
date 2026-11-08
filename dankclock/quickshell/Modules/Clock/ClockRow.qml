@@ -143,9 +143,15 @@ T.Control {
         anchors.fill: parent
         enabled: root.clickable && root.enabled
         hoverEnabled: root.clickable
-        focusPolicy: Qt.ClickFocus
+        focusPolicy: root.clickable ? Qt.StrongFocus : Qt.NoFocus
         background: null
-        Accessible.ignored: true
+        Accessible.ignored: !root.clickable
+        Accessible.role: Accessible.Button
+        Accessible.name: root.title + (root.subtitle ? ", " + root.subtitle : "")
+        Accessible.onPressAction: {
+            if (root.clickable && root.enabled)
+                root.clicked();
+        }
         onPressedChanged: {
             if (pressed && root.clickable)
                 ripple.trigger(pressX, pressY);

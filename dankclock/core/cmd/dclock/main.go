@@ -67,7 +67,7 @@ func findQuickshellDir(specified string) (string, error) {
 
 func main() {
 	configDir := flag.String("c", "", "path to quickshell configuration directory")
-	tabFlag := flag.String("tab", "", "initial tab to open (clock, alarm, timer, stopwatch, pomodoro, pomo, settings)")
+	tabFlag := flag.String("tab", "", "initial tab to open (clock, worldclock, alarm, alarms, timer, timers, stopwatch, pomodoro, pomo, settings)")
 	showVersion := flag.Bool("v", false, "show version")
 
 	flag.Usage = func() {
@@ -89,7 +89,7 @@ func main() {
 		case "clock", "worldclock", "alarm", "alarms", "timer", "timers", "stopwatch", "pomodoro", "pomo", "settings":
 			*tabFlag = normalizedTab
 		default:
-			fmt.Fprintf(os.Stderr, "Error: unknown tab %q (supported: clock, alarm, timer, stopwatch, pomodoro, pomo, settings)\n", *tabFlag)
+			fmt.Fprintf(os.Stderr, "Error: unknown tab %q (supported: clock, worldclock, alarm, alarms, timer, timers, stopwatch, pomodoro, pomo, settings)\n", *tabFlag)
 			os.Exit(1)
 		}
 	}
@@ -126,27 +126,48 @@ func main() {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT)
+
 	if err := cmd.Start(); err != nil {
+		signal.Stop(sigCh)
 		fmt.Fprintf(os.Stderr, "Error running quickshell: %v\n", err)
 		os.Exit(1)
 	}
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT)
 	doneCh := make(chan error, 1)
 	go func() {
 		doneCh <- cmd.Wait()
 	}()
 
+	var forwardedSig os.Signal
 	for {
 		select {
 		case sig := <-sigCh:
+			forwardedSig = sig
 			if cmd.Process != nil {
 				_ = cmd.Process.Signal(sig)
 			}
 		case err := <-doneCh:
 			signal.Stop(sigCh)
 			if err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					if ws, ok := exitErr.Sys().(syscall.WaitStatus); ok && ws.Signaled() {
+						sig := ws.Signal()
+						signal.Reset(sig)
+						_ = syscall.Kill(os.Getpid(), sig)
+						os.Exit(128 + int(sig))
+					}
+					if forwardedSig != nil {
+						if sig, ok := forwardedSig.(syscall.Signal); ok {
+							signal.Reset(sig)
+							_ = syscall.Kill(os.Getpid(), sig)
+							os.Exit(128 + int(sig))
+						}
+						return
+					}
+					os.Exit(exitErr.ExitCode())
+				}
 				fmt.Fprintf(os.Stderr, "Error running quickshell: %v\n", err)
 				os.Exit(1)
 			}

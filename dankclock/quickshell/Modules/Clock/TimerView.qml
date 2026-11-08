@@ -104,11 +104,15 @@ Item {
                         height: 36
 
                         Row {
+                            id: headerLeftRow
                             anchors.left: parent.left
+                            anchors.right: customDurationBtn.visible ? customDurationBtn.left : parent.right
+                            anchors.rightMargin: customDurationBtn.visible ? Theme.spacingS : 0
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: Theme.spacingS
 
                             DBadge {
+                                id: headerStatusBadge
                                 visible: !ClockService.timerSetupMode && root.currentTimer !== null
                                 text: root.currentFinished ? "FINISHED" : (root.currentRunning ? "RUNNING" : "PAUSED")
                                 color: root.currentFinished ? Theme.errorContainer : (root.currentRunning ? Theme.primary : Theme.secondaryContainer)
@@ -118,14 +122,18 @@ Item {
 
                             StyledText {
                                 anchors.verticalCenter: parent.verticalCenter
+                                width: Math.max(0, headerLeftRow.width - (headerStatusBadge.visible ? headerStatusBadge.width + headerLeftRow.spacing : 0))
                                 text: (ClockService.timerSetupMode || !root.hasTimers) ? "Create Custom Timer" : (root.currentTimer ? root.currentTimer.label : "Timer")
                                 font.pixelSize: Theme.fontSizeLarge
                                 font.weight: Theme.fontWeightBold
                                 color: Theme.surfaceText
+                                wrapMode: Text.NoWrap
+                                elide: Text.ElideRight
                             }
                         }
 
                         DButton {
+                            id: customDurationBtn
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
                             visible: root.hasTimers
@@ -493,7 +501,7 @@ Item {
                                 MouseArea {
                                     id: timerCardMouse
                                     anchors.fill: parent
-                                    preventStealing: ClockService.timerEditMode && root.draggingTimerIndex >= 0
+                                    preventStealing: ClockService.timerEditMode
                                     cursorShape: ClockService.timerEditMode
                                         ? (pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor)
                                         : Qt.PointingHandCursor
@@ -661,7 +669,11 @@ Item {
             text: "New Timer"
             colorRole: "primary"
             tooltipText: "Create a custom duration timer"
-            onClicked: ClockService.timerSetupMode = true
+            onClicked: {
+                ClockService.timerSetupMode = true;
+                flickable.cancelFlick();
+                flickable.contentY = 0;
+            }
         }
 
         DFab {

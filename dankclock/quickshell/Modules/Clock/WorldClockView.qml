@@ -904,9 +904,7 @@ Item {
                         if (!dragIntentEstablished) {
                             const dx = Math.abs(mouse.x - pressPos.x);
                             const dy = Math.abs(mouse.y - pressPos.y);
-                            if (dx > 6 || (dx > dy && dx > 3)) {
-                                dragIntentEstablished = true;
-                            } else if (dy > 6) {
+                            if (dx > 6 && dx > dy) {
                                 dragIntentEstablished = true;
                             } else {
                                 return;

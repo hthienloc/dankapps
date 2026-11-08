@@ -27,7 +27,7 @@ Singleton {
         case "dark":
             return false;
         default:
-            return Boolean(matugenColors && matugenColors.mode === "light");
+            return Boolean(colorsLoaded && matugenColors && matugenColors.mode === "light");
         }
     }
 
@@ -302,7 +302,17 @@ Singleton {
     property real spacingL: 16
     property real spacingXL: 24
 
-    readonly property string dmsSettingsPath: Paths.strip(Paths.home) + "/.config/DankMaterialShell/settings.json"
+    readonly property string xdgConfigDir: {
+        const flatpakId = Quickshell.env("FLATPAK_ID");
+        if (!flatpakId || flatpakId === "")
+            return Paths.strip(Paths.xdgConfig);
+        const hostXdg = Quickshell.env("HOST_XDG_CONFIG_HOME");
+        if (hostXdg && hostXdg !== "")
+            return hostXdg;
+        return Paths.strip(Paths.home) + "/.config";
+    }
+
+    readonly property string dmsSettingsPath: xdgConfigDir + "/DankMaterialShell/settings.json"
     property var dmsSettings: ({})
     property bool dmsSettingsLoaded: false
 
@@ -449,8 +459,8 @@ Singleton {
     readonly property real chipIconSize: 18
     readonly property real buttonGroupExpandRatio: 0.15
 
-    property string fontFamily: systemFontFamily !== "" ? systemFontFamily : ((dmsSettings && dmsSettings.fontFamily) ? dmsSettings.fontFamily : defaultFontFamily)
-    property string monoFontFamily: Quickshell.env("DCLOCK_MONO_FONT") || ((dmsSettings && dmsSettings.monoFontFamily) ? dmsSettings.monoFontFamily : defaultMonoFontFamily)
+    property string fontFamily: (dmsSettings && dmsSettings.fontFamily) ? dmsSettings.fontFamily : (systemFontFamily !== "" ? systemFontFamily : defaultFontFamily)
+    property string monoFontFamily: (dmsSettings && dmsSettings.monoFontFamily) ? dmsSettings.monoFontFamily : (Quickshell.env("DCLOCK_MONO_FONT") || defaultMonoFontFamily)
     readonly property int fontWeight: SettingsData.fontWeight
     readonly property int fontWeightMedium: shiftedFontWeight(Font.Medium)
     readonly property int fontWeightBold: shiftedFontWeight(Font.Bold)
@@ -499,7 +509,7 @@ Singleton {
     }
 
     readonly property int currentAnimationBaseDuration: SettingsData.animationDuration
-    readonly property int currentAnimationSpeed: currentAnimationBaseDuration > 0 ? Style.AnimationSpeed.Custom : Style.AnimationSpeed.None
+    readonly property int currentAnimationSpeed: (!SettingsData.reduceMotion && currentAnimationBaseDuration > 0) ? Style.AnimationSpeed.Custom : Style.AnimationSpeed.None
     readonly property int shorterDuration: Math.round(currentAnimationBaseDuration * 0.2)
     readonly property int shortDuration: Math.round(currentAnimationBaseDuration * 0.3)
     readonly property int mediumDuration: Math.round(currentAnimationBaseDuration * 0.6)

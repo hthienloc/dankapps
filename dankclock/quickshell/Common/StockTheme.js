@@ -294,7 +294,7 @@ const LIGHT = {
     },
     cyan: {
         name: "Cyan",
-        primary: "#0097a7",
+        primary: "#006874",
         primaryText: "#ffffff",
         primaryContainer: "#e0f2f1",
         secondary: "#00bcd4",
@@ -302,7 +302,7 @@ const LIGHT = {
         surfaceText: "#171d1e",
         surfaceVariant: "#dbe4e6",
         surfaceVariantText: "#3f484a",
-        surfaceTint: "#0097a7",
+        surfaceTint: "#006874",
         background: "#f5fafc",
         backgroundText: "#171d1e",
         outline: "#6f797b",

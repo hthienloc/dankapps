@@ -16,16 +16,22 @@ type FontSettings struct {
 	Mono   string
 }
 
-// GetSystemFontSettings queries font configuration from ~/.config/DankMaterialShell/settings.json,
-// falling back to org.gnome.desktop.interface font-name via gsettings.
+// GetSystemFontSettings queries font configuration from $XDG_CONFIG_HOME/DankMaterialShell/settings.json
+// (or ~/.config/DankMaterialShell/settings.json), falling back to org.gnome.desktop.interface font-name via gsettings.
 func GetSystemFontSettings() FontSettings {
 	settings := FontSettings{
 		Scale: 1.0,
 	}
 
-	home, err := os.UserHomeDir()
-	if err == nil {
-		dmsPath := filepath.Join(home, ".config", "DankMaterialShell", "settings.json")
+	configBase := strings.TrimSpace(os.Getenv("XDG_CONFIG_HOME"))
+	if configBase == "" {
+		if home, err := os.UserHomeDir(); err == nil {
+			configBase = filepath.Join(home, ".config")
+		}
+	}
+
+	if configBase != "" {
+		dmsPath := filepath.Join(configBase, "DankMaterialShell", "settings.json")
 		if data, err := os.ReadFile(dmsPath); err == nil {
 			var raw struct {
 				FontFamily     string  `json:"fontFamily"`

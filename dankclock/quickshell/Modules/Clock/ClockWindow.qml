@@ -204,21 +204,25 @@ FloatingWindow {
             AlarmView {
                 anchors.fill: parent
                 visible: ClockService.currentTabIndex === 0
+                enabled: ClockService.stateReady
             }
 
             WorldClockView {
                 anchors.fill: parent
                 visible: ClockService.currentTabIndex === 1
+                enabled: ClockService.stateReady
             }
 
             TimerView {
                 anchors.fill: parent
                 visible: ClockService.currentTabIndex === 2
+                enabled: ClockService.stateReady
             }
 
             PomodoroView {
                 anchors.fill: parent
                 visible: ClockService.currentTabIndex === 3
+                enabled: ClockService.stateReady
             }
 
             StopwatchView {

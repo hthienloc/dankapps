@@ -440,6 +440,24 @@ Item {
                                             height: 28
                                             radius: 14
                                             anchors.verticalCenter: parent.verticalCenter
+                                            activeFocusOnTab: true
+                                            Accessible.role: Accessible.Button
+                                            Accessible.name: alarmCard.isExpanded ? "Collapse options" : "Customize alarm"
+                                            Accessible.onPressAction: ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index
+                                            Keys.onSpacePressed: event => {
+                                                ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
+                                                event.accepted = true;
+                                            }
+                                            Keys.onReturnPressed: event => {
+                                                ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
+                                                event.accepted = true;
+                                            }
+                                            Keys.onEnterPressed: event => {
+                                                ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
+                                                event.accepted = true;
+                                            }
+                                            border.width: activeFocus ? Theme.outlineWidthFocused : 0
+                                            border.color: Theme.focusRingColor
                                             color: expandMouse.pressed
                                                 ? Theme.withAlpha(Theme.primary, 0.25)
                                                 : (expandMouse.containsMouse || alarmCard.isExpanded
@@ -663,10 +681,39 @@ Item {
                                                         return alarmCard.alarmDays.indexOf(modelData.key) >= 0;
                                                     }
 
+                                                    function toggleDaySelection() {
+                                                        const currentDays = alarmCard.alarmDays.slice();
+                                                        const pos = currentDays.indexOf(dayCircle.modelData.key);
+                                                        if (pos >= 0)
+                                                            currentDays.splice(pos, 1);
+                                                        else
+                                                            currentDays.push(dayCircle.modelData.key);
+                                                        const ordered = ClockService.weekDays.filter(d => currentDays.indexOf(d) >= 0);
+                                                        ClockService.updateAlarmDays(alarmCard.index, ordered);
+                                                    }
+
                                                     width: 28
                                                     height: 28
                                                     radius: dayMouse.pressed ? 8 : (isSelected ? 10 : 14)
                                                     scale: dayMouse.pressed ? 0.90 : (dayMouse.containsMouse ? 1.08 : 1.0)
+                                                    activeFocusOnTab: true
+                                                    Accessible.role: Accessible.CheckBox
+                                                    Accessible.name: modelData.key
+                                                    Accessible.checkable: true
+                                                    Accessible.checked: isSelected
+                                                    Accessible.onPressAction: toggleDaySelection()
+                                                    Keys.onSpacePressed: event => {
+                                                        toggleDaySelection();
+                                                        event.accepted = true;
+                                                    }
+                                                    Keys.onReturnPressed: event => {
+                                                        toggleDaySelection();
+                                                        event.accepted = true;
+                                                    }
+                                                    Keys.onEnterPressed: event => {
+                                                        toggleDaySelection();
+                                                        event.accepted = true;
+                                                    }
                                                     color: {
                                                         if (isSelected) {
                                                             if (!alarmCard.isEnabled)
@@ -677,8 +724,8 @@ Item {
                                                             ? Theme.withAlpha(Theme.surfaceText, Theme.stateLayerHover * 1.4)
                                                             : Theme.withAlpha(Theme.surfaceVariant, 0.25);
                                                     }
-                                                    border.width: isSelected ? 0 : (dayMouse.containsMouse ? 1 : 0)
-                                                    border.color: Theme.outlineVariant
+                                                    border.width: activeFocus ? Theme.outlineWidthFocused : (isSelected ? 0 : (dayMouse.containsMouse ? 1 : 0))
+                                                    border.color: activeFocus ? Theme.focusRingColor : Theme.outlineVariant
 
                                                     Behavior on radius {
                                                         enabled: Theme.animationsEnabled
@@ -713,16 +760,7 @@ Item {
                                                         anchors.fill: parent
                                                         hoverEnabled: true
                                                         cursorShape: Qt.PointingHandCursor
-                                                        onClicked: {
-                                                            const currentDays = alarmCard.alarmDays.slice();
-                                                            const pos = currentDays.indexOf(dayCircle.modelData.key);
-                                                            if (pos >= 0)
-                                                                currentDays.splice(pos, 1);
-                                                            else
-                                                                currentDays.push(dayCircle.modelData.key);
-                                                            const ordered = ClockService.weekDays.filter(d => currentDays.indexOf(d) >= 0);
-                                                            ClockService.updateAlarmDays(alarmCard.index, ordered);
-                                                        }
+                                                        onClicked: dayCircle.toggleDaySelection()
                                                     }
                                                 }
                                             }

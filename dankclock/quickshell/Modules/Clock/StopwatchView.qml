@@ -105,7 +105,7 @@ DFlickable {
 
                             NumericText {
                                 text: root.mainDigits
-                                font.pixelSize: 44
+                                font.pixelSize: root.mainDigits.length > 5 ? 30 : 44
                                 font.weight: Font.Bold
                                 color: Theme.surfaceText
                                 anchors.baseline: parent.bottom
@@ -113,7 +113,7 @@ DFlickable {
 
                             NumericText {
                                 text: root.centiDigits
-                                font.pixelSize: 28
+                                font.pixelSize: root.mainDigits.length > 5 ? 20 : 28
                                 font.weight: Font.Bold
                                 color: Theme.primary
                                 anchors.baseline: parent.bottom

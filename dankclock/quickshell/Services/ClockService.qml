@@ -129,7 +129,7 @@ Singleton {
         { id: 2, label: "Short Break", totalMs: 5 * 60 * 1000, remainingMs: 5 * 60 * 1000, running: false, finished: false },
         { id: 3, label: "Tea Steep", totalMs: 3 * 60 * 1000, remainingMs: 3 * 60 * 1000, running: false, finished: false }
     ]
-    property double _lastTimerTickMs: 0
+    property double _lastTimerTickMs: -1
 
     readonly property bool anyTimerRunning: {
         void timerTickRevision;
@@ -152,7 +152,7 @@ Singleton {
     readonly property int pomodoroShortBreakDuration: Math.max(1, SettingsData.pomodoroShortBreakMinutes || 5) * 60
     readonly property int pomodoroLongBreakDuration: Math.max(1, SettingsData.pomodoroLongBreakMinutes || 15) * 60
     property double pomodoroRemainingSeconds: 25 * 60
-    property double _lastPomoTickMs: 0
+    property double _lastPomoTickMs: -1
 
     function _ensureDefaultPomodoroHistory() {
         if (!Array.isArray(pomodoroHistory))
@@ -160,6 +160,8 @@ Singleton {
     }
 
     function recordPomodoroFocusMinutes(mins) {
+        if (!root._stateReady)
+            return;
         const m = Math.round(mins);
         if (m <= 0)
             return;
@@ -307,6 +309,8 @@ Singleton {
     }
 
     function togglePomodoro() {
+        if (!root._stateReady)
+            return;
         if (pomodoroRunning) {
             pomodoroRunning = false;
         } else {
@@ -316,11 +320,15 @@ Singleton {
     }
 
     function resetPomodoro() {
+        if (!root._stateReady)
+            return;
         pomodoroRunning = false;
         pomodoroRemainingSeconds = pomodoroTotalDuration;
     }
 
     function skipPomodoroPhase() {
+        if (!root._stateReady)
+            return;
         pomodoroRunning = false;
         if (pomodoroPhase === "focus") {
             const nextCount = pomodoroCyclesCompleted + 1;
@@ -340,12 +348,16 @@ Singleton {
     }
 
     function setPomodoroPhase(phase) {
+        if (!root._stateReady)
+            return;
         pomodoroRunning = false;
         pomodoroPhase = phase;
         pomodoroRemainingSeconds = pomodoroTotalDuration;
     }
 
     function setPomodoroStep(stepIdx) {
+        if (!root._stateReady)
+            return;
         const n = Math.max(1, pomodoroTargetCycles);
         const totalSteps = n * 2;
         const clamped = Math.max(0, Math.min(totalSteps - 1, stepIdx));
@@ -370,7 +382,7 @@ Singleton {
     // Stopwatch state
     property bool stopwatchRunning: false
     property double stopwatchElapsedMs: 0
-    property double _lastStopwatchTickMs: 0
+    property double _lastStopwatchTickMs: -1
     property var stopwatchLaps: [] // [{ lapNumber: 1, lapMs: 1230, totalMs: 1230 }]
 
     readonly property double currentLapElapsedMs: {
@@ -436,6 +448,7 @@ Singleton {
 
     // State Persistence
     property bool _stateReady: false
+    readonly property bool stateReady: _stateReady
     property bool _pendingSave: false
     property bool _quitRequested: false
 
@@ -481,14 +494,24 @@ Singleton {
             }
             root._stateReady = true;
             root._checkAlarms(root.now);
+            if (root._pendingSave)
+                root._writeStateNow();
+            else if (root._quitRequested)
+                Qt.quit();
         }
         onLoadFailed: {
             root._stateReady = true;
             root._checkAlarms(root.now);
+            if (root._pendingSave)
+                root._writeStateNow();
+            else if (root._quitRequested)
+                Qt.quit();
         }
     }
 
     function _writeStateNow() {
+        if (!root._stateReady)
+            return;
         if (saveStateProc.running) {
             root._pendingSave = true;
             return;
@@ -519,7 +542,13 @@ Singleton {
         id: saveStateProc
         running: false
         command: []
-        onExited: {
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                root._pendingSave = true;
+                root._quitRequested = false;
+                Quickshell.execDetached(["dms", "ipc", "call", "toast", "error", "DankClock — Failed to save clock state to disk."]);
+                return;
+            }
             if (root._pendingSave) {
                 root._writeStateNow();
             } else if (root._quitRequested) {
@@ -538,11 +567,18 @@ Singleton {
     }
 
     function saveState() {
+        if (!root._stateReady)
+            return;
         root._pendingSave = true;
         saveStateDebounce.restart();
     }
 
     function requestQuit() {
+        if (!root._stateReady) {
+            saveStateDebounce.stop();
+            Qt.quit();
+            return;
+        }
         if (saveStateDebounce.running) {
             saveStateDebounce.stop();
             root._quitRequested = true;
@@ -573,7 +609,7 @@ Singleton {
 
     function _settleRunningTimers() {
         const currentMs = root._monoNowMs;
-        const dt = root._lastTimerTickMs > 0 ? Math.max(0, currentMs - root._lastTimerTickMs) : 0;
+        const dt = root._lastTimerTickMs >= 0 ? Math.max(0, currentMs - root._lastTimerTickMs) : 0;
         root._lastTimerTickMs = currentMs;
         if (dt <= 0)
             return;
@@ -617,7 +653,7 @@ Singleton {
         repeat: true
         onTriggered: {
             const nowMs = root._monoNowMs;
-            const elapsed = root._lastPomoTickMs > 0 ? Math.max(0, (nowMs - root._lastPomoTickMs) / 1000) : 0.1;
+            const elapsed = root._lastPomoTickMs >= 0 ? Math.max(0, (nowMs - root._lastPomoTickMs) / 1000) : 0.1;
             root._lastPomoTickMs = nowMs;
             if (root.pomodoroPhase === "focus") {
                 root._accumulatedFocusSec += Math.min(elapsed, root.pomodoroRemainingSeconds);
@@ -649,7 +685,7 @@ Singleton {
         repeat: true
         onTriggered: {
             const currentMs = root._monoNowMs;
-            const dt = root._lastStopwatchTickMs > 0 ? Math.max(0, currentMs - root._lastStopwatchTickMs) : 16;
+            const dt = root._lastStopwatchTickMs >= 0 ? Math.max(0, currentMs - root._lastStopwatchTickMs) : 16;
             root._lastStopwatchTickMs = currentMs;
             root.stopwatchElapsedMs += dt;
         }
@@ -793,7 +829,7 @@ Singleton {
     }
 
     function addWorldClock(cityObj) {
-        if (!cityObj || !cityObj.city)
+        if (!root._stateReady || !cityObj || !cityObj.city)
             return;
         for (let i = 0; i < worldClocks.length; i++) {
             if (worldClocks[i].city === cityObj.city)
@@ -811,7 +847,7 @@ Singleton {
     }
 
     function removeWorldClock(index) {
-        if (index < 0 || index >= worldClocks.length)
+        if (!root._stateReady || index < 0 || index >= worldClocks.length)
             return;
         const next = worldClocks.slice();
         next.splice(index, 1);
@@ -822,7 +858,7 @@ Singleton {
     }
 
     function moveWorldClock(fromIndex, toIndex) {
-        if (fromIndex < 0 || fromIndex >= worldClocks.length || toIndex < 0 || toIndex >= worldClocks.length || fromIndex === toIndex)
+        if (!root._stateReady || fromIndex < 0 || fromIndex >= worldClocks.length || toIndex < 0 || toIndex >= worldClocks.length || fromIndex === toIndex)
             return;
         const next = worldClocks.slice();
         const item = next.splice(fromIndex, 1)[0];
@@ -832,7 +868,7 @@ Singleton {
     }
 
     function reorderWorldClocks(indices) {
-        if (!Array.isArray(indices) || indices.length !== worldClocks.length)
+        if (!root._stateReady || !Array.isArray(indices) || indices.length !== worldClocks.length)
             return;
         const next = indices.map(idx => worldClocks[idx]);
         worldClocks = next;
@@ -954,18 +990,22 @@ Singleton {
     }
 
     function openAddAlarmPicker() {
+        if (!root._stateReady)
+            return;
         editingAlarmIndex = -1;
         timePickerOpen = true;
     }
 
     function openEditAlarmPicker(index) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         editingAlarmIndex = index;
         timePickerOpen = true;
     }
 
     function commitTimePicker(hour, minute) {
+        if (!root._stateReady)
+            return;
         if (editingAlarmIndex >= 0 && editingAlarmIndex < alarms.length) {
             const cur = alarms[editingAlarmIndex];
             cur.hour = hour;
@@ -1000,7 +1040,7 @@ Singleton {
     }
 
     function toggleAlarm(index, enabled) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         alarms[index].enabled = enabled;
         alarms[index].skippedDateKey = "";
@@ -1011,7 +1051,7 @@ Singleton {
     }
 
     function skipAlarmOnce(index) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         const a = alarms[index];
         const hasDays = Array.isArray(a.days) && a.days.length > 0;
@@ -1032,7 +1072,7 @@ Singleton {
     }
 
     function updateAlarmDays(index, daysArray) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         alarms[index].days = daysArray;
         alarms[index].skippedDateKey = "";
@@ -1041,7 +1081,7 @@ Singleton {
     }
 
     function updateAlarmLabel(index, newLabel) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         alarms[index].label = newLabel.trim() || "Alarm";
         alarmRevision++;
@@ -1049,7 +1089,7 @@ Singleton {
     }
 
     function updateAlarmSound(index, soundId) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         alarms[index].soundId = soundId;
         alarmRevision++;
@@ -1058,7 +1098,7 @@ Singleton {
     }
 
     function updateAlarmSnooze(index, snoozeMin) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         alarms[index].snoozeMin = snoozeMin;
         alarmRevision++;
@@ -1066,7 +1106,7 @@ Singleton {
     }
 
     function updateAlarmDeleteAfter(index, delAfter) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         alarms[index].deleteAfterGoesOff = delAfter;
         alarmRevision++;
@@ -1074,7 +1114,7 @@ Singleton {
     }
 
     function duplicateAlarm(index) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         const src = alarms[index];
         const next = alarms.slice();
@@ -1096,7 +1136,7 @@ Singleton {
     }
 
     function removeAlarm(index) {
-        if (index < 0 || index >= alarms.length)
+        if (!root._stateReady || index < 0 || index >= alarms.length)
             return;
         const next = alarms.slice();
         next.splice(index, 1);
@@ -1243,6 +1283,8 @@ Singleton {
 
     // Timer Management
     function startCustomTimer(label) {
+        if (!root._stateReady)
+            return;
         const totalSec = setupHours * 3600 + setupMinutes * 60 + setupSeconds;
         if (totalSec <= 0)
             return;
@@ -1257,6 +1299,8 @@ Singleton {
     }
 
     function startPresetTimer(durationSec, label) {
+        if (!root._stateReady)
+            return;
         if (anyTimerRunning)
             _settleRunningTimers();
         const ms = durationSec * 1000;
@@ -1277,11 +1321,14 @@ Singleton {
     }
 
     function toggleTimer(index) {
-        if (index < 0 || index >= timers.length)
+        if (!root._stateReady || index < 0 || index >= timers.length)
             return;
+        const wasRunning = Boolean(timers[index].running);
         if (anyTimerRunning)
             _settleRunningTimers();
         const t = timers[index];
+        if (!t || (wasRunning && !t.running))
+            return;
         const willRun = !t.running;
         t.remainingMs = (willRun && t.remainingMs <= 0) ? t.totalMs : t.remainingMs;
         if (willRun)
@@ -1292,7 +1339,7 @@ Singleton {
     }
 
     function resetTimer(index) {
-        if (index < 0 || index >= timers.length)
+        if (!root._stateReady || index < 0 || index >= timers.length)
             return;
         const t = timers[index];
         t.remainingMs = t.totalMs;
@@ -1302,7 +1349,7 @@ Singleton {
     }
 
     function addOneMinute(index) {
-        if (index < 0 || index >= timers.length)
+        if (!root._stateReady || index < 0 || index >= timers.length)
             return;
         const t = timers[index];
         const extra = 60 * 1000;
@@ -1316,7 +1363,7 @@ Singleton {
     }
 
     function removeTimer(index) {
-        if (index < 0 || index >= timers.length)
+        if (!root._stateReady || index < 0 || index >= timers.length)
             return;
         const next = timers.slice();
         next.splice(index, 1);
@@ -1329,7 +1376,7 @@ Singleton {
     }
 
     function moveTimer(fromIndex, toIndex) {
-        if (fromIndex < 0 || fromIndex >= timers.length || toIndex < 0 || toIndex >= timers.length || fromIndex === toIndex)
+        if (!root._stateReady || fromIndex < 0 || fromIndex >= timers.length || toIndex < 0 || toIndex >= timers.length || fromIndex === toIndex)
             return;
         const next = timers.slice();
         const item = next.splice(fromIndex, 1)[0];
@@ -1418,7 +1465,6 @@ Singleton {
             const nextAlert = nextQueue.shift();
             _alertQueue = nextQueue;
             ringingAlert = nextAlert;
-            _playAlertNotification(nextAlert);
         } else {
             ringingAlert = null;
         }
@@ -1434,6 +1480,7 @@ Singleton {
             soundId: soundId || "classic",
             snoozeMin: snoozeMin || 5
         };
+        _playAlertNotification(alertObj);
         if (ringingAlert !== null) {
             const nextQueue = _alertQueue.slice();
             nextQueue.push(alertObj);
@@ -1441,7 +1488,6 @@ Singleton {
             return;
         }
         ringingAlert = alertObj;
-        _playAlertNotification(alertObj);
     }
 
     function dismissRingingAlert() {
@@ -1473,8 +1519,8 @@ Singleton {
             alarms = next;
             alarmRevision++;
             saveState();
-        } else if (current.type === "timer") {
-            startPresetTimer(mins * 60, `${current.title || "Timer"} (+${mins}m)`);
+        } else if (current.type === "timer" || current.type === "pomodoro") {
+            startPresetTimer(mins * 60, `${current.title || (current.type === "pomodoro" ? "Pomodoro" : "Timer")} (+${mins}m)`);
         }
         _showNextQueuedAlert();
     }
