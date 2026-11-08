@@ -110,9 +110,9 @@ Item {
 
                             DBadge {
                                 visible: !ClockService.timerSetupMode && root.currentTimer !== null
-                                text: root.currentRunning ? "RUNNING" : "PAUSED"
-                                color: root.currentRunning ? Theme.primary : Theme.secondaryContainer
-                                textColor: root.currentRunning ? Theme.onPrimary : Theme.onSecondaryContainer
+                                text: root.currentFinished ? "FINISHED" : (root.currentRunning ? "RUNNING" : "PAUSED")
+                                color: root.currentFinished ? Theme.errorContainer : (root.currentRunning ? Theme.primary : Theme.secondaryContainer)
+                                textColor: root.currentFinished ? Theme.onErrorContainer : (root.currentRunning ? Theme.onPrimary : Theme.onSecondaryContainer)
                                 anchors.verticalCenter: parent.verticalCenter
                             }
 
@@ -429,7 +429,7 @@ Item {
                         spacing: timersGridContainer.gap
 
                         Repeater {
-                            model: ClockService.timers
+                            model: ClockService.timers.length
 
                             Rectangle {
                                 id: timerCard
@@ -444,6 +444,15 @@ Item {
                                     void ClockService.timerTickRevision;
                                     return Boolean(timerObj.running);
                                 }
+                                readonly property bool itemFinished: {
+                                    void ClockService.timerTickRevision;
+                                    return Boolean(timerObj.finished);
+                                }
+                                readonly property string countdownText: {
+                                    void ClockService.timerTickRevision;
+                                    return ClockService.formatDuration(timerObj.remainingMs);
+                                }
+                                readonly property bool isLongCountdown: countdownText.length > 5
                                 readonly property bool isBeingDragged: root.draggingTimerIndex === index
 
                                 width: timersGridContainer.cardWidth
@@ -484,6 +493,7 @@ Item {
                                 MouseArea {
                                     id: timerCardMouse
                                     anchors.fill: parent
+                                    preventStealing: ClockService.timerEditMode && root.draggingTimerIndex >= 0
                                     cursorShape: ClockService.timerEditMode
                                         ? (pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor)
                                         : Qt.PointingHandCursor
@@ -495,7 +505,7 @@ Item {
                                             root.draggingTimerIndex = timerCard.index;
                                     }
                                     onPositionChanged: mouse => {
-                                        if (!pressed || !ClockService.timerEditMode || root.draggingTimerIndex !== timerCard.index)
+                                        if (!pressed || !ClockService.timerEditMode || root.draggingTimerIndex < 0)
                                             return;
                                         const mapped = timerCard.mapToItem(timersGrid, mouse.x, mouse.y);
                                         const colW = timersGridContainer.cardWidth + timersGrid.spacing;
@@ -503,9 +513,9 @@ Item {
                                         const targetCol = Math.max(0, Math.min(timersGrid.columns - 1, Math.floor(mapped.x / colW)));
                                         const targetRow = Math.max(0, Math.floor(mapped.y / rowH));
                                         const targetIdx = Math.max(0, Math.min(ClockService.timers.length - 1, targetRow * timersGrid.columns + targetCol));
-                                        if (targetIdx !== timerCard.index) {
+                                        if (targetIdx !== root.draggingTimerIndex) {
                                             dragged = true;
-                                            ClockService.moveTimer(timerCard.index, targetIdx);
+                                            ClockService.moveTimer(root.draggingTimerIndex, targetIdx);
                                             root.draggingTimerIndex = targetIdx;
                                         }
                                     }
@@ -567,10 +577,10 @@ Item {
                                             id: statusBadge
                                             anchors.right: parent.right
                                             anchors.verticalCenter: parent.verticalCenter
-                                            text: timerCard.itemRunning ? "Running" : (timerCard.isCurrent ? "Active" : "Paused")
+                                            text: timerCard.itemFinished ? "Finished" : (timerCard.itemRunning ? "Running" : (timerCard.isCurrent ? "Active" : "Paused"))
                                             font.pixelSize: 11
                                             font.weight: Font.Medium
-                                            color: timerCard.itemRunning ? Theme.primary : Theme.surfaceVariantText
+                                            color: timerCard.itemFinished ? Theme.error : (timerCard.itemRunning ? Theme.primary : Theme.surfaceVariantText)
                                         }
                                     }
 
@@ -581,21 +591,22 @@ Item {
 
                                         NumericText {
                                             anchors.left: parent.left
+                                            anchors.right: timerCardControls.left
+                                            anchors.rightMargin: Theme.spacingXS
                                             anchors.verticalCenter: parent.verticalCenter
-                                            text: {
-                                                void ClockService.timerTickRevision;
-                                                return ClockService.formatDuration(timerCard.timerObj.remainingMs);
-                                            }
-                                            font.pixelSize: 22
+                                            text: timerCard.countdownText
+                                            font.pixelSize: (timerCard.isLongCountdown && ClockService.timerEditMode) ? 16 : (timerCard.isLongCountdown ? 18 : 22)
                                             font.weight: Font.Bold
                                             color: timerCard.itemRunning ? Theme.primary : Theme.surfaceText
                                             horizontalAlignment: Text.AlignLeft
+                                            elide: Text.ElideRight
                                         }
 
                                         Row {
+                                            id: timerCardControls
                                             anchors.right: parent.right
                                             anchors.verticalCenter: parent.verticalCenter
-                                            spacing: 4
+                                            spacing: ClockService.timerEditMode ? 2 : 4
 
                                             DIconButton {
                                                 iconName: timerCard.itemRunning ? "pause" : "play_arrow"

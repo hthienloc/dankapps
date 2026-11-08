@@ -45,8 +45,13 @@ Item {
     readonly property string widestDigit: Fonts.widestDigit(metricsFont)
     readonly property rect digitInk: digitMetrics.tightBoundingRect
     readonly property real inkRatio: Math.max(0.01, digitInk.height / referenceSize)
-    readonly property real rowAdvance: Math.max(0.01, rowMetrics.advanceWidth / referenceSize)
-    readonly property real fullAdvance: Math.max(0.01, fullMetrics.advanceWidth / referenceSize)
+    readonly property int rowDigitCount: vertical
+        ? Math.max(hours.length, minutes.length)
+        : (hours.length + minutes.length + (inlineSeconds ? seconds.length : 0))
+    readonly property int rowColonCount: vertical ? 0 : (inlineSeconds ? 2 : 1)
+    readonly property int fullDigitCount: hours.length + minutes.length + seconds.length
+    readonly property real rowAdvance: Math.max(0.01, (rowDigitCount * cellMetrics.advanceWidth + rowColonCount * colonMetrics.advanceWidth) / referenceSize)
+    readonly property real fullAdvance: Math.max(0.01, (fullDigitCount * cellMetrics.advanceWidth + 2 * colonMetrics.advanceWidth) / referenceSize)
     readonly property real widthSize: width / rowAdvance
     readonly property real estimateSize: Math.min(widthSize, (vertical ? height / 2 : height) / inkRatio)
     readonly property real supportSize: Math.max(Style.fontSizeMedium, estimateSize * inkRatio * 0.25)
@@ -81,15 +86,9 @@ Item {
     }
 
     TextMetrics {
-        id: fullMetrics
+        id: colonMetrics
         font: root.metricsFont
-        text: (root.hours + ":" + root.minutes + ":" + root.seconds).replace(/\d/g, root.widestDigit)
-    }
-
-    TextMetrics {
-        id: rowMetrics
-        font: root.metricsFont
-        text: (root.vertical ? (root.hours.length > root.minutes.length ? root.hours : root.minutes) : root.timeText).replace(/\d/g, root.widestDigit)
+        text: ":"
     }
 
     Row {

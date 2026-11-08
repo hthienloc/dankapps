@@ -33,7 +33,15 @@ Singleton {
     function strip(path): string {
         if (!path)
             return "";
-        return stringify(path).replace("file://", "");
+        const raw = path.toString();
+        if (!raw.startsWith("file://"))
+            return raw;
+        const withoutScheme = raw.slice(7);
+        try {
+            return decodeURIComponent(withoutScheme);
+        } catch (e) {
+            return withoutScheme.replace(/%20/g, " ");
+        }
     }
 
     function toFileUrl(path: string): string {

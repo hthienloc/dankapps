@@ -83,7 +83,7 @@ FloatingWindow {
                     return;
                 case Qt.Key_Q:
                 case Qt.Key_W:
-                    Qt.quit();
+                    ClockService.requestQuit();
                     event.accepted = true;
                     return;
                 }
@@ -130,7 +130,7 @@ FloatingWindow {
             z: 10
             controls: windowControls
             title: "DankClock"
-            onCloseRequested: Qt.quit()
+            onCloseRequested: ClockService.requestQuit()
         }
 
         Item {

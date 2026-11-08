@@ -312,7 +312,7 @@ Singleton {
         return (!isNaN(s) && s > 0) ? s : 1.0;
     }
 
-    readonly property real fontScale: SettingsData.fontScale
+    readonly property real fontScale: SettingsData.fontScale * systemFontScale
     property real fontSizeSmall: Math.round(fontScale * 12)
     property real fontSizeMedium: Math.round(fontScale * 14)
     property real fontSizeLarge: Math.round(fontScale * 16)

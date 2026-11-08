@@ -144,49 +144,63 @@ Item {
                     // Header Row: Title + Offset Pill + Step / Reset Buttons
                     Item {
                         width: parent.width
-                        height: 28
+                        height: Math.max(28, scrubberLeftFlow.implicitHeight)
 
-                        Row {
+                        Flow {
+                            id: scrubberLeftFlow
                             anchors.left: parent.left
+                            anchors.right: scrubberStepRow.left
+                            anchors.rightMargin: Theme.spacingS
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: Theme.spacingS
 
-                            DIcon {
-                                name: root.isScrubbing ? "history_toggle_off" : "schedule"
-                                size: 16
-                                color: Theme.primary
-                                anchors.verticalCenter: parent.verticalCenter
+                            Row {
+                                height: 24
+                                spacing: Theme.spacingS
+
+                                DIcon {
+                                    name: root.isScrubbing ? "history_toggle_off" : "schedule"
+                                    size: 16
+                                    color: Theme.primary
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+
+                                StyledText {
+                                    text: "Time Zone Scrubber"
+                                    font.pixelSize: Theme.fontSizeMedium
+                                    font.weight: Font.DemiBold
+                                    color: Theme.surfaceText
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
                             }
 
-                            StyledText {
-                                text: "Time Zone Scrubber"
-                                font.pixelSize: Theme.fontSizeMedium
-                                font.weight: Font.DemiBold
-                                color: Theme.surfaceText
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
+                            Row {
+                                height: 24
+                                spacing: Theme.spacingS
 
-                            DBadge {
-                                text: root.scrubDeltaLabel
-                                reserveText: "+88h 88m"
-                                color: root.isScrubbing ? Theme.primary : Theme.withAlpha(Theme.surfaceVariant, 0.45)
-                                textColor: root.isScrubbing ? Theme.onPrimary : Theme.surfaceVariantText
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
+                                DBadge {
+                                    text: root.scrubDeltaLabel
+                                    reserveText: "+88h 88m"
+                                    color: root.isScrubbing ? Theme.primary : Theme.withAlpha(Theme.surfaceVariant, 0.45)
+                                    textColor: root.isScrubbing ? Theme.onPrimary : Theme.surfaceVariantText
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
 
-                            DButton {
-                                visible: root.isScrubbing
-                                text: "Reset"
-                                iconName: "restart_alt"
-                                buttonHeight: 24
-                                backgroundColor: Theme.primaryContainer
-                                textColor: Theme.onPrimaryContainer
-                                anchors.verticalCenter: parent.verticalCenter
-                                onClicked: root.scrubMinutesOffset = 0
+                                DButton {
+                                    visible: root.isScrubbing
+                                    text: "Reset"
+                                    iconName: "restart_alt"
+                                    buttonHeight: 24
+                                    backgroundColor: Theme.primaryContainer
+                                    textColor: Theme.onPrimaryContainer
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    onClicked: root.scrubMinutesOffset = 0
+                                }
                             }
                         }
 
                         Row {
+                            id: scrubberStepRow
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: Theme.spacingXS
@@ -326,11 +340,7 @@ Item {
                                 required property int index
 
                                 readonly property color cColor: root.getCityAccent(index)
-                                readonly property real cityHourFrac: {
-                                    const offset = modelData.offsetMin !== undefined ? modelData.offsetMin : 0;
-                                    const targetDate = new Date(root.effectiveNow.getTime() + root.effectiveNow.getTimezoneOffset() * 60000 + offset * 60000);
-                                    return (targetDate.getHours() + targetDate.getMinutes() / 60) / 24;
-                                }
+                                readonly property real cityHourFrac: ClockService.getCityTimeInfo(modelData, root.effectiveNow).hourFrac24
 
                                 x: Math.max(16, Math.min(timelineTrack.width - 16, cityHourFrac * timelineTrack.width))
                                 anchors.verticalCenter: parent.verticalCenter
@@ -411,6 +421,8 @@ Item {
                             }
                             onDoubleClicked: root.scrubMinutesOffset = 0
                             onWheel: wheel => {
+                                if (wheel.angleDelta.y === 0)
+                                    return;
                                 const step = wheel.angleDelta.y > 0 ? 15 : -15;
                                 root.scrubMinutesOffset = Math.max(-720, Math.min(720, root.scrubMinutesOffset + step));
                                 wheel.accepted = true;
@@ -516,11 +528,7 @@ Item {
 
                 readonly property color handColor: root.getCityAccent(index)
                 readonly property bool isHighlighted: root.hoveredCityIndex === index
-                readonly property real hourAngleDeg: {
-                    const offset = modelData.offsetMin !== undefined ? modelData.offsetMin : 0;
-                    const targetDate = new Date(root.effectiveNow.getTime() + root.effectiveNow.getTimezoneOffset() * 60000 + offset * 60000);
-                    return (targetDate.getHours() % 12 + targetDate.getMinutes() / 60) * 30;
-                }
+                readonly property real hourAngleDeg: ClockService.getCityTimeInfo(modelData, root.effectiveNow).hourAngle12Deg
                 readonly property real tipRadius: dialRoot.outerRadius * 0.56
 
                 anchors.fill: parent
@@ -620,11 +628,7 @@ Item {
                 readonly property color handColor: root.getCityAccent(index)
                 readonly property bool isHighlighted: root.hoveredCityIndex === index
                 readonly property string codeText: ClockService.getCityCode(modelData)
-                readonly property real hourAngleDeg: {
-                    const offset = modelData.offsetMin !== undefined ? modelData.offsetMin : 0;
-                    const targetDate = new Date(root.effectiveNow.getTime() + root.effectiveNow.getTimezoneOffset() * 60000 + offset * 60000);
-                    return (targetDate.getHours() % 12 + targetDate.getMinutes() / 60) * 30;
-                }
+                readonly property real hourAngleDeg: ClockService.getCityTimeInfo(modelData, root.effectiveNow).hourAngle12Deg
                 readonly property real angleRad: (hourAngleDeg - 90) * Math.PI / 180
                 readonly property real tipRadius: dialRoot.outerRadius * 0.56
                 readonly property real tipX: dialRoot.cx + tipRadius * Math.cos(angleRad)
@@ -776,6 +780,8 @@ Item {
                     NumericText {
                         id: localHmText
                         text: root.localTimeStr
+                        Accessible.role: Accessible.StaticText
+                        Accessible.name: "Local time " + root.localTimeStr + (root.localMeridiemStr ? " " + root.localMeridiemStr : "")
                         font.pixelSize: 23
                         font.weight: Font.Bold
                         color: Theme.surfaceText
@@ -825,13 +831,13 @@ Item {
 
         // World Clock City Pills (Single-Line Text Layout, Drag-and-Drop Reorder, Hover Sync)
         Repeater {
-            model: ClockService.worldClocks
+            model: ClockService.worldClocks.length
 
             Rectangle {
                 id: cityPill
-                required property var modelData
                 required property int index
 
+                readonly property var modelData: ClockService.worldClocks[index] || { city: "", country: "", tz: "", offsetMin: 0 }
                 readonly property color cityColor: root.getCityAccent(index)
                 readonly property bool isHovered: pillHover.hovered || root.hoveredCityIndex === index
                 readonly property bool isBeingDragged: root.draggingIndex === index
@@ -878,16 +884,34 @@ Item {
                     id: pillDragArea
                     anchors.fill: parent
                     anchors.rightMargin: removeBtn.visible ? 34 : 0
+                    preventStealing: ClockService.worldClockEditMode || dragIntentEstablished
                     cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
                     property point pressPos: Qt.point(0, 0)
+                    property bool dragIntentEstablished: false
 
+                    onPressAndHold: {
+                        dragIntentEstablished = true;
+                        root.draggingIndex = cityPill.index;
+                    }
                     onPressed: mouse => {
-                        pressPos = Qt.point(0, mouse.y);
+                        pressPos = Qt.point(mouse.x, mouse.y);
+                        dragIntentEstablished = ClockService.worldClockEditMode;
                         root.draggingIndex = cityPill.index;
                     }
                     onPositionChanged: mouse => {
-                        if (!pressed || root.draggingIndex !== cityPill.index)
+                        if (!pressed || root.draggingIndex < 0)
                             return;
+                        if (!dragIntentEstablished) {
+                            const dx = Math.abs(mouse.x - pressPos.x);
+                            const dy = Math.abs(mouse.y - pressPos.y);
+                            if (dx > 6 || (dx > dy && dx > 3)) {
+                                dragIntentEstablished = true;
+                            } else if (dy > 6) {
+                                dragIntentEstablished = true;
+                            } else {
+                                return;
+                            }
+                        }
                         const mapped = cityPill.mapToItem(gridRoot, mouse.x, mouse.y);
                         const colW = gridRoot.cardWidth + gridRoot.spacing;
                         const rowH = cityPill.height + gridRoot.spacing;
@@ -896,13 +920,19 @@ Item {
                         // Slot 0 is Local Time, so worldClocks index = slotIndex - 1
                         const slotIdx = targetRow * gridRoot.columns + targetCol;
                         const targetWorldIdx = Math.max(0, Math.min(ClockService.worldClocks.length - 1, slotIdx - 1));
-                        if (slotIdx >= 1 && targetWorldIdx !== cityPill.index) {
-                            ClockService.moveWorldClock(cityPill.index, targetWorldIdx);
+                        if (slotIdx >= 1 && targetWorldIdx !== root.draggingIndex) {
+                            ClockService.moveWorldClock(root.draggingIndex, targetWorldIdx);
                             root.draggingIndex = targetWorldIdx;
                         }
                     }
-                    onReleased: root.draggingIndex = -1
-                    onCanceled: root.draggingIndex = -1
+                    onReleased: {
+                        dragIntentEstablished = false;
+                        root.draggingIndex = -1;
+                    }
+                    onCanceled: {
+                        dragIntentEstablished = false;
+                        root.draggingIndex = -1;
+                    }
                 }
 
                 DTooltipHost {

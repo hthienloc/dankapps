@@ -285,7 +285,10 @@ Item {
                                         anchors.fill: parent
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: ClockService.setPomodoroStep(stepPill.index)
+                                        onClicked: {
+                                            if (!stepPill.isActive)
+                                                ClockService.setPomodoroStep(stepPill.index);
+                                        }
                                     }
 
                                     DTooltipHost {

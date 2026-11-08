@@ -80,7 +80,6 @@ Singleton {
         printErrors: false
 
         property bool _loaded: false
-        property bool _selfWrite: false
 
         onLoaded: {
             _loaded = true;
@@ -89,16 +88,11 @@ Singleton {
             _loaded = true;
         }
         onFileChanged: {
-            if (_selfWrite) {
-                _selfWrite = false;
-                return;
-            }
             reload();
         }
         onAdapterUpdated: {
             if (!_loaded)
                 return;
-            _selfWrite = true;
             writeAdapter();
         }
 

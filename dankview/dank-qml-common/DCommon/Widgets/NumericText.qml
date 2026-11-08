@@ -6,16 +6,18 @@ Item {
 
     property string text: ""
     property string reserveText: ""
+    readonly property alias contentHeight: metricsText.contentHeight
     property alias isMonospace: metricsText.isMonospace
     property alias fontToken: metricsText.fontToken
     property alias font: metricsText.font
     property alias color: metricsText.color
     property int horizontalAlignment: Text.AlignHCenter
     property int verticalAlignment: Text.AlignVCenter
-    property alias wrapMode: metricsText.wrapMode
-    property alias elide: metricsText.elide
+    property int wrapMode: Text.NoWrap
+    property int elide: Text.ElideNone
     property alias renderType: metricsText.renderType
 
+    readonly property bool useFlowText: (wrapMode !== Text.NoWrap || elide !== Text.ElideNone) && width < reservedWidth
     readonly property string widestDigit: Fonts.widestDigit(metricsText.font)
     readonly property real digitCellWidth: Math.ceil(Fonts.textWidth(metricsText.font, widestDigit))
     readonly property var cells: text.match(/\d|\D+/g) || []
@@ -34,20 +36,26 @@ Item {
     readonly property real reservedWidth: Math.ceil(Math.max(cellsRow.implicitWidth, metricsText.implicitWidth, Fonts.textWidth(metricsText.font, reserveTemplate), reserveTemplateCellsWidth))
 
     implicitWidth: reservedWidth
-    implicitHeight: metricsText.implicitHeight
-    width: reservedWidth
+    implicitHeight: useFlowText ? metricsText.implicitHeight : Math.max(metricsText.implicitHeight, cellsRow.implicitHeight)
+    width: implicitWidth
     height: implicitHeight
-    baselineOffset: cellsRow.y + metricsText.baselineOffset
+    baselineOffset: useFlowText ? metricsText.baselineOffset : (cellsRow.y + metricsText.baselineOffset)
 
     StyledText {
         id: metricsText
-        visible: false
+        visible: root.useFlowText
+        width: root.width
+        height: root.height
         text: root.text
-        wrapMode: Text.NoWrap
+        horizontalAlignment: root.horizontalAlignment
+        verticalAlignment: root.verticalAlignment
+        wrapMode: root.wrapMode
+        elide: root.elide
     }
 
     Row {
         id: cellsRow
+        visible: !root.useFlowText
         y: {
             if (root.verticalAlignment === Text.AlignTop)
                 return 0;

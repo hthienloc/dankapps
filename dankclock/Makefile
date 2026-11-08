@@ -11,6 +11,7 @@ ICON_DIR=$(DATA_DIR)/icons/hicolor/scalable/apps
 APPLICATIONS_DIR=$(DATA_DIR)/applications
 QUICKSHELL_DIR=$(DATA_DIR)/quickshell/$(SHELL_NAME)
 SHELL_DIR=quickshell
+ARGS ?=
 
 .PHONY: all build dev run clean test fmt vet install uninstall install-user uninstall-user help
 
@@ -23,7 +24,7 @@ dev:
 	@$(MAKE) -C $(CORE_DIR) dev
 
 run: dev
-	@$(BUILD_DIR)/$(BINARY_NAME) -c $(CURDIR)/$(SHELL_DIR) $(filter-out $@,$(MAKECMDGOALS))
+	@$(BUILD_DIR)/$(BINARY_NAME) -c $(CURDIR)/$(SHELL_DIR) $(ARGS)
 
 clean:
 	@$(MAKE) -C $(CORE_DIR) clean

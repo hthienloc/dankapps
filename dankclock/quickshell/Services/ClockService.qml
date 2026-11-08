@@ -26,8 +26,19 @@ Singleton {
     property int editingLabelAlarmIndex: -1
     property bool timerSetupMode: false
 
-    // Active ringing notification state
-    property var ringingAlert: null // { type: "alarm" | "timer", title: "", subtitle: "", alarmIndex: -1, timerId: -1 }
+    // Active ringing notification state & queue
+    property var ringingAlert: null // { type: "alarm" | "timer" | "pomodoro", title: "", subtitle: "", alarmIndex: -1, timerId: -1, soundId: "classic", snoozeMin: 5 }
+    property var _alertQueue: []
+
+    // Monotonic elapsed clock (ms) driven by Qt's FrameAnimation / steady timer so NTP/clock jumps never corrupt elapsed time
+    property double _monoNowMs: 0
+    FrameAnimation {
+        id: monoClock
+        running: root.anyTimerRunning || root.pomodoroRunning || root.stopwatchRunning
+        onTriggered: {
+            root._monoNowMs += frameTime * 1000;
+        }
+    }
 
     readonly property string stateFilePath: SettingsData.configDir + "/state.json"
 
@@ -144,27 +155,8 @@ Singleton {
     property double _lastPomoTickMs: 0
 
     function _ensureDefaultPomodoroHistory() {
-        if (Array.isArray(pomodoroHistory) && pomodoroHistory.length > 0)
-            return;
-        const cur = root.now || new Date();
-        const seeded = [];
-        const sampleDaily = [50, 75, 25, 100, 75, 50, 0, 50, 100, 125, 75, 50, 25, 75, 100, 50, 75, 125, 100, 50, 25, 75, 100, 75, 50, 100, 75, 50];
-        for (let dAgo = 27; dAgo >= 1; dAgo--) {
-            const dt = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() - dAgo);
-            const dKey = _dateKey(dt);
-            const totalM = sampleDaily[(27 - dAgo) % sampleDaily.length];
-            if (totalM > 0) {
-                const morning = Math.min(50, totalM);
-                seeded.push({ date: dKey, hour: 9, minutes: morning });
-                if (totalM > morning)
-                    seeded.push({ date: dKey, hour: 14, minutes: totalM - morning });
-            }
-        }
-        const todayKey = _dateKey(cur);
-        seeded.push({ date: todayKey, hour: 9, minutes: 50 });
-        seeded.push({ date: todayKey, hour: 14, minutes: 25 });
-        pomodoroHistory = seeded;
-        pomodoroStatsRevision++;
+        if (!Array.isArray(pomodoroHistory))
+            pomodoroHistory = [];
     }
 
     function recordPomodoroFocusMinutes(mins) {
@@ -318,7 +310,7 @@ Singleton {
         if (pomodoroRunning) {
             pomodoroRunning = false;
         } else {
-            _lastPomoTickMs = Date.now();
+            _lastPomoTickMs = _monoNowMs;
             pomodoroRunning = true;
         }
     }
@@ -333,6 +325,7 @@ Singleton {
         if (pomodoroPhase === "focus") {
             const nextCount = pomodoroCyclesCompleted + 1;
             pomodoroCyclesCompleted = nextCount;
+            saveState();
             if (nextCount % pomodoroTargetCycles === 0) {
                 pomodoroPhase = "longBreak";
                 pomodoroRemainingSeconds = pomodoroLongBreakDuration;
@@ -371,6 +364,7 @@ Singleton {
             pomodoroPhase = "shortBreak";
             pomodoroRemainingSeconds = pomodoroShortBreakDuration;
         }
+        saveState();
     }
 
     // Stopwatch state
@@ -441,6 +435,10 @@ Singleton {
     }
 
     // State Persistence
+    property bool _stateReady: false
+    property bool _pendingSave: false
+    property bool _quitRequested: false
+
     FileView {
         id: stateFileView
         path: root.stateFilePath
@@ -449,45 +447,85 @@ Singleton {
         onLoaded: {
             try {
                 const raw = stateFileView.text();
-                if (!raw)
-                    return;
-                const data = JSON.parse(raw);
-                if (Array.isArray(data.worldClocks))
-                    root.worldClocks = data.worldClocks;
-                if (Array.isArray(data.alarms))
-                    root.alarms = data.alarms;
-                if (Array.isArray(data.timers) && data.timers.length > 0) {
-                    let maxId = 1;
-                    root.timers = data.timers.map(t => {
-                        if (t.id >= maxId)
-                            maxId = t.id + 1;
-                        return {
-                            id: t.id || maxId++,
-                            label: t.label || "Timer",
-                            totalMs: t.totalMs || 60000,
-                            remainingMs: t.totalMs || 60000,
-                            running: false,
-                            finished: false
-                        };
-                    });
-                    root._nextTimerId = maxId;
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    if (Array.isArray(data.worldClocks))
+                        root.worldClocks = data.worldClocks;
+                    if (Array.isArray(data.alarms))
+                        root.alarms = data.alarms;
+                    if (Array.isArray(data.timers)) {
+                        let maxId = 1;
+                        root.timers = data.timers.map(t => {
+                            if (t.id >= maxId)
+                                maxId = t.id + 1;
+                            return {
+                                id: t.id || maxId++,
+                                label: t.label || "Timer",
+                                totalMs: t.totalMs || 60000,
+                                remainingMs: t.totalMs || 60000,
+                                running: false,
+                                finished: false
+                            };
+                        });
+                        root._nextTimerId = maxId;
+                    }
+                    if (Array.isArray(data.pomodoroHistory)) {
+                        root.pomodoroHistory = data.pomodoroHistory;
+                        root.pomodoroStatsRevision++;
+                    }
+                    if (typeof data.pomodoroCyclesCompleted === "number")
+                        root.pomodoroCyclesCompleted = data.pomodoroCyclesCompleted;
                 }
-                if (Array.isArray(data.pomodoroHistory) && data.pomodoroHistory.length > 0) {
-                    root.pomodoroHistory = data.pomodoroHistory;
-                    root.pomodoroStatsRevision++;
-                }
-                if (typeof data.pomodoroCyclesCompleted === "number")
-                    root.pomodoroCyclesCompleted = data.pomodoroCyclesCompleted;
             } catch (e) {
                 console.warn("Failed to load DankClock state:", e);
             }
+            root._stateReady = true;
+            root._checkAlarms(root.now);
         }
+        onLoadFailed: {
+            root._stateReady = true;
+            root._checkAlarms(root.now);
+        }
+    }
+
+    function _writeStateNow() {
+        if (saveStateProc.running) {
+            root._pendingSave = true;
+            return;
+        }
+        root._pendingSave = false;
+        const payload = {
+            worldClocks: root.worldClocks,
+            alarms: root.alarms,
+            timers: root.timers.map(t => ({
+                id: t.id,
+                label: t.label,
+                totalMs: t.totalMs
+            })),
+            pomodoroCyclesCompleted: root.pomodoroCyclesCompleted,
+            pomodoroHistory: root.pomodoroHistory
+        };
+        saveStateProc.command = [
+            "sh", "-c",
+            'dir="$(dirname "$1")" && mkdir -p "$dir" && tmp="$1.tmp.$$" && printf "%s" "$2" > "$tmp" && mv -f "$tmp" "$1"',
+            "saveClockState",
+            root.stateFilePath,
+            JSON.stringify(payload, null, 2)
+        ];
+        saveStateProc.running = true;
     }
 
     Process {
         id: saveStateProc
         running: false
         command: []
+        onExited: {
+            if (root._pendingSave) {
+                root._writeStateNow();
+            } else if (root._quitRequested) {
+                Qt.quit();
+            }
+        }
     }
 
     Timer {
@@ -495,32 +533,29 @@ Singleton {
         interval: 250
         repeat: false
         onTriggered: {
-            if (saveStateProc.running)
-                return;
-            const payload = {
-                worldClocks: root.worldClocks,
-                alarms: root.alarms,
-                timers: root.timers.map(t => ({
-                    id: t.id,
-                    label: t.label,
-                    totalMs: t.totalMs
-                })),
-                pomodoroCyclesCompleted: root.pomodoroCyclesCompleted,
-                pomodoroHistory: root.pomodoroHistory
-            };
-            saveStateProc.command = [
-                "sh", "-c",
-                'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
-                "saveClockState",
-                root.stateFilePath,
-                JSON.stringify(payload, null, 2)
-            ];
-            saveStateProc.running = true;
+            root._writeStateNow();
         }
     }
 
     function saveState() {
+        root._pendingSave = true;
         saveStateDebounce.restart();
+    }
+
+    function requestQuit() {
+        if (saveStateDebounce.running) {
+            saveStateDebounce.stop();
+            root._quitRequested = true;
+            root._writeStateNow();
+            return;
+        }
+        if (saveStateProc.running || root._pendingSave) {
+            root._quitRequested = true;
+            if (!saveStateProc.running)
+                root._writeStateNow();
+            return;
+        }
+        Qt.quit();
     }
 
     // Wall-clock 1-second timer for Clock & Alarms
@@ -531,8 +566,38 @@ Singleton {
         triggeredOnStart: true
         onTriggered: {
             root.now = new Date();
-            root._checkAlarms(root.now);
+            if (root._stateReady)
+                root._checkAlarms(root.now);
         }
+    }
+
+    function _settleRunningTimers() {
+        const currentMs = root._monoNowMs;
+        const dt = root._lastTimerTickMs > 0 ? Math.max(0, currentMs - root._lastTimerTickMs) : 0;
+        root._lastTimerTickMs = currentMs;
+        if (dt <= 0)
+            return;
+
+        let list = root.timers;
+        let stateChanged = false;
+        let tickChanged = false;
+        for (let i = 0; i < list.length; i++) {
+            const t = list[i];
+            if (t.running) {
+                const nextRem = Math.max(0, t.remainingMs - dt);
+                const done = nextRem <= 0;
+                t.remainingMs = nextRem;
+                tickChanged = true;
+                if (done) {
+                    t.running = false;
+                    t.finished = true;
+                    stateChanged = true;
+                    root._triggerAlert("timer", t.label || "Timer", root.formatDuration(t.totalMs) + " countdown finished", -1, t.id);
+                }
+            }
+        }
+        if (stateChanged || tickChanged)
+            root.timerTickRevision++;
     }
 
     // High-resolution timer for active Countdown Timers
@@ -541,30 +606,7 @@ Singleton {
         running: root.anyTimerRunning
         repeat: true
         onTriggered: {
-            const currentMs = Date.now();
-            const dt = root._lastTimerTickMs > 0 ? Math.max(0, currentMs - root._lastTimerTickMs) : 50;
-            root._lastTimerTickMs = currentMs;
-
-            let list = root.timers;
-            let stateChanged = false;
-            let tickChanged = false;
-            for (let i = 0; i < list.length; i++) {
-                const t = list[i];
-                if (t.running) {
-                    const nextRem = Math.max(0, t.remainingMs - dt);
-                    const done = nextRem <= 0;
-                    t.remainingMs = nextRem;
-                    tickChanged = true;
-                    if (done) {
-                        t.running = false;
-                        t.finished = true;
-                        stateChanged = true;
-                        root._triggerAlert("timer", t.label || "Timer", root.formatDuration(t.totalMs) + " countdown finished", -1, t.id);
-                    }
-                }
-            }
-            if (stateChanged || tickChanged)
-                root.timerTickRevision++;
+            root._settleRunningTimers();
         }
     }
 
@@ -574,11 +616,11 @@ Singleton {
         running: root.pomodoroRunning
         repeat: true
         onTriggered: {
-            const nowMs = Date.now();
-            const elapsed = root._lastPomoTickMs > 0 ? (nowMs - root._lastPomoTickMs) / 1000 : 0.1;
+            const nowMs = root._monoNowMs;
+            const elapsed = root._lastPomoTickMs > 0 ? Math.max(0, (nowMs - root._lastPomoTickMs) / 1000) : 0.1;
             root._lastPomoTickMs = nowMs;
             if (root.pomodoroPhase === "focus") {
-                root._accumulatedFocusSec += elapsed;
+                root._accumulatedFocusSec += Math.min(elapsed, root.pomodoroRemainingSeconds);
                 if (root._accumulatedFocusSec >= 60) {
                     const wholeMins = Math.floor(root._accumulatedFocusSec / 60);
                     root._accumulatedFocusSec -= wholeMins * 60;
@@ -606,7 +648,7 @@ Singleton {
         running: root.stopwatchRunning
         repeat: true
         onTriggered: {
-            const currentMs = Date.now();
+            const currentMs = root._monoNowMs;
             const dt = root._lastStopwatchTickMs > 0 ? Math.max(0, currentMs - root._lastStopwatchTickMs) : 16;
             root._lastStopwatchTickMs = currentMs;
             root.stopwatchElapsedMs += dt;
@@ -626,18 +668,79 @@ Singleton {
         return (cityObj.city || "CTY").replace(/\s+/g, "").slice(0, 3).toUpperCase();
     }
 
+    function _resolveCityParts(cityObj, d) {
+        const localOffsetMin = -d.getTimezoneOffset();
+        const fallbackOffsetMin = cityObj && cityObj.offsetMin !== undefined ? cityObj.offsetMin : localOffsetMin;
+        if (cityObj && cityObj.tz) {
+            try {
+                const fmt = new Intl.DateTimeFormat("en-US", {
+                    timeZone: cityObj.tz,
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "numeric",
+                    second: "numeric",
+                    weekday: "long",
+                    hourCycle: "h23"
+                });
+                const parts = fmt.formatToParts(d);
+                let year = 0, month = 1, day = 1, hour = 0, minute = 0, second = 0, weekday = "";
+                for (let i = 0; i < parts.length; i++) {
+                    const p = parts[i];
+                    if (p.type === "year") year = parseInt(p.value, 10);
+                    else if (p.type === "month") month = parseInt(p.value, 10);
+                    else if (p.type === "day") day = parseInt(p.value, 10);
+                    else if (p.type === "hour") hour = parseInt(p.value, 10) % 24;
+                    else if (p.type === "minute") minute = parseInt(p.value, 10);
+                    else if (p.type === "second") second = parseInt(p.value, 10);
+                    else if (p.type === "weekday") weekday = p.value;
+                }
+                if (year > 0) {
+                    const asUtcMs = Date.UTC(year, month - 1, day, hour, minute, second);
+                    const instantSecMs = Math.floor(d.getTime() / 1000) * 1000;
+                    const offsetMin = Math.round((asUtcMs - instantSecMs) / 60000);
+                    return {
+                        year: year,
+                        month: month,
+                        day: day,
+                        hour: hour,
+                        minute: minute,
+                        second: second,
+                        dayName: weekday || Qt.formatDate(new Date(year, month - 1, day), "dddd"),
+                        offsetMin: offsetMin
+                    };
+                }
+            } catch (e) {
+                // Fall back to fixed offset calculation below
+            }
+        }
+        const shifted = new Date(d.getTime() + fallbackOffsetMin * 60000);
+        const year = shifted.getUTCFullYear();
+        const month = shifted.getUTCMonth() + 1;
+        const day = shifted.getUTCDate();
+        return {
+            year: year,
+            month: month,
+            day: day,
+            hour: shifted.getUTCHours(),
+            minute: shifted.getUTCMinutes(),
+            second: shifted.getUTCSeconds(),
+            dayName: Qt.formatDate(new Date(year, month - 1, day), "dddd"),
+            offsetMin: fallbackOffsetMin
+        };
+    }
+
     function getCityTimeInfo(cityObj, refDate) {
         const d = refDate || root.now;
         const localOffsetMin = -d.getTimezoneOffset();
-        const targetOffsetMin = cityObj.offsetMin !== undefined ? cityObj.offsetMin : localOffsetMin;
+        const resolved = _resolveCityParts(cityObj, d);
+        const targetOffsetMin = resolved.offsetMin;
         const diffMin = targetOffsetMin - localOffsetMin;
 
-        const utcMs = d.getTime() + d.getTimezoneOffset() * 60000;
-        const targetDate = new Date(utcMs + targetOffsetMin * 60000);
-
-        const h24 = targetDate.getHours();
-        const m = String(targetDate.getMinutes()).padStart(2, "0");
-        const s = String(targetDate.getSeconds()).padStart(2, "0");
+        const h24 = resolved.hour;
+        const m = String(resolved.minute).padStart(2, "0");
+        const s = String(resolved.second).padStart(2, "0");
         const use24 = SettingsData.use24HourClock;
         const hDisp = use24 ? String(h24).padStart(2, "0") : String(h24 % 12 || 12);
         const meridiem = use24 ? "" : (h24 >= 12 ? "PM" : "AM");
@@ -646,7 +749,7 @@ Singleton {
         let dayRelation = "Today";
         let dayDelta = 0;
         const localDay = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-        const targetDay = targetDate.getFullYear() * 10000 + (targetDate.getMonth() + 1) * 100 + targetDate.getDate();
+        const targetDay = resolved.year * 10000 + resolved.month * 100 + resolved.day;
         if (targetDay > localDay) {
             dayRelation = "Tomorrow";
             dayDelta = 1;
@@ -666,9 +769,15 @@ Singleton {
             shortOffset = `${sign}${numStr}h`;
         }
 
-        const dayName = Qt.formatDate(targetDate, "dddd");
+        const dayName = resolved.dayName;
 
         return {
+            hour24: h24,
+            minute: resolved.minute,
+            second: resolved.second,
+            hourFrac24: (h24 + resolved.minute / 60) / 24,
+            hourAngle12Deg: ((h24 % 12) + resolved.minute / 60) * 30,
+            offsetMin: targetOffsetMin,
             timeText: `${hDisp}:${m}`,
             secondsText: s,
             meridiem: meridiem,
@@ -773,43 +882,65 @@ Singleton {
 
     function _checkAlarms(d) {
         const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}-${d.getMinutes()}`;
-        if (key === _lastTriggeredMinuteKey)
-            return;
-        if (d.getSeconds() > 2)
-            return;
-
+        const nowMs = d.getTime();
         const jsDay = d.getDay(); // 0=Sun .. 6=Sat
         const dayName = weekDays[(jsDay + 6) % 7];
         const todayKey = _dateKey(d);
         const h = d.getHours();
         const m = d.getMinutes();
 
+        let stateModified = false;
+        let removeIndices = [];
+
         for (let i = 0; i < alarms.length; i++) {
             const a = alarms[i];
-            if (!a.enabled)
+            if (!a || !a.enabled)
                 continue;
-            if (a.hour === h && a.minute === m) {
-                const hasDays = Array.isArray(a.days) && a.days.length > 0;
-                if (!hasDays || a.days.indexOf(dayName) >= 0) {
-                    _lastTriggeredMinuteKey = key;
-                    // Check if skipped once for today
-                    if (hasDays && a.skippedDateKey === todayKey) {
+
+            const hasSnoozeDeadline = typeof a.snoozeUntilMs === "number" && a.snoozeUntilMs > 0;
+            if (hasSnoozeDeadline) {
+                if (nowMs < a.snoozeUntilMs)
+                    continue;
+            } else {
+                if (a.hour !== h || a.minute !== m)
+                    continue;
+                if (a.lastTriggeredMinuteKey === key)
+                    continue;
+            }
+
+            const hasDays = Array.isArray(a.days) && a.days.length > 0;
+            if (hasSnoozeDeadline || !hasDays || a.days.indexOf(dayName) >= 0) {
+                a.lastTriggeredMinuteKey = key;
+                if (hasSnoozeDeadline)
+                    a.snoozeUntilMs = 0;
+
+                if (!hasSnoozeDeadline && hasDays && a.skippedDateKey === todayKey) {
+                    a.skippedDateKey = "";
+                    stateModified = true;
+                    continue;
+                }
+
+                _triggerAlert("alarm", a.label || "Alarm", formatAlarmTime(a.hour, a.minute), i, -1, a.soundId || "classic", a.snoozeMin || 10);
+                if (!hasDays) {
+                    if (a.deleteAfterGoesOff) {
+                        removeIndices.push(i);
+                    } else {
+                        a.enabled = false;
                         a.skippedDateKey = "";
-                        alarmRevision++;
-                        saveState();
-                        break;
+                        stateModified = true;
                     }
-                    _triggerAlert("alarm", a.label || "Alarm", formatAlarmTime(a.hour, a.minute), i, -1, a.soundId || "classic", a.snoozeMin || 10);
-                    if (!hasDays) {
-                        if (a.deleteAfterGoesOff) {
-                            removeAlarm(i);
-                        } else {
-                            toggleAlarm(i, false);
-                        }
-                    }
-                    break;
+                } else {
+                    stateModified = true;
                 }
             }
+        }
+
+        if (removeIndices.length > 0) {
+            for (let r = removeIndices.length - 1; r >= 0; r--)
+                removeAlarm(removeIndices[r]);
+        } else if (stateModified) {
+            alarmRevision++;
+            saveState();
         }
     }
 
@@ -841,6 +972,8 @@ Singleton {
             cur.minute = minute;
             cur.enabled = true;
             cur.skippedDateKey = "";
+            cur.lastTriggeredMinuteKey = "";
+            cur.snoozeUntilMs = 0;
             alarmRevision++;
         } else {
             const next = alarms.slice();
@@ -853,7 +986,9 @@ Singleton {
                 soundId: "classic",
                 snoozeMin: 10,
                 deleteAfterGoesOff: false,
-                skippedDateKey: ""
+                skippedDateKey: "",
+                lastTriggeredMinuteKey: "",
+                snoozeUntilMs: 0
             });
             alarms = next;
             expandedAlarmIndex = next.length - 1;
@@ -869,6 +1004,8 @@ Singleton {
             return;
         alarms[index].enabled = enabled;
         alarms[index].skippedDateKey = "";
+        alarms[index].lastTriggeredMinuteKey = "";
+        alarms[index].snoozeUntilMs = 0;
         alarmRevision++;
         saveState();
     }
@@ -968,6 +1105,21 @@ Singleton {
             expandedAlarmIndex = -1;
         else if (expandedAlarmIndex > index)
             expandedAlarmIndex--;
+
+        if (editingAlarmIndex === index) {
+            editingAlarmIndex = -1;
+            timePickerOpen = false;
+        } else if (editingAlarmIndex > index) {
+            editingAlarmIndex--;
+        }
+
+        if (editingLabelAlarmIndex === index) {
+            editingLabelAlarmIndex = -1;
+            labelDialogOpen = false;
+        } else if (editingLabelAlarmIndex > index) {
+            editingLabelAlarmIndex--;
+        }
+
         alarmRevision++;
         if (alarms.length === 0)
             alarmEditMode = false;
@@ -977,6 +1129,28 @@ Singleton {
     function _getNextAlarmOccurrence(a, cur, ignoreSkip) {
         if (!a || !a.enabled)
             return null;
+        if (typeof a.snoozeUntilMs === "number" && a.snoozeUntilMs > cur.getTime()) {
+            const target = new Date(a.snoozeUntilMs);
+            const targetKey = _dateKey(target);
+            const diffMs = target.getTime() - cur.getTime();
+            const totalMin = Math.max(1, Math.round(diffMs / 60000));
+            const hours = Math.floor(totalMin / 60);
+            const mins = totalMin % 60;
+            const relativeText = hours > 0 ? (mins > 0 ? `in ${hours} hr ${mins} min` : `in ${hours} hr`) : `in ${mins} min`;
+            const jsDay = target.getDay();
+            const dayName = weekDays[(jsDay + 6) % 7];
+            const localDay = cur.getFullYear() * 10000 + (cur.getMonth() + 1) * 100 + cur.getDate();
+            const targetDay = target.getFullYear() * 10000 + (target.getMonth() + 1) * 100 + target.getDate();
+            const dayRelation = targetDay > localDay ? "Tomorrow" : (targetDay < localDay ? dayName : "Today");
+            return {
+                targetDate: target,
+                targetKey: targetKey,
+                diffMs: diffMs,
+                relativeText: relativeText,
+                dayRelation: dayRelation,
+                timeText: formatAlarmTime(target.getHours(), target.getMinutes())
+            };
+        }
         const days = Array.isArray(a.days) ? a.days : [];
         for (let delta = 0; delta <= 14; delta++) {
             const target = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + delta, a.hour, a.minute, 0, 0);
@@ -1083,6 +1257,8 @@ Singleton {
     }
 
     function startPresetTimer(durationSec, label) {
+        if (anyTimerRunning)
+            _settleRunningTimers();
         const ms = durationSec * 1000;
         const next = timers.slice();
         const newTimer = {
@@ -1093,7 +1269,7 @@ Singleton {
             running: true,
             finished: false
         };
-        _lastTimerTickMs = Date.now();
+        _lastTimerTickMs = _monoNowMs;
         next.unshift(newTimer);
         timers = next;
         activeTimerIndex = 0;
@@ -1103,11 +1279,13 @@ Singleton {
     function toggleTimer(index) {
         if (index < 0 || index >= timers.length)
             return;
+        if (anyTimerRunning)
+            _settleRunningTimers();
         const t = timers[index];
         const willRun = !t.running;
         t.remainingMs = (willRun && t.remainingMs <= 0) ? t.totalMs : t.remainingMs;
         if (willRun)
-            _lastTimerTickMs = Date.now();
+            _lastTimerTickMs = _monoNowMs;
         t.running = willRun;
         t.finished = false;
         timerTickRevision++;
@@ -1128,10 +1306,13 @@ Singleton {
             return;
         const t = timers[index];
         const extra = 60 * 1000;
+        const prevTotal = t.totalMs;
         t.totalMs = Math.max(t.totalMs, t.remainingMs + extra);
         t.remainingMs = t.remainingMs + extra;
         t.finished = false;
         timerTickRevision++;
+        if (t.totalMs !== prevTotal)
+            saveState();
     }
 
     function removeTimer(index) {
@@ -1140,7 +1321,9 @@ Singleton {
         const next = timers.slice();
         next.splice(index, 1);
         timers = next;
-        if (activeTimerIndex >= timers.length)
+        if (index < activeTimerIndex)
+            activeTimerIndex = Math.max(0, activeTimerIndex - 1);
+        else if (activeTimerIndex >= timers.length)
             activeTimerIndex = Math.max(0, timers.length - 1);
         saveState();
     }
@@ -1165,7 +1348,7 @@ Singleton {
     // Stopwatch Management
     function toggleStopwatch() {
         if (!stopwatchRunning) {
-            _lastStopwatchTickMs = Date.now();
+            _lastStopwatchTickMs = _monoNowMs;
             stopwatchRunning = true;
         } else {
             stopwatchRunning = false;
@@ -1216,17 +1399,11 @@ Singleton {
     }
 
     // Sound & Toast Notification
-    function _triggerAlert(type, title, subtitle, alarmIdx, timerId, soundId, snoozeMin) {
-        ringingAlert = {
-            type: type,
-            title: title,
-            subtitle: subtitle,
-            alarmIndex: alarmIdx,
-            timerId: timerId,
-            snoozeMin: snoozeMin || 5
-        };
-        Quickshell.execDetached(["dms", "ipc", "call", "toast", "info", `${title} — ${subtitle}`]);
-        const s = getSoundInfo(soundId || "classic");
+    function _playAlertNotification(alertObj) {
+        if (!alertObj)
+            return;
+        Quickshell.execDetached(["dms", "ipc", "call", "toast", "info", `${alertObj.title} — ${alertObj.subtitle}`]);
+        const s = getSoundInfo(alertObj.soundId || "classic");
         if (s && s.path) {
             Quickshell.execDetached([
                 "sh", "-c",
@@ -1235,33 +1412,70 @@ Singleton {
         }
     }
 
+    function _showNextQueuedAlert() {
+        if (_alertQueue.length > 0) {
+            const nextQueue = _alertQueue.slice();
+            const nextAlert = nextQueue.shift();
+            _alertQueue = nextQueue;
+            ringingAlert = nextAlert;
+            _playAlertNotification(nextAlert);
+        } else {
+            ringingAlert = null;
+        }
+    }
+
+    function _triggerAlert(type, title, subtitle, alarmIdx, timerId, soundId, snoozeMin) {
+        const alertObj = {
+            type: type,
+            title: title,
+            subtitle: subtitle,
+            alarmIndex: alarmIdx,
+            timerId: timerId,
+            soundId: soundId || "classic",
+            snoozeMin: snoozeMin || 5
+        };
+        if (ringingAlert !== null) {
+            const nextQueue = _alertQueue.slice();
+            nextQueue.push(alertObj);
+            _alertQueue = nextQueue;
+            return;
+        }
+        ringingAlert = alertObj;
+        _playAlertNotification(alertObj);
+    }
+
     function dismissRingingAlert() {
-        ringingAlert = null;
+        _showNextQueuedAlert();
     }
 
     function snoozeRingingAlert() {
         if (!ringingAlert)
             return;
-        const mins = ringingAlert.snoozeMin || 5;
-        if (ringingAlert.type === "alarm") {
-            const d = new Date(Date.now() + mins * 60 * 1000);
+        const current = ringingAlert;
+        const mins = current.snoozeMin || 5;
+        if (current.type === "alarm") {
+            const snoozeUntilMs = Date.now() + mins * 60 * 1000;
+            const d = new Date(snoozeUntilMs);
             const next = alarms.slice();
             next.push({
                 hour: d.getHours(),
                 minute: d.getMinutes(),
-                label: `${ringingAlert.title || "Alarm"} (Snoozed +${mins}m)`,
+                label: `${current.title || "Alarm"} (Snoozed +${mins}m)`,
                 enabled: true,
                 days: [],
-                soundId: "classic",
+                soundId: current.soundId || "classic",
                 snoozeMin: mins,
                 deleteAfterGoesOff: true,
-                skippedDateKey: ""
+                skippedDateKey: "",
+                lastTriggeredMinuteKey: "",
+                snoozeUntilMs: snoozeUntilMs
             });
             alarms = next;
             alarmRevision++;
-        } else if (ringingAlert.type === "timer") {
-            startPresetTimer(mins * 60, `${ringingAlert.title || "Timer"} (+${mins}m)`);
+            saveState();
+        } else if (current.type === "timer") {
+            startPresetTimer(mins * 60, `${current.title || "Timer"} (+${mins}m)`);
         }
-        ringingAlert = null;
+        _showNextQueuedAlert();
     }
 }

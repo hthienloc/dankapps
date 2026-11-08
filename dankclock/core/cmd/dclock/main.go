@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"strings"
+	"syscall"
 
 	"github.com/hthienloc/dankclock/core/internal/theme"
 )
@@ -64,7 +67,7 @@ func findQuickshellDir(specified string) (string, error) {
 
 func main() {
 	configDir := flag.String("c", "", "path to quickshell configuration directory")
-	tabFlag := flag.String("tab", "", "initial tab to open (clock, alarm, timer, stopwatch)")
+	tabFlag := flag.String("tab", "", "initial tab to open (clock, alarm, timer, stopwatch, pomodoro, pomo, settings)")
 	showVersion := flag.Bool("v", false, "show version")
 
 	flag.Usage = func() {
@@ -78,6 +81,17 @@ func main() {
 	if *showVersion {
 		fmt.Printf("dclock version %s (built %s, commit %s)\n", Version, BuildTime, Commit)
 		return
+	}
+
+	if *tabFlag != "" {
+		normalizedTab := strings.ToLower(strings.TrimSpace(*tabFlag))
+		switch normalizedTab {
+		case "clock", "worldclock", "alarm", "alarms", "timer", "timers", "stopwatch", "pomodoro", "pomo", "settings":
+			*tabFlag = normalizedTab
+		default:
+			fmt.Fprintf(os.Stderr, "Error: unknown tab %q (supported: clock, alarm, timer, stopwatch, pomodoro, pomo, settings)\n", *tabFlag)
+			os.Exit(1)
+		}
 	}
 
 	qsDir, err := findQuickshellDir(*configDir)
@@ -112,8 +126,31 @@ func main() {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
-	if err := cmd.Run(); err != nil {
+	if err := cmd.Start(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running quickshell: %v\n", err)
 		os.Exit(1)
+	}
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT)
+	doneCh := make(chan error, 1)
+	go func() {
+		doneCh <- cmd.Wait()
+	}()
+
+	for {
+		select {
+		case sig := <-sigCh:
+			if cmd.Process != nil {
+				_ = cmd.Process.Signal(sig)
+			}
+		case err := <-doneCh:
+			signal.Stop(sigCh)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error running quickshell: %v\n", err)
+				os.Exit(1)
+			}
+			return
+		}
 	}
 }
