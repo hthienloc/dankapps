@@ -892,14 +892,47 @@ Singleton {
         return alarmSounds[0];
     }
 
-    function previewAlarmSound(soundId) {
-        const s = getSoundInfo(soundId);
+    function _playSoundFile(soundId) {
+        const s = getSoundInfo(soundId || "classic");
         if (!s || !s.path)
             return;
         Quickshell.execDetached([
             "sh", "-c",
             `pw-play "${s.path}" 2>/dev/null || paplay "${s.path}" 2>/dev/null || true`
         ]);
+    }
+
+    function previewAlarmSound(soundId) {
+        _playSoundFile(soundId);
+    }
+
+    function formatClockParts(hour24, minute) {
+        const m = String(minute).padStart(2, "0");
+        if (SettingsData.use24HourClock) {
+            return {
+                timeText: `${String(hour24).padStart(2, "0")}:${m}`,
+                meridiem: ""
+            };
+        }
+        const h12 = hour24 % 12 || 12;
+        return {
+            timeText: `${h12}:${m}`,
+            meridiem: hour24 >= 12 ? "PM" : "AM"
+        };
+    }
+
+    function calcGridDropIndex(item, grid, mouseX, mouseY, cardWidth, cardHeight, spacing, columns, count, offset = 0) {
+        if (count <= 0)
+            return -1;
+        const mapped = item.mapToItem(grid, mouseX, mouseY);
+        const colW = cardWidth + spacing;
+        const rowH = cardHeight + spacing;
+        const targetCol = Math.max(0, Math.min(columns - 1, Math.floor(mapped.x / colW)));
+        const targetRow = Math.max(0, Math.floor(mapped.y / rowH));
+        const slotIdx = targetRow * columns + targetCol;
+        if (slotIdx < offset)
+            return -1;
+        return Math.max(0, Math.min(count - 1, slotIdx - offset));
     }
 
     function formatAlarmSchedule(days) {
@@ -981,12 +1014,8 @@ Singleton {
     }
 
     function formatAlarmTime(hour, minute) {
-        const m = String(minute).padStart(2, "0");
-        if (SettingsData.use24HourClock)
-            return `${String(hour).padStart(2, "0")}:${m}`;
-        const h12 = hour % 12 || 12;
-        const ampm = hour >= 12 ? "PM" : "AM";
-        return `${h12}:${m} ${ampm}`;
+        const parts = formatClockParts(hour, minute);
+        return parts.meridiem ? `${parts.timeText} ${parts.meridiem}` : parts.timeText;
     }
 
     function openAddAlarmPicker() {
@@ -1450,13 +1479,7 @@ Singleton {
         if (!alertObj)
             return;
         Quickshell.execDetached(["dms", "ipc", "call", "toast", "info", `${alertObj.title} — ${alertObj.subtitle}`]);
-        const s = getSoundInfo(alertObj.soundId || "classic");
-        if (s && s.path) {
-            Quickshell.execDetached([
-                "sh", "-c",
-                `pw-play "${s.path}" 2>/dev/null || paplay "${s.path}" 2>/dev/null || true`
-            ]);
-        }
+        _playSoundFile(alertObj.soundId || "classic");
     }
 
     function _showNextQueuedAlert() {

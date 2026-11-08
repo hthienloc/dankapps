@@ -156,107 +156,47 @@ Item {
                             anchors.horizontalCenter: parent.horizontalCenter
                             spacing: Theme.spacingL
 
-                            Rectangle {
-                                width: 120
-                                height: 158
-                                radius: hoursHover.hovered ? Theme.cornerRadiusL : Theme.cornerRadiusM
-                                color: hoursHover.hovered ? Theme.surfaceContainerHighest : Theme.surfaceContainer
-                                border.width: 1
-                                border.color: hoursHover.hovered ? Theme.primary : Theme.outlineVariant
+                            Repeater {
+                                model: [
+                                    { title: "HOURS", value: ClockService.setupHours, max: 23, step: 1, prop: "setupHours" },
+                                    { title: "MINUTES", value: ClockService.setupMinutes, max: 59, step: 1, prop: "setupMinutes" },
+                                    { title: "SECONDS", value: ClockService.setupSeconds, max: 59, step: 5, prop: "setupSeconds" }
+                                ]
 
-                                HoverHandler { id: hoursHover }
+                                Rectangle {
+                                    id: stepperCard
+                                    required property var modelData
+                                    width: 120
+                                    height: 158
+                                    radius: stepperHover.hovered ? Theme.cornerRadiusL : Theme.cornerRadiusM
+                                    color: stepperHover.hovered ? Theme.surfaceContainerHighest : Theme.surfaceContainer
+                                    border.width: 1
+                                    border.color: stepperHover.hovered ? Theme.primary : Theme.outlineVariant
 
-                                Column {
-                                    anchors.centerIn: parent
-                                    spacing: Theme.spacingS
+                                    HoverHandler { id: stepperHover }
 
-                                    StyledText {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        text: "HOURS"
-                                        font.pixelSize: Theme.fontSizeSmall - 1
-                                        font.weight: Theme.fontWeightBold
-                                        color: Theme.primary
-                                    }
+                                    Column {
+                                        anchors.centerIn: parent
+                                        spacing: Theme.spacingS
 
-                                    DNumberStepper {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        text: String(ClockService.setupHours).padStart(2, "0")
-                                        textSize: 32
-                                        buttonSize: 32
-                                        incrementEnabled: ClockService.setupHours < 23
-                                        decrementEnabled: ClockService.setupHours > 0
-                                        onIncrement: () => ClockService.setupHours = Math.min(23, ClockService.setupHours + 1)
-                                        onDecrement: () => ClockService.setupHours = Math.max(0, ClockService.setupHours - 1)
-                                    }
-                                }
-                            }
+                                        StyledText {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            text: stepperCard.modelData.title
+                                            font.pixelSize: Theme.fontSizeSmall - 1
+                                            font.weight: Theme.fontWeightBold
+                                            color: Theme.primary
+                                        }
 
-                            Rectangle {
-                                width: 120
-                                height: 158
-                                radius: minsHover.hovered ? Theme.cornerRadiusL : Theme.cornerRadiusM
-                                color: minsHover.hovered ? Theme.surfaceContainerHighest : Theme.surfaceContainer
-                                border.width: 1
-                                border.color: minsHover.hovered ? Theme.primary : Theme.outlineVariant
-
-                                HoverHandler { id: minsHover }
-
-                                Column {
-                                    anchors.centerIn: parent
-                                    spacing: Theme.spacingS
-
-                                    StyledText {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        text: "MINUTES"
-                                        font.pixelSize: Theme.fontSizeSmall - 1
-                                        font.weight: Theme.fontWeightBold
-                                        color: Theme.primary
-                                    }
-
-                                    DNumberStepper {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        text: String(ClockService.setupMinutes).padStart(2, "0")
-                                        textSize: 32
-                                        buttonSize: 32
-                                        incrementEnabled: ClockService.setupMinutes < 59
-                                        decrementEnabled: ClockService.setupMinutes > 0
-                                        onIncrement: () => ClockService.setupMinutes = Math.min(59, ClockService.setupMinutes + 1)
-                                        onDecrement: () => ClockService.setupMinutes = Math.max(0, ClockService.setupMinutes - 1)
-                                    }
-                                }
-                            }
-
-                            Rectangle {
-                                width: 120
-                                height: 158
-                                radius: secsHover.hovered ? Theme.cornerRadiusL : Theme.cornerRadiusM
-                                color: secsHover.hovered ? Theme.surfaceContainerHighest : Theme.surfaceContainer
-                                border.width: 1
-                                border.color: secsHover.hovered ? Theme.primary : Theme.outlineVariant
-
-                                HoverHandler { id: secsHover }
-
-                                Column {
-                                    anchors.centerIn: parent
-                                    spacing: Theme.spacingS
-
-                                    StyledText {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        text: "SECONDS"
-                                        font.pixelSize: Theme.fontSizeSmall - 1
-                                        font.weight: Theme.fontWeightBold
-                                        color: Theme.primary
-                                    }
-
-                                    DNumberStepper {
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                        text: String(ClockService.setupSeconds).padStart(2, "0")
-                                        textSize: 32
-                                        buttonSize: 32
-                                        incrementEnabled: ClockService.setupSeconds < 55
-                                        decrementEnabled: ClockService.setupSeconds > 0
-                                        onIncrement: () => ClockService.setupSeconds = Math.min(59, ClockService.setupSeconds + 5)
-                                        onDecrement: () => ClockService.setupSeconds = Math.max(0, ClockService.setupSeconds - 5)
+                                        DNumberStepper {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            text: String(stepperCard.modelData.value).padStart(2, "0")
+                                            textSize: 32
+                                            buttonSize: 32
+                                            incrementEnabled: stepperCard.modelData.value <= stepperCard.modelData.max - stepperCard.modelData.step
+                                            decrementEnabled: stepperCard.modelData.value > 0
+                                            onIncrement: () => ClockService[stepperCard.modelData.prop] = Math.min(stepperCard.modelData.max, stepperCard.modelData.value + stepperCard.modelData.step)
+                                            onDecrement: () => ClockService[stepperCard.modelData.prop] = Math.max(0, stepperCard.modelData.value - stepperCard.modelData.step)
+                                        }
                                     }
                                 }
                             }
@@ -292,53 +232,29 @@ Item {
                         spacing: Theme.spacingL
 
                         // Proper 232x232 Ring Gauge container with Organic Blob Backdrop
-                        Item {
-                            width: 232
-                            height: 232
+                        ClockRingDial {
                             anchors.horizontalCenter: parent.horizontalCenter
+                            dialSize: 232
+                            blobSize: 196
+                            progress: root.currentProgress
+                            ringColor: root.currentFinished ? Theme.error : Theme.primary
+                            active: root.currentRunning
 
-                            DOrganicBlob {
-                                anchors.centerIn: parent
-                                width: 196
-                                height: 196
-                                fillColor: Theme.withAlpha(Theme.primary, root.currentRunning ? 0.14 : 0.06)
-                                lobes: 12
-                                rotationDeg: -90
-                                lobeAmount: 0.06
-                                hillPower: 0.88
-                                roundness: 0.22
-                                paddingFrac: 0.02
-                                segments: 144
+                            NumericText {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: root.currentTimer ? ClockService.formatDuration(root.currentRemainingMs) : "00:00"
+                                font.pixelSize: 44
+                                font.weight: Font.Bold
+                                color: Theme.surfaceText
                             }
 
-                            DRingGauge {
-                                anchors.fill: parent
-                                value: root.currentProgress
-                                strokeWidth: 12
-                                ringColor: root.currentFinished ? Theme.error : Theme.primary
-                                trackColor: Theme.surfaceContainerHighest
-                            }
-
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: Theme.spacingXS
-
-                                NumericText {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: root.currentTimer ? ClockService.formatDuration(root.currentRemainingMs) : "00:00"
-                                    font.pixelSize: 44
-                                    font.weight: Font.Bold
-                                    color: Theme.surfaceText
-                                }
-
-                                StyledText {
-                                    visible: root.currentTimer !== null
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: root.currentTimer ? `Total ${ClockService.formatDuration(root.currentTotalMs)}` : ""
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    font.weight: Theme.fontWeightMedium
-                                    color: Theme.surfaceVariantText
-                                }
+                            StyledText {
+                                visible: root.currentTimer !== null
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: root.currentTimer ? `Total ${ClockService.formatDuration(root.currentTotalMs)}` : ""
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Theme.fontWeightMedium
+                                color: Theme.surfaceVariantText
                             }
                         }
 
@@ -515,13 +431,19 @@ Item {
                                     onPositionChanged: mouse => {
                                         if (!pressed || !ClockService.timerEditMode || root.draggingTimerIndex < 0)
                                             return;
-                                        const mapped = timerCard.mapToItem(timersGrid, mouse.x, mouse.y);
-                                        const colW = timersGridContainer.cardWidth + timersGrid.spacing;
-                                        const rowH = timerCard.height + timersGrid.spacing;
-                                        const targetCol = Math.max(0, Math.min(timersGrid.columns - 1, Math.floor(mapped.x / colW)));
-                                        const targetRow = Math.max(0, Math.floor(mapped.y / rowH));
-                                        const targetIdx = Math.max(0, Math.min(ClockService.timers.length - 1, targetRow * timersGrid.columns + targetCol));
-                                        if (targetIdx !== root.draggingTimerIndex) {
+                                        const targetIdx = ClockService.calcGridDropIndex(
+                                            timerCard,
+                                            timersGrid,
+                                            mouse.x,
+                                            mouse.y,
+                                            timersGridContainer.cardWidth,
+                                            timerCard.height,
+                                            timersGrid.spacing,
+                                            timersGrid.columns,
+                                            ClockService.timers.length,
+                                            0
+                                        );
+                                        if (targetIdx >= 0 && targetIdx !== root.draggingTimerIndex) {
                                             dragged = true;
                                             ClockService.moveTimer(root.draggingTimerIndex, targetIdx);
                                             root.draggingTimerIndex = targetIdx;
@@ -656,33 +578,19 @@ Item {
     }
 
     // Official DCommon DFab Bar anchored to bottom-right
-    Row {
-        id: fabContainer
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: Theme.spacingXL
-        spacing: Theme.spacingS
-
-        DFab {
-            visible: ClockService.timerEditMode || ClockService.timers.length === 0
-            iconName: "more_time"
-            text: "New Timer"
-            colorRole: "primary"
-            tooltipText: "Create a custom duration timer"
-            onClicked: {
-                ClockService.timerSetupMode = true;
-                flickable.cancelFlick();
-                flickable.contentY = 0;
-            }
+    ClockEditFabBar {
+        editMode: ClockService.timerEditMode
+        hasItems: ClockService.timers.length > 0
+        createIcon: "more_time"
+        createText: "New Timer"
+        createTooltip: "Create a custom duration timer"
+        editTooltip: "Edit or delete timers"
+        doneTooltip: "Finish editing timers"
+        onCreateClicked: {
+            ClockService.timerSetupMode = true;
+            flickable.cancelFlick();
+            flickable.contentY = 0;
         }
-
-        DFab {
-            visible: ClockService.timers.length > 0
-            iconName: ClockService.timerEditMode ? "check" : "edit"
-            text: ClockService.timerEditMode ? "Done" : ""
-            colorRole: "primary"
-            tooltipText: ClockService.timerEditMode ? "Finish editing timers" : "Edit or delete timers"
-            onClicked: ClockService.timerEditMode = !ClockService.timerEditMode
-        }
+        onToggleEditClicked: ClockService.timerEditMode = !ClockService.timerEditMode
     }
 }

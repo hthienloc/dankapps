@@ -134,70 +134,65 @@ Item {
                                 ClockGroup {
                                     width: parent.width
 
-                                    ClockRow {
-                                        width: parent.width
-                                        iconName: "psychology"
-                                        accent: "purple"
-                                        title: "Focus duration"
-                                        subtitle: `${SettingsData.pomodoroFocusMinutes} minutes per focus session`
-                                        isFirstInGroup: true
-                                        isLastInGroup: false
-                                        body: [
-                                            DSlider {
-                                                width: parent.width
-                                                size: "s"
-                                                minimum: 5
-                                                maximum: 90
-                                                step: 5
-                                                unit: "m"
-                                                value: SettingsData.pomodoroFocusMinutes
-                                                onSliderValueChanged: v => SettingsData.pomodoroFocusMinutes = v
+                                    Repeater {
+                                        model: [
+                                            {
+                                                icon: "psychology",
+                                                accent: "purple",
+                                                title: "Focus duration",
+                                                subtitle: `${SettingsData.pomodoroFocusMinutes} minutes per focus session`,
+                                                min: 5,
+                                                max: 90,
+                                                step: 5,
+                                                prop: "pomodoroFocusMinutes"
+                                            },
+                                            {
+                                                icon: "coffee",
+                                                accent: "green",
+                                                title: "Short break",
+                                                subtitle: `${SettingsData.pomodoroShortBreakMinutes} minutes rest between sessions`,
+                                                min: 1,
+                                                max: 30,
+                                                step: 1,
+                                                prop: "pomodoroShortBreakMinutes"
+                                            },
+                                            {
+                                                icon: "self_improvement",
+                                                accent: "orange",
+                                                title: "Long break",
+                                                subtitle: `${SettingsData.pomodoroLongBreakMinutes} minutes after ${SettingsData.pomodoroTargetCycles} cycles`,
+                                                min: 5,
+                                                max: 60,
+                                                step: 5,
+                                                prop: "pomodoroLongBreakMinutes"
                                             }
                                         ]
-                                    }
 
-                                    ClockRow {
-                                        width: parent.width
-                                        iconName: "coffee"
-                                        accent: "green"
-                                        title: "Short break"
-                                        subtitle: `${SettingsData.pomodoroShortBreakMinutes} minutes rest between sessions`
-                                        isFirstInGroup: false
-                                        isLastInGroup: false
-                                        body: [
-                                            DSlider {
-                                                width: parent.width
-                                                size: "s"
-                                                minimum: 1
-                                                maximum: 30
-                                                step: 1
-                                                unit: "m"
-                                                value: SettingsData.pomodoroShortBreakMinutes
-                                                onSliderValueChanged: v => SettingsData.pomodoroShortBreakMinutes = v
-                                            }
-                                        ]
-                                    }
+                                        ClockRow {
+                                            id: pomoSettingRow
+                                            required property var modelData
+                                            required property int index
 
-                                    ClockRow {
-                                        width: parent.width
-                                        iconName: "self_improvement"
-                                        accent: "orange"
-                                        title: "Long break"
-                                        subtitle: `${SettingsData.pomodoroLongBreakMinutes} minutes after ${SettingsData.pomodoroTargetCycles} cycles`
-                                        isFirstInGroup: false
-                                        isLastInGroup: true
-                                        body: [
-                                            DSlider {
-                                                width: parent.width
-                                                size: "s"
-                                                minimum: 5
-                                                maximum: 60
-                                                step: 5
-                                                unit: "m"
-                                                value: SettingsData.pomodoroLongBreakMinutes
-                                                onSliderValueChanged: v => SettingsData.pomodoroLongBreakMinutes = v
-                                            }
-                                        ]
+                                            width: parent.width
+                                            iconName: modelData.icon
+                                            accent: modelData.accent
+                                            title: modelData.title
+                                            subtitle: modelData.subtitle
+                                            isFirstInGroup: index === 0
+                                            isLastInGroup: index === 2
+                                            body: [
+                                                DSlider {
+                                                    width: parent.width
+                                                    size: "s"
+                                                    minimum: pomoSettingRow.modelData.min
+                                                    maximum: pomoSettingRow.modelData.max
+                                                    step: pomoSettingRow.modelData.step
+                                                    unit: "m"
+                                                    value: SettingsData[pomoSettingRow.modelData.prop]
+                                                    onSliderValueChanged: v => SettingsData[pomoSettingRow.modelData.prop] = v
+                                                }
+                                            ]
+                                        }
                                     }
                                 }
                             }
@@ -362,60 +357,34 @@ Item {
                             ClockGroup {
                                 width: parent.width
 
-                                ClockRow {
-                                    width: parent.width
-                                    iconName: "menu_book"
-                                    accent: "blue"
-                                    title: "Docs"
-                                    subtitle: "duxlabs.dev/docs"
-                                    clickable: true
-                                    isFirstInGroup: true
-                                    isLastInGroup: false
-                                    onClicked: Qt.openUrlExternally("https://duxlabs.dev/docs")
+                                Repeater {
+                                    model: [
+                                        { icon: "menu_book", accent: "blue", title: "Docs", subtitle: "duxlabs.dev/docs", url: "https://duxlabs.dev/docs" },
+                                        { icon: "code", accent: "purple", title: "GitHub", subtitle: "github.com/hthienloc/dankapps", url: "https://github.com/hthienloc/dankapps" },
+                                        { icon: "gavel", accent: "green", title: "License", subtitle: "MIT License", url: "https://github.com/hthienloc/dankapps/blob/master/LICENSE" }
+                                    ]
 
-                                    DIcon {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        name: "open_in_new"
-                                        size: Theme.iconSizeSmall
-                                        color: Theme.surfaceVariantText
-                                    }
-                                }
+                                    ClockRow {
+                                        id: aboutLinkRow
+                                        required property var modelData
+                                        required property int index
 
-                                ClockRow {
-                                    width: parent.width
-                                    iconName: "code"
-                                    accent: "purple"
-                                    title: "GitHub"
-                                    subtitle: "github.com/hthienloc/dankapps"
-                                    clickable: true
-                                    isFirstInGroup: false
-                                    isLastInGroup: false
-                                    onClicked: Qt.openUrlExternally("https://github.com/hthienloc/dankapps")
+                                        width: parent.width
+                                        iconName: modelData.icon
+                                        accent: modelData.accent
+                                        title: modelData.title
+                                        subtitle: modelData.subtitle
+                                        clickable: true
+                                        isFirstInGroup: index === 0
+                                        isLastInGroup: index === 2
+                                        onClicked: Qt.openUrlExternally(aboutLinkRow.modelData.url)
 
-                                    DIcon {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        name: "open_in_new"
-                                        size: Theme.iconSizeSmall
-                                        color: Theme.surfaceVariantText
-                                    }
-                                }
-
-                                ClockRow {
-                                    width: parent.width
-                                    iconName: "gavel"
-                                    accent: "green"
-                                    title: "License"
-                                    subtitle: "MIT License"
-                                    clickable: true
-                                    isFirstInGroup: false
-                                    isLastInGroup: true
-                                    onClicked: Qt.openUrlExternally("https://github.com/hthienloc/dankapps/blob/master/LICENSE")
-
-                                    DIcon {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        name: "open_in_new"
-                                        size: Theme.iconSizeSmall
-                                        color: Theme.surfaceVariantText
+                                        DIcon {
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            name: "open_in_new"
+                                            size: Theme.iconSizeSmall
+                                            color: Theme.surfaceVariantText
+                                        }
                                     }
                                 }
                             }

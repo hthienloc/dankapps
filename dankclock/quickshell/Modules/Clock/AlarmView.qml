@@ -137,39 +137,13 @@ Item {
             }
 
             // Empty State
-            DCard {
+            ClockEmptyState {
                 visible: ClockService.alarms.length === 0
-                width: parent.width
-                height: 220
-                restRadius: Theme.cornerRadiusXL
-                color: ClockMetrics.rowColor
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: Theme.spacingM
-
-                    DIcon {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        name: "alarm_off"
-                        size: 42
-                        color: Theme.surfaceVariantText
-                    }
-
-                    StyledText {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "No Alarms Configured"
-                        font.pixelSize: Theme.fontSizeLarge
-                        font.weight: Theme.fontWeightBold
-                        color: Theme.surfaceText
-                    }
-
-                    StyledText {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Click New Alarm below to schedule a wake-up or reminder."
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.surfaceVariantText
-                    }
-                }
+                cardHeight: 220
+                iconName: "alarm_off"
+                iconSize: 42
+                title: "No Alarms Configured"
+                subtitle: "Click New Alarm below to schedule a wake-up or reminder."
             }
 
             // Responsive Alarm Grid (Android Clock Expandable Cards with Progressive Disclosure)
@@ -219,21 +193,12 @@ Item {
                             readonly property bool isEditingThis: (ClockService.timePickerOpen && ClockService.editingAlarmIndex === index)
                                 || (ClockService.labelDialogOpen && ClockService.editingLabelAlarmIndex === index)
                             readonly property bool cardHovered: cardHover.hovered || isEditingThis
-                            readonly property string hmText: {
+                            readonly property var timeParts: {
                                 void ClockService.alarmRevision;
-                                const h24 = alarmObj.hour;
-                                const m = String(alarmObj.minute).padStart(2, "0");
-                                if (SettingsData.use24HourClock)
-                                    return `${String(h24).padStart(2, "0")}:${m}`;
-                                const h12 = h24 % 12 || 12;
-                                return `${h12}:${m}`;
+                                return ClockService.formatClockParts(alarmObj.hour, alarmObj.minute);
                             }
-                            readonly property string ampmText: {
-                                void ClockService.alarmRevision;
-                                if (SettingsData.use24HourClock)
-                                    return "";
-                                return alarmObj.hour >= 12 ? "PM" : "AM";
-                            }
+                            readonly property string hmText: timeParts.timeText
+                            readonly property string ampmText: timeParts.meridiem
                             readonly property string labelStr: {
                                 void ClockService.alarmRevision;
                                 return alarmObj.label || "Alarm";
@@ -1018,29 +983,15 @@ Item {
     }
 
     // Official DCommon DFab Bar anchored to bottom-right
-    Row {
-        id: fabContainer
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: Theme.spacingXL
-        spacing: Theme.spacingS
-
-        DFab {
-            visible: ClockService.alarmEditMode || ClockService.alarms.length === 0
-            iconName: "add_alarm"
-            text: "New Alarm"
-            colorRole: "primary"
-            tooltipText: "Create a new alarm"
-            onClicked: ClockService.openAddAlarmPicker()
-        }
-
-        DFab {
-            visible: ClockService.alarms.length > 0
-            iconName: ClockService.alarmEditMode ? "check" : "edit"
-            text: ClockService.alarmEditMode ? "Done" : ""
-            colorRole: "primary"
-            tooltipText: ClockService.alarmEditMode ? "Finish editing alarms" : "Edit or delete alarms"
-            onClicked: ClockService.alarmEditMode = !ClockService.alarmEditMode
-        }
+    ClockEditFabBar {
+        editMode: ClockService.alarmEditMode
+        hasItems: ClockService.alarms.length > 0
+        createIcon: "add_alarm"
+        createText: "New Alarm"
+        createTooltip: "Create a new alarm"
+        editTooltip: "Edit or delete alarms"
+        doneTooltip: "Finish editing alarms"
+        onCreateClicked: ClockService.openAddAlarmPicker()
+        onToggleEditClicked: ClockService.alarmEditMode = !ClockService.alarmEditMode
     }
 }

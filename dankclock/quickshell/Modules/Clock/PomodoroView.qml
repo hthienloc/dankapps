@@ -136,61 +136,39 @@ Item {
                     }
 
                     // Dial & Timer Display with DRingGauge + DOrganicBlob
-                    Item {
-                        width: 240
-                        height: 240
+                    ClockRingDial {
                         anchors.horizontalCenter: parent.horizontalCenter
+                        dialSize: 240
+                        blobSize: 204
+                        progress: ClockService.pomodoroProgress
+                        ringColor: root.phaseColor
+                        active: ClockService.pomodoroRunning
+                        activeBlobAlpha: 0.20
+                        idleBlobAlpha: 0.10
+                        lobeAmount: 0.075
+                        centerSpacing: 6
 
-                        // Organic Blob Background
-                        DOrganicBlob {
-                            anchors.centerIn: parent
-                            width: 204
-                            height: 204
-                            fillColor: Theme.withAlpha(root.phaseColor, ClockService.pomodoroRunning ? 0.20 : 0.10)
-                            lobes: 12
-                            rotationDeg: -90
-                            lobeAmount: 0.075
-                            hillPower: 0.88
-                            roundness: 0.22
-                            paddingFrac: 0.02
-                            segments: 144
+                        DBadge {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: ClockService.pomodoroRunning ? "ACTIVE" : "READY"
+                            color: ClockService.pomodoroRunning ? root.phaseColor : Theme.secondaryContainer
+                            textColor: ClockService.pomodoroRunning ? "#111315" : Theme.onSecondaryContainer
                         }
 
-                        // Real Progress Arc Indicator
-                        DRingGauge {
-                            anchors.fill: parent
-                            value: ClockService.pomodoroProgress
-                            strokeWidth: 12
-                            ringColor: root.phaseColor
-                            trackColor: Theme.surfaceContainerHighest
+                        NumericText {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: root.timeDisplay
+                            font.pixelSize: 46
+                            font.weight: Font.Bold
+                            color: Theme.surfaceText
                         }
 
-                        Column {
-                            anchors.centerIn: parent
-                            spacing: 6
-
-                            DBadge {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: ClockService.pomodoroRunning ? "ACTIVE" : "READY"
-                                color: ClockService.pomodoroRunning ? root.phaseColor : Theme.secondaryContainer
-                                textColor: ClockService.pomodoroRunning ? "#111315" : Theme.onSecondaryContainer
-                            }
-
-                            NumericText {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: root.timeDisplay
-                                font.pixelSize: 46
-                                font.weight: Font.Bold
-                                color: Theme.surfaceText
-                            }
-
-                            StyledText {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: root.phaseTitle
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.weight: Theme.fontWeightBold
-                                color: root.phaseColor
-                            }
+                        StyledText {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: root.phaseTitle
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.weight: Theme.fontWeightBold
+                            color: root.phaseColor
                         }
                     }
 
@@ -741,19 +719,12 @@ Item {
     }
 
     // Official DCommon DFab Bar anchored to bottom-right
-    Row {
-        id: fabContainer
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: Theme.spacingXL
-        spacing: Theme.spacingS
-
-        DFab {
-            iconName: ClockService.pomodoroEditMode ? "check" : "edit"
-            text: ClockService.pomodoroEditMode ? "Done" : ""
-            colorRole: "primary"
-            tooltipText: ClockService.pomodoroEditMode ? "Finish editing Pomodoro" : "Edit durations or reset/skip session"
-            onClicked: ClockService.pomodoroEditMode = !ClockService.pomodoroEditMode
-        }
+    ClockEditFabBar {
+        editMode: ClockService.pomodoroEditMode
+        hasItems: true
+        showCreateButton: false
+        editTooltip: "Edit durations or reset/skip session"
+        doneTooltip: "Finish editing Pomodoro"
+        onToggleEditClicked: ClockService.pomodoroEditMode = !ClockService.pomodoroEditMode
     }
 }

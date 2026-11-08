@@ -61,73 +61,49 @@ DFlickable {
                 spacing: Theme.spacingL
 
                 // 240x240 Ring Gauge with Organic Blob
-                Item {
-                    width: 240
-                    height: 240
+                ClockRingDial {
                     anchors.horizontalCenter: parent.horizontalCenter
+                    dialSize: 240
+                    blobSize: 204
+                    progress: root.minuteProgress
+                    ringColor: Theme.primary
+                    active: ClockService.stopwatchRunning
+                    animated: false
 
-                    DOrganicBlob {
-                        anchors.centerIn: parent
-                        width: 204
-                        height: 204
-                        fillColor: Theme.withAlpha(Theme.primary, ClockService.stopwatchRunning ? 0.14 : 0.06)
-                        lobes: 12
-                        rotationDeg: -90
-                        lobeAmount: 0.06
-                        hillPower: 0.88
-                        roundness: 0.22
-                        paddingFrac: 0.02
-                        segments: 144
+                    DBadge {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: ClockService.stopwatchRunning ? "RUNNING" : (ClockService.stopwatchElapsedMs > 0 ? "PAUSED" : "STOPWATCH")
+                        color: ClockService.stopwatchRunning ? Theme.primary : Theme.secondaryContainer
+                        textColor: ClockService.stopwatchRunning ? Theme.onPrimary : Theme.onSecondaryContainer
                     }
 
-                    DRingGauge {
-                        anchors.fill: parent
-                        value: root.minuteProgress
-                        strokeWidth: 12
-                        ringColor: Theme.primary
-                        trackColor: Theme.surfaceContainerHighest
-                        animated: false
-                    }
+                    Row {
+                        anchors.horizontalCenter: parent.horizontalCenter
 
-                    Column {
-                        anchors.centerIn: parent
-                        spacing: Theme.spacingXS
-
-                        DBadge {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: ClockService.stopwatchRunning ? "RUNNING" : (ClockService.stopwatchElapsedMs > 0 ? "PAUSED" : "STOPWATCH")
-                            color: ClockService.stopwatchRunning ? Theme.primary : Theme.secondaryContainer
-                            textColor: ClockService.stopwatchRunning ? Theme.onPrimary : Theme.onSecondaryContainer
-                        }
-
-                        Row {
-                            anchors.horizontalCenter: parent.horizontalCenter
-
-                            NumericText {
-                                text: root.mainDigits
-                                font.pixelSize: root.mainDigits.length > 5 ? 30 : 44
-                                font.weight: Font.Bold
-                                color: Theme.surfaceText
-                                anchors.baseline: parent.bottom
-                            }
-
-                            NumericText {
-                                text: root.centiDigits
-                                font.pixelSize: root.mainDigits.length > 5 ? 20 : 28
-                                font.weight: Font.Bold
-                                color: Theme.primary
-                                anchors.baseline: parent.bottom
-                            }
+                        NumericText {
+                            text: root.mainDigits
+                            font.pixelSize: root.mainDigits.length > 5 ? 30 : 44
+                            font.weight: Font.Bold
+                            color: Theme.surfaceText
+                            anchors.baseline: parent.bottom
                         }
 
                         NumericText {
-                            visible: ClockService.stopwatchLaps.length > 0
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: "Lap " + (ClockService.stopwatchLaps.length + 1) + "  •  " + ClockService.formatStopwatch(ClockService.currentLapElapsedMs)
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.weight: Font.Medium
-                            color: Theme.surfaceVariantText
+                            text: root.centiDigits
+                            font.pixelSize: root.mainDigits.length > 5 ? 20 : 28
+                            font.weight: Font.Bold
+                            color: Theme.primary
+                            anchors.baseline: parent.bottom
                         }
+                    }
+
+                    NumericText {
+                        visible: ClockService.stopwatchLaps.length > 0
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "Lap " + (ClockService.stopwatchLaps.length + 1) + "  •  " + ClockService.formatStopwatch(ClockService.currentLapElapsedMs)
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.weight: Font.Medium
+                        color: Theme.surfaceVariantText
                     }
                 }
 
@@ -173,39 +149,14 @@ DFlickable {
                 text: ClockService.stopwatchLaps.length > 0 ? `Lap Splits (${ClockService.stopwatchLaps.length})` : "Lap Splits"
             }
 
-            DCard {
+            ClockEmptyState {
                 visible: ClockService.stopwatchLaps.length === 0
-                width: parent.width
-                height: 150
-                restRadius: Theme.cornerRadiusXL
-                color: ClockMetrics.rowColor
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: Theme.spacingS
-
-                    DIcon {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        name: "flag"
-                        size: 36
-                        color: Theme.surfaceVariantText
-                    }
-
-                    StyledText {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "No Laps Recorded"
-                        font.pixelSize: Theme.fontSizeMedium
-                        font.weight: Theme.fontWeightBold
-                        color: Theme.surfaceText
-                    }
-
-                    StyledText {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "Press Lap while the stopwatch is running to record split times."
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.surfaceVariantText
-                    }
-                }
+                cardHeight: 150
+                iconName: "flag"
+                iconSize: 36
+                title: "No Laps Recorded"
+                titlePixelSize: Theme.fontSizeMedium
+                subtitle: "Press Lap while the stopwatch is running to record split times."
             }
 
             ClockGroup {

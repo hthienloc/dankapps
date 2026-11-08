@@ -42,20 +42,9 @@ Item {
         return `${sign}${m}m`;
     }
 
-    readonly property string localTimeStr: {
-        const d = root.effectiveNow;
-        const h24 = d.getHours();
-        const m = String(d.getMinutes()).padStart(2, "0");
-        if (SettingsData.use24HourClock)
-            return `${String(h24).padStart(2, "0")}:${m}`;
-        const h12 = h24 % 12 || 12;
-        return `${h12}:${m}`;
-    }
-    readonly property string localMeridiemStr: {
-        if (SettingsData.use24HourClock)
-            return "";
-        return root.effectiveNow.getHours() >= 12 ? "PM" : "AM";
-    }
+    readonly property var localTimeParts: ClockService.formatClockParts(root.effectiveNow.getHours(), root.effectiveNow.getMinutes())
+    readonly property string localTimeStr: localTimeParts.timeText
+    readonly property string localMeridiemStr: localTimeParts.meridiem
     readonly property string localDayName: Qt.formatDate(root.effectiveNow, "dddd")
 
     readonly property bool isWideLayout: width >= 660
@@ -910,15 +899,19 @@ Item {
                                 return;
                             }
                         }
-                        const mapped = cityPill.mapToItem(gridRoot, mouse.x, mouse.y);
-                        const colW = gridRoot.cardWidth + gridRoot.spacing;
-                        const rowH = cityPill.height + gridRoot.spacing;
-                        const targetCol = Math.max(0, Math.min(gridRoot.columns - 1, Math.floor(mapped.x / colW)));
-                        const targetRow = Math.max(0, Math.floor(mapped.y / rowH));
-                        // Slot 0 is Local Time, so worldClocks index = slotIndex - 1
-                        const slotIdx = targetRow * gridRoot.columns + targetCol;
-                        const targetWorldIdx = Math.max(0, Math.min(ClockService.worldClocks.length - 1, slotIdx - 1));
-                        if (slotIdx >= 1 && targetWorldIdx !== root.draggingIndex) {
+                        const targetWorldIdx = ClockService.calcGridDropIndex(
+                            cityPill,
+                            gridRoot,
+                            mouse.x,
+                            mouse.y,
+                            gridRoot.cardWidth,
+                            cityPill.height,
+                            gridRoot.spacing,
+                            gridRoot.columns,
+                            ClockService.worldClocks.length,
+                            1
+                        );
+                        if (targetWorldIdx >= 0 && targetWorldIdx !== root.draggingIndex) {
                             ClockService.moveWorldClock(root.draggingIndex, targetWorldIdx);
                             root.draggingIndex = targetWorldIdx;
                         }
@@ -1069,29 +1062,15 @@ Item {
     }
 
     // Official DCommon DFab Bar anchored to bottom-right
-    Row {
-        id: fabContainer
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: Theme.spacingXL
-        spacing: Theme.spacingS
-
-        DFab {
-            visible: ClockService.worldClockEditMode || ClockService.worldClocks.length === 0
-            iconName: "add"
-            text: ClockService.worldClockEditMode ? "Add City" : ""
-            colorRole: "primary"
-            tooltipText: "Add a world clock city"
-            onClicked: ClockService.citySheetOpen = true
-        }
-
-        DFab {
-            visible: ClockService.worldClocks.length > 0
-            iconName: ClockService.worldClockEditMode ? "check" : "edit"
-            text: ClockService.worldClockEditMode ? "Done" : ""
-            colorRole: "primary"
-            tooltipText: ClockService.worldClockEditMode ? "Finish editing world clocks" : "Edit or remove cities"
-            onClicked: ClockService.worldClockEditMode = !ClockService.worldClockEditMode
-        }
+    ClockEditFabBar {
+        editMode: ClockService.worldClockEditMode
+        hasItems: ClockService.worldClocks.length > 0
+        createIcon: "add"
+        createText: ClockService.worldClockEditMode ? "Add City" : ""
+        createTooltip: "Add a world clock city"
+        editTooltip: "Edit or remove cities"
+        doneTooltip: "Finish editing world clocks"
+        onCreateClicked: ClockService.citySheetOpen = true
+        onToggleEditClicked: ClockService.worldClockEditMode = !ClockService.worldClockEditMode
     }
 }
