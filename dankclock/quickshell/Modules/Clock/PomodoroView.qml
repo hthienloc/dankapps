@@ -158,7 +158,7 @@ Item {
                         NumericText {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: root.timeDisplay
-                            font.pixelSize: 46
+                            font.pixelSize: Theme.fontSizeDisplay
                             font.weight: Font.Bold
                             color: Theme.surfaceText
                         }
@@ -239,7 +239,7 @@ Item {
                                         DIcon {
                                             visible: stepPill.isActive || !stepPill.isFocus
                                             name: stepPill.stepIcon
-                                            size: 14
+                                            size: Theme.iconSizeSmall
                                             color: stepPill.isActive
                                                 ? "#111315"
                                                 : (stepPill.isCompleted ? stepPill.stepAccent : Theme.surfaceVariantText)
@@ -249,7 +249,7 @@ Item {
                                         StyledText {
                                             visible: stepPill.isActive || stepPill.isFocus
                                             text: stepPill.isActive ? stepPill.stepLabel : String(stepPill.focusNum)
-                                            font.pixelSize: 11
+                                            font.pixelSize: Theme.fontSizeSmall
                                             font.weight: (stepPill.isActive || stepPill.isCompleted) ? Font.Bold : Font.Medium
                                             color: stepPill.isActive
                                                 ? "#111315"
@@ -362,7 +362,7 @@ Item {
 
                             DIcon {
                                 name: "bar_chart"
-                                size: 18
+                                size: Theme.chipIconSize
                                 color: root.phaseColor
                                 anchors.verticalCenter: parent.verticalCenter
                             }
@@ -412,7 +412,7 @@ Item {
 
                                         width: periodLabel.implicitWidth + 20
                                         height: 24
-                                        radius: 12
+                                        radius: Theme.cornerRadiusM
                                         color: selected
                                             ? root.phaseColor
                                             : (periodMouse.containsMouse ? Theme.withAlpha(Theme.surfaceVariant, 0.4) : "transparent")
@@ -426,7 +426,7 @@ Item {
                                             id: periodLabel
                                             anchors.centerIn: parent
                                             text: periodChip.modelData.label
-                                            font.pixelSize: 11
+                                            font.pixelSize: Theme.fontSizeSmall
                                             font.weight: periodChip.selected ? Font.Bold : Font.Medium
                                             color: periodChip.selected ? "#111315" : Theme.surfaceVariantText
                                         }
@@ -473,7 +473,7 @@ Item {
                                 required property var modelData
                                 width: Math.floor((parent.width - Theme.spacingM * 2) / 3)
                                 height: 52
-                                radius: 16
+                                radius: Theme.cornerRadiusL
                                 color: Theme.withAlpha(Theme.surfaceVariant, 0.22)
 
                                 Row {
@@ -492,7 +492,7 @@ Item {
                                         DIcon {
                                             anchors.centerIn: parent
                                             name: kpiCard.modelData.icon
-                                            size: 15
+                                            size: Theme.iconSizeSmall
                                             color: root.phaseColor
                                         }
                                     }
@@ -503,13 +503,13 @@ Item {
 
                                         StyledText {
                                             text: kpiCard.modelData.label
-                                            font.pixelSize: 10
+                                            font.pixelSize: Theme.fontSizeSmall
                                             color: Theme.surfaceVariantText
                                         }
 
                                         NumericText {
                                             text: kpiCard.modelData.value
-                                            font.pixelSize: 13
+                                            font.pixelSize: Theme.fontSizeMedium
                                             font.weight: Font.Bold
                                             color: Theme.surfaceText
                                             horizontalAlignment: Text.AlignLeft
@@ -552,7 +552,7 @@ Item {
                                     anchors.right: parent.right
                                     anchors.verticalCenter: parent.top
                                     text: ClockService.formatFocusMinutes(Math.round(root.focusStats.scaleMax * guideItem.modelData))
-                                    font.pixelSize: 10
+                                    font.pixelSize: Theme.fontSizeSmall
                                     color: Theme.surfaceVariantText
                                     horizontalAlignment: Text.AlignRight
                                 }
@@ -592,7 +592,7 @@ Item {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         y: Math.max(0, chartArea.plotBottom - barSlot.barH - 18)
                                         text: ClockService.formatFocusMinutes(barSlot.modelData.minutes)
-                                        font.pixelSize: 10
+                                        font.pixelSize: Theme.fontSizeSmall
                                         font.weight: Font.Bold
                                         color: (barSlot.modelData.isCurrent || barSlot.isHovered) ? root.phaseColor : Theme.surfaceVariantText
                                     }
@@ -626,7 +626,7 @@ Item {
                                         anchors.horizontalCenter: parent.horizontalCenter
                                         y: chartArea.plotBottom + 6
                                         text: barSlot.modelData.label
-                                        font.pixelSize: 11
+                                        font.pixelSize: Theme.fontSizeSmall
                                         font.weight: (barSlot.modelData.isCurrent || barSlot.isHovered) ? Font.Bold : Font.Medium
                                         color: (barSlot.modelData.isCurrent || barSlot.isHovered) ? root.phaseColor : Theme.surfaceVariantText
                                     }
@@ -668,8 +668,8 @@ Item {
                     DNumberStepper {
                         anchors.verticalCenter: parent.verticalCenter
                         text: `${SettingsData.pomodoroFocusMinutes}m`
-                        textSize: 16
-                        buttonSize: 28
+                        textSize: Theme.fontSizeLarge
+                        buttonSize: Theme.buttonHeightXXS
                         incrementEnabled: SettingsData.pomodoroFocusMinutes < 90
                         decrementEnabled: SettingsData.pomodoroFocusMinutes > 5
                         onIncrement: () => SettingsData.pomodoroFocusMinutes = Math.min(90, SettingsData.pomodoroFocusMinutes + 5)

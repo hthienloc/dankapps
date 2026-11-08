@@ -8,7 +8,7 @@ DCard {
     id: root
 
     property string iconName: "info"
-    property real iconSize: 40
+    property real iconSize: Theme.iconButtonSize
     property string title: ""
     property real titlePixelSize: Theme.fontSizeLarge
     property string subtitle: ""

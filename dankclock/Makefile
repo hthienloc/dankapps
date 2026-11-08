@@ -43,7 +43,7 @@ install: build
 	@install -D -m 644 distro/$(ICON_NAME).desktop $(DESTDIR)$(APPLICATIONS_DIR)/$(ICON_NAME).desktop
 	@install -D -m 644 assets/$(ICON_NAME).svg $(DESTDIR)$(ICON_DIR)/$(ICON_NAME).svg
 	@mkdir -p $(DESTDIR)$(QUICKSHELL_DIR)
-	@cp -rL $(SHELL_DIR)/* $(DESTDIR)$(QUICKSHELL_DIR)/
+	@rsync -aL --delete $(SHELL_DIR)/ $(DESTDIR)$(QUICKSHELL_DIR)/
 
 uninstall:
 	@rm -f $(DESTDIR)$(INSTALL_DIR)/$(BINARY_NAME)

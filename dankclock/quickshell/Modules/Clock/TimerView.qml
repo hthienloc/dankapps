@@ -182,7 +182,7 @@ Item {
                                         StyledText {
                                             anchors.horizontalCenter: parent.horizontalCenter
                                             text: stepperCard.modelData.title
-                                            font.pixelSize: Theme.fontSizeSmall - 1
+                                            font.pixelSize: Theme.fontSizeSmall
                                             font.weight: Theme.fontWeightBold
                                             color: Theme.primary
                                         }
@@ -190,8 +190,8 @@ Item {
                                         DNumberStepper {
                                             anchors.horizontalCenter: parent.horizontalCenter
                                             text: String(stepperCard.modelData.value).padStart(2, "0")
-                                            textSize: 32
-                                            buttonSize: 32
+                                            textSize: Theme.fontSizeXXLarge
+                                            buttonSize: Theme.buttonHeightXS
                                             incrementEnabled: stepperCard.modelData.value <= stepperCard.modelData.max - stepperCard.modelData.step
                                             decrementEnabled: stepperCard.modelData.value > 0
                                             onIncrement: () => ClockService[stepperCard.modelData.prop] = Math.min(stepperCard.modelData.max, stepperCard.modelData.value + stepperCard.modelData.step)
@@ -243,7 +243,7 @@ Item {
                             NumericText {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: root.currentTimer ? ClockService.formatDuration(root.currentRemainingMs) : "00:00"
-                                font.pixelSize: 44
+                                font.pixelSize: Theme.fontSizeDisplay
                                 font.weight: Font.Bold
                                 color: Theme.surfaceText
                             }
@@ -381,7 +381,7 @@ Item {
 
                                 width: timersGridContainer.cardWidth
                                 height: 92
-                                radius: timerCardHover.hovered ? 26 : 22
+                                radius: timerCardHover.hovered ? Theme.cornerRadiusXL : Theme.cornerRadiusL
                                 scale: isBeingDragged ? 1.03 : (timerCardMouse.pressed ? 0.98 : 1.0)
                                 z: isBeingDragged ? 50 : 1
                                 color: isCurrent
@@ -486,7 +486,7 @@ Item {
                                                 name: ClockService.timerEditMode
                                                     ? "drag_indicator"
                                                     : (timerCard.itemRunning ? "timelapse" : "hourglass_empty")
-                                                size: 16
+                                                size: Theme.iconSizeSmall
                                                 color: timerCard.itemRunning ? Theme.primary : Theme.surfaceVariantText
                                                 anchors.verticalCenter: parent.verticalCenter
                                             }
@@ -508,7 +508,7 @@ Item {
                                             anchors.right: parent.right
                                             anchors.verticalCenter: parent.verticalCenter
                                             text: timerCard.itemFinished ? "Finished" : (timerCard.itemRunning ? "Running" : (timerCard.isCurrent ? "Active" : "Paused"))
-                                            font.pixelSize: 11
+                                            font.pixelSize: Theme.fontSizeSmall
                                             font.weight: Font.Medium
                                             color: timerCard.itemFinished ? Theme.error : (timerCard.itemRunning ? Theme.primary : Theme.surfaceVariantText)
                                         }
@@ -525,7 +525,7 @@ Item {
                                             anchors.rightMargin: Theme.spacingXS
                                             anchors.verticalCenter: parent.verticalCenter
                                             text: timerCard.countdownText
-                                            font.pixelSize: (timerCard.isLongCountdown && ClockService.timerEditMode) ? 16 : (timerCard.isLongCountdown ? 18 : 22)
+                                            font.pixelSize: timerCard.isLongCountdown ? Theme.fontSizeLarge : Theme.fontSizeXLarge
                                             font.weight: Font.Bold
                                             color: timerCard.itemRunning ? Theme.primary : Theme.surfaceText
                                             horizontalAlignment: Text.AlignLeft
@@ -536,7 +536,7 @@ Item {
                                             id: timerCardControls
                                             anchors.right: parent.right
                                             anchors.verticalCenter: parent.verticalCenter
-                                            spacing: ClockService.timerEditMode ? 2 : 4
+                                            spacing: ClockService.timerEditMode ? Theme.spacingXXS : Theme.spacingXS
 
                                             DIconButton {
                                                 iconName: timerCard.itemRunning ? "pause" : "play_arrow"

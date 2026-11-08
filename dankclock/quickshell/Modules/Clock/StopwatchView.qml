@@ -82,7 +82,7 @@ DFlickable {
 
                         NumericText {
                             text: root.mainDigits
-                            font.pixelSize: root.mainDigits.length > 5 ? 30 : 44
+                            font.pixelSize: root.mainDigits.length > 5 ? Theme.fontSizeXXLarge : Theme.fontSizeDisplay
                             font.weight: Font.Bold
                             color: Theme.surfaceText
                             anchors.baseline: parent.bottom
@@ -90,7 +90,7 @@ DFlickable {
 
                         NumericText {
                             text: root.centiDigits
-                            font.pixelSize: root.mainDigits.length > 5 ? 20 : 28
+                            font.pixelSize: root.mainDigits.length > 5 ? Theme.fontSizeXLarge : Theme.fontSizeXXLarge
                             font.weight: Font.Bold
                             color: Theme.primary
                             anchors.baseline: parent.bottom
@@ -153,7 +153,7 @@ DFlickable {
                 visible: ClockService.stopwatchLaps.length === 0
                 cardHeight: 150
                 iconName: "flag"
-                iconSize: 36
+                iconSize: Theme.iconSizeLarge
                 title: "No Laps Recorded"
                 titlePixelSize: Theme.fontSizeMedium
                 subtitle: "Press Lap while the stopwatch is running to record split times."
@@ -188,12 +188,12 @@ DFlickable {
                             anchors.verticalCenter: parent.verticalCenter
 
                             Column {
-                                spacing: 4
+                                spacing: Theme.spacingXS
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 StyledText {
                                     text: "LAP TIME"
-                                    font.pixelSize: 10
+                                    font.pixelSize: Theme.fontSizeSmall
                                     font.weight: Font.Bold
                                     color: Theme.surfaceVariantText
                                     anchors.right: parent.right
@@ -209,12 +209,12 @@ DFlickable {
                             }
 
                             Column {
-                                spacing: 4
+                                spacing: Theme.spacingXS
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 StyledText {
                                     text: "TOTAL"
-                                    font.pixelSize: 10
+                                    font.pixelSize: Theme.fontSizeSmall
                                     font.weight: Font.Bold
                                     color: Theme.surfaceVariantText
                                     anchors.right: parent.right

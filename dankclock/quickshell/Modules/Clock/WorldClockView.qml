@@ -102,7 +102,7 @@ Item {
                 id: scrubberCard
                 width: parent.width
                 height: scrubberCol.implicitHeight + Theme.spacingL * 2
-                radius: 26
+                radius: Theme.cornerRadiusXL
                 color: scrubberHover.hovered ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow
                 border.width: root.isScrubbing ? 1.5 : 1
                 border.color: root.isScrubbing
@@ -149,7 +149,7 @@ Item {
 
                                 DIcon {
                                     name: root.isScrubbing ? "history_toggle_off" : "schedule"
-                                    size: 16
+                                    size: Theme.iconSizeSmall
                                     color: Theme.primary
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
@@ -198,14 +198,14 @@ Item {
                             Rectangle {
                                 width: 36
                                 height: 24
-                                radius: 12
+                                radius: Theme.cornerRadiusM
                                 color: minusHourMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.withAlpha(Theme.surfaceVariant, 0.35)
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 StyledText {
                                     anchors.centerIn: parent
                                     text: "-1h"
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fontSizeSmall
                                     font.weight: Font.Bold
                                     color: Theme.surfaceText
                                 }
@@ -222,14 +222,14 @@ Item {
                             Rectangle {
                                 width: 36
                                 height: 24
-                                radius: 12
+                                radius: Theme.cornerRadiusM
                                 color: plusHourMouse.containsMouse ? Theme.surfaceContainerHighest : Theme.withAlpha(Theme.surfaceVariant, 0.35)
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 StyledText {
                                     anchors.centerIn: parent
                                     text: "+1h"
-                                    font.pixelSize: 11
+                                    font.pixelSize: Theme.fontSizeSmall
                                     font.weight: Font.Bold
                                     color: Theme.surfaceText
                                 }
@@ -261,7 +261,7 @@ Item {
 
                                 StyledText {
                                     text: `${String(parent.hVal).padStart(2, "0")}:00`
-                                    font.pixelSize: 10
+                                    font.pixelSize: Theme.fontSizeSmall
                                     font.weight: Font.Medium
                                     color: (parent.hVal >= 9 && parent.hVal <= 18)
                                         ? Theme.withAlpha(Theme.primary, 0.9)
@@ -702,7 +702,7 @@ Item {
             id: localPill
             width: gridRoot.cardWidth
             height: 76
-            radius: localHover.hovered ? 26 : 22
+            radius: localHover.hovered ? Theme.cornerRadiusXL : Theme.cornerRadiusL
             color: localHover.hovered
                 ? Theme.blend(Theme.secondaryContainer, Theme.primary, 0.18)
                 : Theme.withAlpha(Theme.secondaryContainer, 0.85)
@@ -771,7 +771,7 @@ Item {
                         text: root.localTimeStr
                         Accessible.role: Accessible.StaticText
                         Accessible.name: "Local time " + root.localTimeStr + (root.localMeridiemStr ? " " + root.localMeridiemStr : "")
-                        font.pixelSize: 23
+                        font.pixelSize: Theme.fontSizeXLarge
                         font.weight: Font.Bold
                         color: Theme.surfaceText
                         anchors.verticalCenter: parent.verticalCenter
@@ -780,7 +780,7 @@ Item {
                     StyledText {
                         visible: root.localMeridiemStr !== ""
                         text: root.localMeridiemStr
-                        font.pixelSize: 10
+                        font.pixelSize: Theme.fontSizeSmall
                         font.weight: Font.Bold
                         color: Theme.primary
                         anchors.baseline: localHmText.baseline
@@ -834,7 +834,7 @@ Item {
 
                 width: gridRoot.cardWidth
                 height: 76
-                radius: isHovered ? 26 : 22
+                radius: isHovered ? Theme.cornerRadiusXL : Theme.cornerRadiusL
                 scale: isBeingDragged ? 1.03 : (pillDragArea.pressed ? 0.98 : 1.0)
                 z: isBeingDragged ? 50 : 1
                 color: isHovered ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow
@@ -990,7 +990,7 @@ Item {
                         NumericText {
                             id: cityHmText
                             text: cityPill.timeInfo.timeText
-                            font.pixelSize: 23
+                            font.pixelSize: Theme.fontSizeXLarge
                             font.weight: Font.Bold
                             color: Theme.surfaceText
                             anchors.verticalCenter: parent.verticalCenter
@@ -999,7 +999,7 @@ Item {
                         StyledText {
                             visible: cityPill.timeInfo.meridiem !== ""
                             text: cityPill.timeInfo.meridiem
-                            font.pixelSize: 10
+                            font.pixelSize: Theme.fontSizeSmall
                             font.weight: Font.Bold
                             color: cityPill.cityColor
                             anchors.baseline: cityHmText.baseline

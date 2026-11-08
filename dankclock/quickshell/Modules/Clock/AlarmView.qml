@@ -68,14 +68,14 @@ Item {
                     Rectangle {
                         width: 48
                         height: 48
-                        radius: 24
+                        radius: Theme.cornerRadiusXL
                         color: Theme.primary
                         anchors.verticalCenter: parent.verticalCenter
 
                         DIcon {
                             anchors.centerIn: parent
                             name: "notifications_active"
-                            size: 24
+                            size: Theme.iconSize
                             color: Theme.onPrimary
                         }
                     }
@@ -141,7 +141,7 @@ Item {
                 visible: ClockService.alarms.length === 0
                 cardHeight: 220
                 iconName: "alarm_off"
-                iconSize: 42
+                iconSize: Theme.iconButtonSize
                 title: "No Alarms Configured"
                 subtitle: "Click New Alarm below to schedule a wake-up or reminder."
             }
@@ -342,7 +342,7 @@ Item {
 
                                         DIcon {
                                             name: "label"
-                                            size: 15
+                                            size: Theme.iconSizeSmall
                                             color: labelMouse.containsMouse ? Theme.primary : (alarmCard.isEnabled ? Theme.surfaceVariantText : Theme.withAlpha(Theme.surfaceVariantText, 0.5))
                                             anchors.verticalCenter: parent.verticalCenter
                                         }
@@ -361,7 +361,7 @@ Item {
                                         DIcon {
                                             visible: labelMouse.containsMouse || ClockService.alarmEditMode
                                             name: "edit"
-                                            size: 13
+                                            size: Theme.iconSizeSmall
                                             color: Theme.primary
                                             anchors.verticalCenter: parent.verticalCenter
                                         }
@@ -432,7 +432,7 @@ Item {
                                             DIcon {
                                                 anchors.centerIn: parent
                                                 name: "expand_more"
-                                                size: 18
+                                                size: Theme.chipIconSize
                                                 color: alarmCard.isExpanded ? Theme.primary : Theme.surfaceVariantText
                                                 rotation: alarmCard.isExpanded ? 180 : 0
 
@@ -491,7 +491,7 @@ Item {
                                         NumericText {
                                             id: hmLabel
                                             text: alarmCard.hmText
-                                            font.pixelSize: 40
+                                            font.pixelSize: Theme.fontSizeDisplay
                                             font.weight: Font.Bold
                                             color: alarmCard.isEnabled ? Theme.surfaceText : Theme.surfaceVariantText
                                             anchors.verticalCenter: parent.verticalCenter
@@ -745,7 +745,7 @@ Item {
 
                                                     width: presetText.implicitWidth + 16
                                                     height: 24
-                                                    radius: 12
+                                                    radius: Theme.cornerRadiusM
                                                     color: isActivePreset
                                                         ? Theme.primary
                                                         : (presetMouse.containsMouse ? Theme.surfaceContainer : Theme.withAlpha(Theme.surfaceVariant, 0.35))
@@ -754,7 +754,7 @@ Item {
                                                         id: presetText
                                                         anchors.centerIn: parent
                                                         text: modelData.label
-                                                        font.pixelSize: 11
+                                                        font.pixelSize: Theme.fontSizeSmall
                                                         font.weight: isActivePreset ? Font.Bold : Font.Medium
                                                         color: isActivePreset ? Theme.onPrimary : Theme.surfaceVariantText
                                                     }
@@ -811,14 +811,14 @@ Item {
 
                                                         DIcon {
                                                             name: modelData.icon
-                                                            size: 14
+                                                            size: Theme.iconSizeSmall
                                                             color: isSelectedSound ? Theme.primary : Theme.surfaceVariantText
                                                             anchors.verticalCenter: parent.verticalCenter
                                                         }
 
                                                         StyledText {
                                                             text: modelData.name
-                                                            font.pixelSize: 11
+                                                            font.pixelSize: Theme.fontSizeSmall
                                                             font.weight: isSelectedSound ? Font.Bold : Font.Medium
                                                             color: isSelectedSound ? Theme.onSecondaryContainer : Theme.surfaceText
                                                             anchors.verticalCenter: parent.verticalCenter
@@ -865,7 +865,7 @@ Item {
 
                                                     width: 38
                                                     height: 24
-                                                    radius: 12
+                                                    radius: Theme.cornerRadiusM
                                                     color: isSnoozeSelected
                                                         ? Theme.primaryContainer
                                                         : (snoozeMouse.containsMouse ? Theme.surfaceContainer : Theme.withAlpha(Theme.surfaceVariant, 0.3))
@@ -873,7 +873,7 @@ Item {
                                                     StyledText {
                                                         anchors.centerIn: parent
                                                         text: `${modelData}m`
-                                                        font.pixelSize: 11
+                                                        font.pixelSize: Theme.fontSizeSmall
                                                         font.weight: isSnoozeSelected ? Font.Bold : Font.Medium
                                                         color: isSnoozeSelected ? Theme.onPrimaryContainer : Theme.surfaceVariantText
                                                     }
@@ -926,14 +926,14 @@ Item {
 
                                                     DIcon {
                                                         name: alarmCard.deleteAfterGoesOff ? "check_box" : "check_box_outline_blank"
-                                                        size: 14
+                                                        size: Theme.iconSizeSmall
                                                         color: alarmCard.deleteAfterGoesOff ? Theme.primary : Theme.surfaceVariantText
                                                         anchors.verticalCenter: parent.verticalCenter
                                                     }
 
                                                     StyledText {
                                                         text: "Delete after goes off"
-                                                        font.pixelSize: 11
+                                                        font.pixelSize: Theme.fontSizeSmall
                                                         font.weight: Font.Medium
                                                         color: alarmCard.deleteAfterGoesOff ? Theme.onPrimaryContainer : Theme.surfaceVariantText
                                                         anchors.verticalCenter: parent.verticalCenter
