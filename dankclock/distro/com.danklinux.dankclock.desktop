@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=DankClock
+GenericName=Clock & Timer
+Comment=Clock, Alarm, Timer & Stopwatch for DMS
+Exec=dclock %u
+Icon=com.danklinux.dankclock
+Terminal=false
+Type=Application
+Categories=Utility;Clock;Qt;
+Keywords=clock;alarm;timer;stopwatch;world;dank;
+StartupNotify=true
+StartupWMClass=com.danklinux.dankclock
