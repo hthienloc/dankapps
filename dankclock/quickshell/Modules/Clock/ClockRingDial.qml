@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Shapes
 import qs.Common
 import qs.DCommon.Widgets
 
@@ -23,6 +24,41 @@ Item {
     default property alias centerContent: centerCol.data
 
     signal clicked
+
+    readonly property real strokeWidth: 12
+    // Running dials draw a rippling arc; paused dials flatten back to a plain, dimmer arc.
+    readonly property real waveAmplitude: 3
+    readonly property int waveCount: 14
+    readonly property int waveSegmentsPerTurn: 240
+    readonly property real pausedRingAlpha: 0.45
+    readonly property real ringRadius: dialSize / 2 - strokeWidth / 2 - waveAmplitude
+
+    property real displayProgress: Math.max(0, Math.min(1, progress))
+    readonly property real currentAmplitude: active ? waveAmplitude : 0
+
+    Behavior on displayProgress {
+        enabled: root.animated && Theme.animationsEnabled
+        NumberAnimation {
+            duration: ClockMetrics.transitionDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: ClockMetrics.curveFastSpatial
+        }
+    }
+
+    readonly property var wavePoints: {
+        const sweep = displayProgress * Math.PI * 2;
+        const steps = Math.max(2, Math.ceil(waveSegmentsPerTurn * displayProgress));
+        const cx = width / 2;
+        const cy = height / 2;
+        const pts = [];
+        for (let i = 0; i <= steps; i++) {
+            const t = sweep * i / steps;
+            const r = ringRadius + currentAmplitude * Math.sin(t * waveCount);
+            const a = t - Math.PI / 2;
+            pts.push(Qt.point(cx + r * Math.cos(a), cy + r * Math.sin(a)));
+        }
+        return pts;
+    }
 
     width: dialSize
     height: dialSize
@@ -53,11 +89,29 @@ Item {
 
     DRingGauge {
         anchors.fill: parent
-        value: root.progress
-        strokeWidth: 12
-        ringColor: root.ringColor
+        anchors.margins: root.waveAmplitude
+        value: 0
+        strokeWidth: root.strokeWidth
         trackColor: Theme.surfaceContainerHighest
-        animated: root.animated
+        animated: false
+    }
+
+    Shape {
+        anchors.fill: parent
+        visible: root.displayProgress > 0
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: root.active ? root.ringColor : Theme.withAlpha(root.ringColor, root.pausedRingAlpha)
+            strokeWidth: root.strokeWidth
+            capStyle: ShapePath.RoundCap
+            joinStyle: ShapePath.RoundJoin
+
+            PathPolyline {
+                path: root.wavePoints
+            }
+        }
     }
 
     Column {

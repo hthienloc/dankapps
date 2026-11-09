@@ -73,13 +73,6 @@ DFlickable {
                     tooltipText: ClockService.stopwatchRunning ? "Click to stop" : (ClockService.stopwatchElapsedMs > 0 ? "Click to resume" : "Click to start")
                     onClicked: ClockService.toggleStopwatch()
 
-                    DBadge {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: ClockService.stopwatchRunning ? "RUNNING" : (ClockService.stopwatchElapsedMs > 0 ? "PAUSED" : "STOPWATCH")
-                        color: ClockService.stopwatchRunning ? Theme.primary : Theme.secondaryContainer
-                        textColor: ClockService.stopwatchRunning ? Theme.onPrimary : Theme.onSecondaryContainer
-                    }
-
                     Row {
                         anchors.horizontalCenter: parent.horizontalCenter
 

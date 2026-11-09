@@ -151,13 +151,6 @@ Item {
                         tooltipText: ClockService.pomodoroRunning ? "Click to pause session" : "Click to start session"
                         onClicked: ClockService.togglePomodoro()
 
-                        DBadge {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: ClockService.pomodoroRunning ? "ACTIVE" : "READY"
-                            color: ClockService.pomodoroRunning ? root.phaseColor : Theme.secondaryContainer
-                            textColor: ClockService.pomodoroRunning ? "#111315" : Theme.onSecondaryContainer
-                        }
-
                         NumericText {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: root.timeDisplay
