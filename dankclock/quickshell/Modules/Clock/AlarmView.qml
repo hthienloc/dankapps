@@ -401,7 +401,7 @@ Item {
                                         DActionButton {
                                             id: expandBtn
                                             buttonSize: Theme.buttonHeightXXS
-                                            iconName: "expand_more"
+                                            iconName: alarmCard.isExpanded ? "expand_less" : "expand_more"
                                             iconSize: Theme.chipIconSize
                                             iconColor: alarmCard.isExpanded ? Theme.primary : Theme.surfaceVariantText
                                             backgroundColor: alarmCard.isExpanded
