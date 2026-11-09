@@ -15,9 +15,21 @@ FloatingWindow {
     readonly property var navDestinations: [
         { icon: "alarm", text: "Alarms" },
         { icon: "public", text: "Clock" },
-        { icon: "hourglass_empty", text: "Timers" },
-        { icon: "psychology", text: "Pomodoro" },
-        { icon: "timer", text: "Stopwatch" }
+        {
+            icon: "hourglass_empty",
+            text: "Timers",
+            badgeCount: ClockService.runningTimerCount
+        },
+        {
+            icon: "psychology",
+            text: "Pomodoro",
+            badgeCount: ClockService.pomodoroRunning ? 1 : 0
+        },
+        {
+            icon: "timer",
+            text: "Stopwatch",
+            badgeCount: ClockService.stopwatchRunning ? 1 : 0
+        }
     ]
 
     title: `${ClockService.currentTabIndex === 5 ? "Settings" : (navDestinations[ClockService.currentTabIndex]?.text ?? "Clock")} — DankClock`

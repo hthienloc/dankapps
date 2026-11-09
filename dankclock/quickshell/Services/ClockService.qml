@@ -135,6 +135,16 @@ Singleton {
         return false;
     }
 
+    readonly property int runningTimerCount: {
+        void timerTickRevision;
+        let count = 0;
+        for (let i = 0; i < timers.length; i++) {
+            if (timers[i].running)
+                count++;
+        }
+        return count;
+    }
+
     // Pomodoro State
     property string pomodoroPhase: "focus" // "focus" | "shortBreak" | "longBreak"
     property bool pomodoroRunning: false
