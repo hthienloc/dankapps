@@ -67,11 +67,11 @@ Item {
             Item {
                 id: clockRow
                 width: parent.width
-                height: 280
+                height: 340
 
                 AnalogWorldDial {
-                    width: 280
-                    height: 280
+                    width: 340
+                    height: 340
                     anchors.centerIn: parent
                 }
             }
