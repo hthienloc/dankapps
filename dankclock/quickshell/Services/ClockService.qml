@@ -1477,6 +1477,7 @@ Singleton {
         Quickshell.execDetached([
             "dms", "notify",
             "-a", "DankClock",
+            "-n", "com.danklinux.dankclock",
             "-i", iconName,
             "-u", "critical",
             String(alertObj.title || "DankClock"),
