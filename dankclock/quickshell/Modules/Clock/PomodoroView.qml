@@ -289,7 +289,7 @@ Item {
                             DIcon {
                                 name: "bar_chart"
                                 size: Theme.chipIconSize
-                                color: root.phaseColor
+                                color: Theme.primary
                                 anchors.verticalCenter: parent.verticalCenter
                             }
 
@@ -304,8 +304,8 @@ Item {
                             DBadge {
                                 text: `${root.focusStats.totalFormatted} • ${root.focusStats.totalSessions} sessions`
                                 reserveText: "88h 88m • 88 sessions"
-                                color: Theme.withAlpha(root.phaseColor, 0.2)
-                                textColor: root.phaseColor
+                                color: Theme.withAlpha(Theme.primary, 0.2)
+                                textColor: Theme.primary
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }
@@ -319,8 +319,8 @@ Item {
                             checkEnabled: false
                             minButtonWidth: 48
                             buttonPadding: Theme.spacingM
-                            selectedColor: root.phaseColor
-                            selectedContentColor: "#111315"
+                            selectedColor: Theme.primary
+                            selectedContentColor: Theme.onPrimary
                             model: ["Day", "Week", "Month"]
                             currentIndex: root.statsPeriod === "month" ? 2 : (root.statsPeriod === "week" ? 1 : 0)
                             onSelectionChanged: (idx, sel) => {
@@ -374,14 +374,14 @@ Item {
                                         width: 30
                                         height: 30
                                         radius: 15
-                                        color: Theme.withAlpha(root.phaseColor, 0.16)
+                                        color: Theme.withAlpha(Theme.primary, 0.16)
                                         anchors.verticalCenter: parent.verticalCenter
 
                                         DIcon {
                                             anchors.centerIn: parent
                                             name: kpiCard.modelData.icon
                                             size: Theme.iconSizeSmall
-                                            color: root.phaseColor
+                                            color: Theme.primary
                                         }
                                     }
 
@@ -482,7 +482,7 @@ Item {
                                         text: ClockService.formatFocusMinutes(barSlot.modelData.minutes)
                                         font.pixelSize: Theme.fontSizeSmall
                                         font.weight: Font.Bold
-                                        color: (barSlot.modelData.isCurrent || barSlot.isHovered) ? root.phaseColor : Theme.surfaceVariantText
+                                        color: (barSlot.modelData.isCurrent || barSlot.isHovered) ? Theme.primary : Theme.surfaceVariantText
                                     }
 
                                     // Vertical Bar Pill
@@ -496,8 +496,8 @@ Item {
                                         color: barSlot.modelData.minutes === 0
                                             ? Theme.withAlpha(Theme.surfaceVariant, 0.28)
                                             : ((barSlot.modelData.isCurrent || barSlot.isHovered)
-                                                ? root.phaseColor
-                                                : Theme.withAlpha(root.phaseColor, 0.48))
+                                                ? Theme.primary
+                                                : Theme.withAlpha(Theme.primary, 0.48))
 
                                         Behavior on height {
                                             enabled: Theme.animationsEnabled
@@ -516,7 +516,7 @@ Item {
                                         text: barSlot.modelData.label
                                         font.pixelSize: Theme.fontSizeSmall
                                         font.weight: (barSlot.modelData.isCurrent || barSlot.isHovered) ? Font.Bold : Font.Medium
-                                        color: (barSlot.modelData.isCurrent || barSlot.isHovered) ? root.phaseColor : Theme.surfaceVariantText
+                                        color: (barSlot.modelData.isCurrent || barSlot.isHovered) ? Theme.primary : Theme.surfaceVariantText
                                     }
 
                                     MouseArea {
