@@ -54,15 +54,14 @@ Item {
         anchors.fill: parent
         clip: true
         contentWidth: width
-        contentHeight: Math.max(height, mainPageColumn.height + Theme.spacingXL * 4)
+        contentHeight: Math.max(height, mainPageColumn.height + ClockMetrics.pagePaddingV + Theme.spacingXL * 4)
 
         Column {
             id: mainPageColumn
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: Theme.spacingL
-            spacing: Theme.spacingL
+            topPadding: Theme.spacingL
+            width: Math.min(ClockMetrics.contentMaxWidth, parent.width - Theme.spacingL * 2)
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: ClockMetrics.cardGap
 
             // Row 1: Dedicated Clock Row (Centered Analog World Dial)
             Item {
