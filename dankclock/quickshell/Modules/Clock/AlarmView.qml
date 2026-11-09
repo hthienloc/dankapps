@@ -11,6 +11,23 @@ Item {
 
     anchors.fill: parent
 
+    // Drag preview state: the model is only reordered on release so delegates survive the gesture.
+    property int draggingAlarmIndex: -1
+    property int dropTargetAlarmIndex: -1
+
+    // Slot an alarm is shown in while another alarm is being dragged over the grid.
+    function previewSlot(i) {
+        const from = draggingAlarmIndex;
+        const to = dropTargetAlarmIndex;
+        if (from < 0 || to < 0 || i === from)
+            return i;
+        if (from < to && i > from && i <= to)
+            return i - 1;
+        if (from > to && i >= to && i < from)
+            return i + 1;
+        return i;
+    }
+
     readonly property var dayItems: [
         { key: "Sun", letter: "S" },
         { key: "Mon", letter: "M" },
@@ -32,6 +49,7 @@ Item {
         id: flickable
         anchors.fill: parent
         clip: true
+        interactive: root.draggingAlarmIndex < 0
         contentWidth: width
         contentHeight: contentCol.height + ClockMetrics.pagePaddingV + Theme.spacingXL * 4
 
@@ -164,7 +182,18 @@ Item {
                     spacing: gridContainer.gap
 
                     Repeater {
+                        id: alarmRepeater
                         model: ClockService.alarms
+
+                        // Index of the slot whose resting rect contains the grid point, or -1.
+                        function slotAt(px, py) {
+                            for (let i = 0; i < count; i++) {
+                                const it = itemAt(i);
+                                if (it && px >= it.x && px < it.x + it.width + alarmGrid.spacing && py >= it.y && py < it.y + it.height + alarmGrid.spacing)
+                                    return i;
+                            }
+                            return -1;
+                        }
 
                         Rectangle {
                             id: alarmCard
@@ -241,12 +270,43 @@ Item {
                                 void ClockService.alarmRevision;
                                 return Boolean(alarmObj.deleteAfterGoesOff);
                             }
+                            readonly property bool isBeingDragged: root.draggingAlarmIndex === index
+                            property real dragDx: 0
+                            property real dragDy: 0
+                            property real shiftX: {
+                                const s = root.previewSlot(index);
+                                const a = s !== index ? alarmRepeater.itemAt(s) : null;
+                                return a ? a.x - x : 0;
+                            }
+                            property real shiftY: {
+                                const s = root.previewSlot(index);
+                                const a = s !== index ? alarmRepeater.itemAt(s) : null;
+                                return a ? a.y - y : 0;
+                            }
+
+                            Behavior on shiftX {
+                                enabled: Theme.animationsEnabled
+                                NumberAnimation { duration: ClockMetrics.transitionDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: ClockMetrics.curveFastSpatial }
+                            }
+                            Behavior on shiftY {
+                                enabled: Theme.animationsEnabled
+                                NumberAnimation { duration: ClockMetrics.transitionDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: ClockMetrics.curveFastSpatial }
+                            }
+
+                            transform: Translate {
+                                x: alarmCard.isBeingDragged ? alarmCard.dragDx : alarmCard.shiftX
+                                y: alarmCard.isBeingDragged ? alarmCard.dragDy : alarmCard.shiftY
+                            }
 
                             width: gridContainer.cardWidth
                             height: cardCol.implicitHeight + Theme.spacingL * 2
                             clip: true
+                            scale: isBeingDragged ? 1.04 : (alarmCardDragArea.pressed && alarmCardDragArea.dragIntentEstablished ? 0.98 : 1.0)
+                            z: isBeingDragged ? 100 : 1
                             radius: timeTapArea.pressed ? Theme.cornerRadiusM : ((cardHovered || isExpanded) ? Theme.cornerRadiusXL : Theme.cornerRadiusL)
                             color: {
+                                if (isBeingDragged)
+                                    return Theme.blend(Theme.surfaceContainerHighest, Theme.primary, Theme.stateLayerDrag);
                                 if (isEnabled)
                                     return (cardHovered || isExpanded) ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh;
                                 return (cardHovered || isExpanded) ? Theme.surfaceContainer : Theme.surfaceContainerLow;
@@ -258,6 +318,15 @@ Item {
                                 if (cardHovered)
                                     return isEnabled ? Theme.primary : Theme.outline;
                                 return isEnabled ? Theme.outlineMedium : Theme.outlineLight;
+                            }
+
+                            Behavior on scale {
+                                enabled: Theme.animationsEnabled
+                                NumberAnimation {
+                                    duration: ClockMetrics.transitionDuration
+                                    easing.type: Easing.BezierSpline
+                                    easing.bezierCurve: ClockMetrics.curveFastSpatial
+                                }
                             }
 
                             Behavior on height {
@@ -300,13 +369,78 @@ Item {
                                 id: cardHover
                             }
 
-                            // Background click area so clicking anywhere on the card toggles the dropdown
+                            // Hold-and-drag to reorder (deferred commit on release), or click to toggle expanded options
                             MouseArea {
+                                id: alarmCardDragArea
                                 anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
+                                preventStealing: ClockService.alarmEditMode || dragIntentEstablished
+                                cursorShape: dragIntentEstablished ? Qt.ClosedHandCursor : (ClockService.alarmEditMode ? Qt.OpenHandCursor : Qt.PointingHandCursor)
+                                readonly property real dragThreshold: 10
+                                property point pressGridPos: Qt.point(0, 0)
+                                property bool dragIntentEstablished: false
+
+                                function beginDrag() {
+                                    dragIntentEstablished = true;
+                                    root.draggingAlarmIndex = alarmCard.index;
+                                    root.dropTargetAlarmIndex = alarmCard.index;
                                 }
+
+                                function endDrag(commit) {
+                                    const from = root.draggingAlarmIndex;
+                                    const to = root.dropTargetAlarmIndex;
+                                    alarmCard.dragDx = 0;
+                                    alarmCard.dragDy = 0;
+                                    dragIntentEstablished = false;
+                                    root.draggingAlarmIndex = -1;
+                                    root.dropTargetAlarmIndex = -1;
+                                    if (commit && from >= 0 && to >= 0 && from !== to)
+                                        Qt.callLater(() => ClockService.moveAlarm(from, to));
+                                }
+
+                                onPressAndHold: beginDrag()
+
+                                onPressed: mouse => {
+                                    pressGridPos = mapToItem(alarmGrid, mouse.x, mouse.y);
+                                    dragIntentEstablished = false;
+                                    if (ClockService.alarmEditMode)
+                                        beginDrag();
+                                }
+
+                                onPositionChanged: mouse => {
+                                    if (!pressed)
+                                        return;
+                                    // Grid coordinates include the card's Translate, so the delta never feeds back on itself.
+                                    const p = mapToItem(alarmGrid, mouse.x, mouse.y);
+                                    const dx = p.x - pressGridPos.x;
+                                    const dy = p.y - pressGridPos.y;
+                                    if (!dragIntentEstablished) {
+                                        if (Math.abs(dx) <= dragThreshold && Math.abs(dy) <= dragThreshold)
+                                            return;
+                                        beginDrag();
+                                    }
+                                    alarmCard.dragDx = dx;
+                                    alarmCard.dragDy = dy;
+                                    const target = alarmRepeater.slotAt(p.x, p.y);
+                                    if (target >= 0)
+                                        root.dropTargetAlarmIndex = target;
+                                }
+
+                                onReleased: {
+                                    const wasDrag = dragIntentEstablished;
+                                    endDrag(true);
+                                    if (!wasDrag && !ClockService.alarmEditMode)
+                                        ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
+                                }
+
+                                onCanceled: endDrag(false)
+                            }
+
+                            DTooltipHost {
+                                target: alarmCard
+                                hoverArea: alarmCardDragArea
+                                text: ClockService.alarmEditMode
+                                    ? "Drag to reorder alarm"
+                                    : "Hold and drag to reorder alarm • Click to customize"
                             }
 
                             Column {

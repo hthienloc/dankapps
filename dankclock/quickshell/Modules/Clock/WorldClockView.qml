@@ -19,7 +19,22 @@ Item {
     }
 
     property int hoveredCityIndex: -1
+    // Drag preview state: the model is only reordered on release so delegates survive the gesture.
     property int draggingIndex: -1
+    property int dropTargetIndex: -1
+
+    // Slot a city is shown in while another city is being dragged over the grid.
+    function previewSlot(i) {
+        const from = draggingIndex;
+        const to = dropTargetIndex;
+        if (from < 0 || to < 0 || i === from)
+            return i;
+        if (from < to && i > from && i <= to)
+            return i - 1;
+        if (from > to && i >= to && i < from)
+            return i + 1;
+        return i;
+    }
 
     // Time Scrubber offset in minutes (-720 to +720, in 15-minute increments)
     property int scrubMinutesOffset: 0
@@ -53,6 +68,7 @@ Item {
         id: flickable
         anchors.fill: parent
         clip: true
+        interactive: root.draggingIndex < 0
         contentWidth: width
         contentHeight: Math.max(height, mainPageColumn.height + ClockMetrics.pagePaddingV + Theme.spacingXL * 4)
 
@@ -792,7 +808,18 @@ Item {
 
         // World Clock City Pills (Single-Line Text Layout, Drag-and-Drop Reorder, Hover Sync)
         Repeater {
+            id: cityRepeater
             model: ClockService.worldClocks.length
+
+            // Index of the slot whose resting rect contains the grid point, or -1.
+            function slotAt(px, py) {
+                for (let i = 0; i < count; i++) {
+                    const it = itemAt(i);
+                    if (it && px >= it.x && px < it.x + it.width + gridRoot.spacing && py >= it.y && py < it.y + it.height + gridRoot.spacing)
+                        return i;
+                }
+                return -1;
+            }
 
             Rectangle {
                 id: cityPill
@@ -803,13 +830,41 @@ Item {
                 readonly property bool isHovered: pillHover.hovered || root.hoveredCityIndex === index
                 readonly property bool isBeingDragged: root.draggingIndex === index
                 readonly property var timeInfo: ClockService.getCityTimeInfo(modelData, root.effectiveNow)
+                property real dragDx: 0
+                property real dragDy: 0
+                property real shiftX: {
+                    const s = root.previewSlot(index);
+                    const a = s !== index ? cityRepeater.itemAt(s) : null;
+                    return a ? a.x - x : 0;
+                }
+                property real shiftY: {
+                    const s = root.previewSlot(index);
+                    const a = s !== index ? cityRepeater.itemAt(s) : null;
+                    return a ? a.y - y : 0;
+                }
+
+                Behavior on shiftX {
+                    enabled: Theme.animationsEnabled
+                    NumberAnimation { duration: ClockMetrics.transitionDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: ClockMetrics.curveFastSpatial }
+                }
+                Behavior on shiftY {
+                    enabled: Theme.animationsEnabled
+                    NumberAnimation { duration: ClockMetrics.transitionDuration; easing.type: Easing.BezierSpline; easing.bezierCurve: ClockMetrics.curveFastSpatial }
+                }
+
+                transform: Translate {
+                    x: cityPill.isBeingDragged ? cityPill.dragDx : cityPill.shiftX
+                    y: cityPill.isBeingDragged ? cityPill.dragDy : cityPill.shiftY
+                }
 
                 width: gridRoot.cardWidth
                 height: 76
-                radius: isHovered ? Theme.cornerRadiusXL : Theme.cornerRadiusL
-                scale: isBeingDragged ? 1.03 : (pillDragArea.pressed ? 0.98 : 1.0)
-                z: isBeingDragged ? 50 : 1
-                color: isHovered ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow
+                radius: isBeingDragged ? Theme.cornerRadiusXL : (isHovered ? Theme.cornerRadiusXL : Theme.cornerRadiusL)
+                scale: isBeingDragged ? 1.04 : (pillDragArea.pressed && pillDragArea.dragIntentEstablished ? 0.98 : 1.0)
+                z: isBeingDragged ? 100 : 1
+                color: isBeingDragged
+                    ? Theme.blend(Theme.surfaceContainerHighest, cityColor, Theme.stateLayerDrag)
+                    : (isHovered ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow)
                 border.width: (isHovered || ClockService.worldClockEditMode) ? 1.5 : 1
                 border.color: isHovered ? cityColor : Theme.outlineVariant
 
@@ -840,68 +895,68 @@ Item {
                     }
                 }
 
-                // Drag-to-reorder across the grid
+
+                // Drag-to-reorder across the grid (deferred commit on release)
                 MouseArea {
                     id: pillDragArea
                     anchors.fill: parent
-                    anchors.rightMargin: removeBtn.visible ? 34 : 0
                     preventStealing: ClockService.worldClockEditMode || dragIntentEstablished
                     cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
-                    property point pressPos: Qt.point(0, 0)
+                    readonly property real dragThreshold: 6
+                    property point pressGridPos: Qt.point(0, 0)
                     property bool dragIntentEstablished: false
 
-                    onPressAndHold: {
+                    function beginDrag() {
                         dragIntentEstablished = true;
                         root.draggingIndex = cityPill.index;
+                        root.dropTargetIndex = cityPill.index;
                     }
+
+                    function endDrag(commit) {
+                        const from = root.draggingIndex;
+                        const to = root.dropTargetIndex;
+                        cityPill.dragDx = 0;
+                        cityPill.dragDy = 0;
+                        dragIntentEstablished = false;
+                        root.draggingIndex = -1;
+                        root.dropTargetIndex = -1;
+                        if (commit && from >= 0 && to >= 0 && from !== to)
+                            Qt.callLater(() => ClockService.moveWorldClock(from, to));
+                    }
+
+                    onPressAndHold: beginDrag()
                     onPressed: mouse => {
-                        pressPos = Qt.point(mouse.x, mouse.y);
-                        dragIntentEstablished = ClockService.worldClockEditMode;
-                        root.draggingIndex = cityPill.index;
+                        pressGridPos = mapToItem(gridRoot, mouse.x, mouse.y);
+                        dragIntentEstablished = false;
+                        if (ClockService.worldClockEditMode)
+                            beginDrag();
                     }
                     onPositionChanged: mouse => {
-                        if (!pressed || root.draggingIndex < 0)
+                        if (!pressed)
                             return;
+                        // Grid coordinates include the pill's Translate, so the delta never feeds back on itself.
+                        const p = mapToItem(gridRoot, mouse.x, mouse.y);
+                        const dx = p.x - pressGridPos.x;
+                        const dy = p.y - pressGridPos.y;
                         if (!dragIntentEstablished) {
-                            const dx = Math.abs(mouse.x - pressPos.x);
-                            const dy = Math.abs(mouse.y - pressPos.y);
-                            if (dx > 6 && dx > dy) {
-                                dragIntentEstablished = true;
-                            } else {
+                            if (Math.abs(dx) <= dragThreshold && Math.abs(dy) <= dragThreshold)
                                 return;
-                            }
+                            beginDrag();
                         }
-                        const targetWorldIdx = ClockService.calcGridDropIndex(
-                            cityPill,
-                            gridRoot,
-                            mouse.x,
-                            mouse.y,
-                            gridRoot.cardWidth,
-                            cityPill.height,
-                            gridRoot.spacing,
-                            gridRoot.columns,
-                            ClockService.worldClocks.length,
-                            1
-                        );
-                        if (targetWorldIdx >= 0 && targetWorldIdx !== root.draggingIndex) {
-                            ClockService.moveWorldClock(root.draggingIndex, targetWorldIdx);
-                            root.draggingIndex = targetWorldIdx;
-                        }
+                        cityPill.dragDx = dx;
+                        cityPill.dragDy = dy;
+                        const target = cityRepeater.slotAt(p.x, p.y);
+                        if (target >= 0)
+                            root.dropTargetIndex = target;
                     }
-                    onReleased: {
-                        dragIntentEstablished = false;
-                        root.draggingIndex = -1;
-                    }
-                    onCanceled: {
-                        dragIntentEstablished = false;
-                        root.draggingIndex = -1;
-                    }
+                    onReleased: endDrag(true)
+                    onCanceled: endDrag(false)
                 }
 
                 DTooltipHost {
                     target: cityPill
                     hoverArea: pillDragArea
-                    text: "Drag to reorder city"
+                    text: ClockService.worldClockEditMode ? "Drag to reorder city" : "Hold and drag to reorder city"
                 }
 
                 Item {

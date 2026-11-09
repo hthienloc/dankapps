@@ -1228,6 +1228,39 @@ Singleton {
         saveState();
     }
 
+    function moveAlarm(fromIndex, toIndex) {
+        if (!root._stateReady || fromIndex < 0 || fromIndex >= alarms.length || toIndex < 0 || toIndex >= alarms.length || fromIndex === toIndex)
+            return;
+        const next = alarms.slice();
+        const item = next.splice(fromIndex, 1)[0];
+        next.splice(toIndex, 0, item);
+
+        if (expandedAlarmIndex === fromIndex)
+            expandedAlarmIndex = toIndex;
+        else if (fromIndex < expandedAlarmIndex && toIndex >= expandedAlarmIndex)
+            expandedAlarmIndex--;
+        else if (fromIndex > expandedAlarmIndex && toIndex <= expandedAlarmIndex)
+            expandedAlarmIndex++;
+
+        if (editingAlarmIndex === fromIndex)
+            editingAlarmIndex = toIndex;
+        else if (fromIndex < editingAlarmIndex && toIndex >= editingAlarmIndex)
+            editingAlarmIndex--;
+        else if (fromIndex > editingAlarmIndex && toIndex <= editingAlarmIndex)
+            editingAlarmIndex++;
+
+        if (editingLabelAlarmIndex === fromIndex)
+            editingLabelAlarmIndex = toIndex;
+        else if (fromIndex < editingLabelAlarmIndex && toIndex >= editingLabelAlarmIndex)
+            editingLabelAlarmIndex--;
+        else if (fromIndex > editingLabelAlarmIndex && toIndex <= editingLabelAlarmIndex)
+            editingLabelAlarmIndex++;
+
+        alarms = next;
+        alarmRevision++;
+        saveState();
+    }
+
     function _getNextAlarmOccurrence(a, cur, ignoreSkip) {
         if (!a || !a.enabled)
             return null;
