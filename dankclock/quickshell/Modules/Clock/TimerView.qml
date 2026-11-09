@@ -239,6 +239,9 @@ Item {
                             progress: root.currentProgress
                             ringColor: root.currentFinished ? Theme.error : Theme.primary
                             active: root.currentRunning
+                            clickable: root.currentTimer !== null
+                            tooltipText: root.currentRunning ? "Click to pause" : "Click to start"
+                            onClicked: ClockService.toggleTimer(root.safeActiveIdx)
 
                             NumericText {
                                 anchors.horizontalCenter: parent.horizontalCenter
@@ -270,15 +273,6 @@ Item {
                                 backgroundColor: Theme.secondaryContainer
                                 textColor: Theme.onSecondaryContainer
                                 onClicked: ClockService.resetTimer(root.safeActiveIdx)
-                            }
-
-                            DButton {
-                                text: root.currentRunning ? "Pause" : "Start"
-                                iconName: root.currentRunning ? "pause" : "play_arrow"
-                                buttonHeight: Theme.buttonHeightM
-                                backgroundColor: Theme.primary
-                                textColor: Theme.onPrimary
-                                onClicked: ClockService.toggleTimer(root.safeActiveIdx)
                             }
 
                             DButton {

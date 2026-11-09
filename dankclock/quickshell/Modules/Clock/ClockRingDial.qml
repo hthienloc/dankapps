@@ -17,10 +17,25 @@ Item {
     property real lobeAmount: 0.06
     property bool animated: true
     property real centerSpacing: Theme.spacingXS
+    // Clicking inside the ring emits clicked(); used as the primary start/pause control.
+    property bool clickable: false
+    property string tooltipText: ""
     default property alias centerContent: centerCol.data
+
+    signal clicked
 
     width: dialSize
     height: dialSize
+    scale: dialArea.pressed ? 0.97 : (dialArea.containsMouse ? 1.02 : 1.0)
+
+    Behavior on scale {
+        enabled: Theme.animationsEnabled
+        NumberAnimation {
+            duration: ClockMetrics.transitionDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: ClockMetrics.curveFastSpatial
+        }
+    }
 
     DOrganicBlob {
         anchors.centerIn: parent
@@ -49,5 +64,27 @@ Item {
         id: centerCol
         anchors.centerIn: parent
         spacing: root.centerSpacing
+    }
+
+    MouseArea {
+        id: dialArea
+        anchors.fill: parent
+        enabled: root.clickable
+        hoverEnabled: root.clickable
+        cursorShape: Qt.PointingHandCursor
+        containmentMask: QtObject {
+            function contains(point: point): bool {
+                const dx = point.x - root.width / 2;
+                const dy = point.y - root.height / 2;
+                return dx * dx + dy * dy <= (root.dialSize / 2) * (root.dialSize / 2);
+            }
+        }
+        onClicked: root.clicked()
+    }
+
+    DTooltipHost {
+        target: root
+        hoverArea: dialArea
+        text: root.tooltipText
     }
 }

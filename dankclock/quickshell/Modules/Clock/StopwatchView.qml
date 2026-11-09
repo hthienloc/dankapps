@@ -69,6 +69,9 @@ DFlickable {
                     ringColor: Theme.primary
                     active: ClockService.stopwatchRunning
                     animated: false
+                    clickable: true
+                    tooltipText: ClockService.stopwatchRunning ? "Click to stop" : (ClockService.stopwatchElapsedMs > 0 ? "Click to resume" : "Click to start")
+                    onClicked: ClockService.toggleStopwatch()
 
                     DBadge {
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -125,15 +128,6 @@ DFlickable {
                             else
                                 ClockService.resetStopwatch();
                         }
-                    }
-
-                    DButton {
-                        text: ClockService.stopwatchRunning ? "Stop" : (ClockService.stopwatchElapsedMs > 0 ? "Resume" : "Start")
-                        iconName: ClockService.stopwatchRunning ? "pause" : "play_arrow"
-                        buttonHeight: Theme.buttonHeightM
-                        backgroundColor: Theme.primary
-                        textColor: Theme.onPrimary
-                        onClicked: ClockService.toggleStopwatch()
                     }
                 }
             }

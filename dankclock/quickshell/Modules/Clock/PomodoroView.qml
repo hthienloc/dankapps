@@ -147,6 +147,9 @@ Item {
                         idleBlobAlpha: 0.10
                         lobeAmount: 0.075
                         centerSpacing: 6
+                        clickable: true
+                        tooltipText: ClockService.pomodoroRunning ? "Click to pause session" : "Click to start session"
+                        onClicked: ClockService.togglePomodoro()
 
                         DBadge {
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -220,16 +223,6 @@ Item {
                             backgroundColor: Theme.errorContainer
                             textColor: Theme.onErrorContainer
                             onClicked: ClockService.resetPomodoro()
-                        }
-
-                        // Large Play / Pause Button
-                        DButton {
-                            text: ClockService.pomodoroRunning ? "Pause Session" : "Start Session"
-                            iconName: ClockService.pomodoroRunning ? "pause" : "play_arrow"
-                            buttonHeight: Theme.buttonHeightM
-                            backgroundColor: root.phaseColor
-                            textColor: "#111315"
-                            onClicked: ClockService.togglePomodoro()
                         }
 
                         // Skip Button
