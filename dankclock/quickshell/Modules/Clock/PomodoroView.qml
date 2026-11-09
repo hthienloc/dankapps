@@ -212,9 +212,8 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                         spacing: Theme.spacingM
 
-                        // Reset Cycle Button (Hidden unless in Edit Mode to prevent accidental resets)
+                        // Reset Cycle Button
                         DButton {
-                            visible: ClockService.pomodoroEditMode
                             text: "Reset"
                             iconName: "replay"
                             buttonHeight: Theme.buttonHeightM
@@ -233,9 +232,8 @@ Item {
                             onClicked: ClockService.togglePomodoro()
                         }
 
-                        // Skip Button (Hidden unless in Edit Mode to prevent accidental skip)
+                        // Skip Button
                         DButton {
-                            visible: ClockService.pomodoroEditMode
                             text: "Skip"
                             iconName: "skip_next"
                             buttonHeight: Theme.buttonHeightM
@@ -539,82 +537,6 @@ Item {
                     }
                 }
             }
-
-            // Inline Pomodoro Duration Settings (Visible only in Edit Mode)
-            ClockGroup {
-                visible: ClockService.pomodoroEditMode
-                width: parent.width
-
-                ClockRow {
-                    visible: ClockService.pomodoroEditMode
-                    width: parent.width
-                    iconName: "tune"
-                    accent: "purple"
-                    title: "Focus Duration"
-                    subtitle: "Minutes per focus session"
-                    isFirstInGroup: true
-                    isLastInGroup: false
-
-                    DNumberStepper {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: `${SettingsData.pomodoroFocusMinutes}m`
-                        textSize: Theme.fontSizeLarge
-                        buttonSize: Theme.buttonHeightXXS
-                        incrementEnabled: SettingsData.pomodoroFocusMinutes < 90
-                        decrementEnabled: SettingsData.pomodoroFocusMinutes > 5
-                        onIncrement: () => SettingsData.pomodoroFocusMinutes = Math.min(90, SettingsData.pomodoroFocusMinutes + 5)
-                        onDecrement: () => SettingsData.pomodoroFocusMinutes = Math.max(5, SettingsData.pomodoroFocusMinutes - 5)
-                    }
-                }
-
-                ClockRow {
-                    visible: ClockService.pomodoroEditMode
-                    width: parent.width
-                    iconName: "coffee"
-                    accent: "green"
-                    title: "Short & Long Breaks"
-                    subtitle: `Short: ${SettingsData.pomodoroShortBreakMinutes}m • Long: ${SettingsData.pomodoroLongBreakMinutes}m`
-                    isFirstInGroup: false
-                    isLastInGroup: true
-
-                    Row {
-                        spacing: Theme.spacingS
-                        anchors.verticalCenter: parent.verticalCenter
-
-                        DButton {
-                            text: `Short ${SettingsData.pomodoroShortBreakMinutes}m`
-                            buttonHeight: Theme.buttonHeightXS
-                            backgroundColor: Theme.secondaryContainer
-                            textColor: Theme.onSecondaryContainer
-                            onClicked: {
-                                const next = SettingsData.pomodoroShortBreakMinutes >= 15 ? 3 : SettingsData.pomodoroShortBreakMinutes + 2;
-                                SettingsData.pomodoroShortBreakMinutes = next;
-                            }
-                        }
-
-                        DButton {
-                            text: `Long ${SettingsData.pomodoroLongBreakMinutes}m`
-                            buttonHeight: Theme.buttonHeightXS
-                            backgroundColor: Theme.secondaryContainer
-                            textColor: Theme.onSecondaryContainer
-                            onClicked: {
-                                const next = SettingsData.pomodoroLongBreakMinutes >= 30 ? 10 : SettingsData.pomodoroLongBreakMinutes + 5;
-                                SettingsData.pomodoroLongBreakMinutes = next;
-                            }
-                        }
-                    }
-                }
-            }
         }
-    }
-
-    // Official DCommon DFab Bar anchored to bottom-right
-    ClockEditFabBar {
-        editMode: ClockService.pomodoroEditMode
-        hasItems: true
-        showCreateButton: false
-        editTooltip: "Edit durations or reset/skip session"
-        doneTooltip: "Finish editing Pomodoro"
-        onToggleEditClicked: ClockService.pomodoroEditMode = !ClockService.pomodoroEditMode
     }
 }

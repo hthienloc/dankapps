@@ -393,30 +393,5 @@ FloatingWindow {
                 }
             }
         }
-
-        // Ringing Alert Modal using DDialog
-        DDialog {
-            anchors.fill: parent
-            embedded: false
-            opened: ClockService.ringingAlert !== null
-            maximumWidth: 360
-            title: ClockService.ringingAlert?.title ?? "Time's Up"
-            supportingText: ClockService.ringingAlert?.subtitle ?? ""
-            onRejected: ClockService.dismissRingingAlert()
-            onAccepted: ClockService.dismissRingingAlert()
-
-            actions: [
-                DButton {
-                    text: `Snooze (+${ClockService.ringingAlert?.snoozeMin ?? 5}m)`
-                    backgroundColor: Theme.secondaryContainer
-                    textColor: Theme.onSecondaryContainer
-                    onClicked: ClockService.snoozeRingingAlert()
-                },
-                DButton {
-                    text: "Dismiss"
-                    onClicked: ClockService.dismissRingingAlert()
-                }
-            ]
-        }
     }
 }

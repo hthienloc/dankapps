@@ -17,7 +17,6 @@ Singleton {
     property bool worldClockEditMode: false
     property bool alarmEditMode: false
     property bool timerEditMode: false
-    property bool pomodoroEditMode: false
     property bool settingsOpen: false
     property int settingsTabIndex: 0
     property bool timePickerOpen: false
@@ -25,10 +24,6 @@ Singleton {
     property bool labelDialogOpen: false
     property int editingLabelAlarmIndex: -1
     property bool timerSetupMode: false
-
-    // Active ringing notification state & queue
-    property var ringingAlert: null // { type: "alarm" | "timer" | "pomodoro", title: "", subtitle: "", alarmIndex: -1, timerId: -1, soundId: "classic", snoozeMin: 5 }
-    property var _alertQueue: []
 
     // Monotonic elapsed clock (ms) driven by Qt's FrameAnimation / steady timer so NTP/clock jumps never corrupt elapsed time
     property double _monoNowMs: 0
@@ -1474,23 +1469,20 @@ Singleton {
         return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.${String(centis).padStart(2, "0")}`;
     }
 
-    // Sound & Toast Notification
+    // Sound & Notification via dms notify
     function _playAlertNotification(alertObj) {
         if (!alertObj)
             return;
-        Quickshell.execDetached(["dms", "ipc", "call", "toast", "info", `${alertObj.title} — ${alertObj.subtitle}`]);
+        const iconName = alertObj.type === "alarm" ? "alarm" : (alertObj.type === "pomodoro" ? "psychology" : "hourglass_empty");
+        Quickshell.execDetached([
+            "dms", "notify",
+            "-a", "DankClock",
+            "-i", iconName,
+            "-u", "critical",
+            String(alertObj.title || "DankClock"),
+            String(alertObj.subtitle || "")
+        ]);
         _playSoundFile(alertObj.soundId || "classic");
-    }
-
-    function _showNextQueuedAlert() {
-        if (_alertQueue.length > 0) {
-            const nextQueue = _alertQueue.slice();
-            const nextAlert = nextQueue.shift();
-            _alertQueue = nextQueue;
-            ringingAlert = nextAlert;
-        } else {
-            ringingAlert = null;
-        }
     }
 
     function _triggerAlert(type, title, subtitle, alarmIdx, timerId, soundId, snoozeMin) {
@@ -1504,47 +1496,5 @@ Singleton {
             snoozeMin: snoozeMin || 5
         };
         _playAlertNotification(alertObj);
-        if (ringingAlert !== null) {
-            const nextQueue = _alertQueue.slice();
-            nextQueue.push(alertObj);
-            _alertQueue = nextQueue;
-            return;
-        }
-        ringingAlert = alertObj;
-    }
-
-    function dismissRingingAlert() {
-        _showNextQueuedAlert();
-    }
-
-    function snoozeRingingAlert() {
-        if (!ringingAlert)
-            return;
-        const current = ringingAlert;
-        const mins = current.snoozeMin || 5;
-        if (current.type === "alarm") {
-            const snoozeUntilMs = Date.now() + mins * 60 * 1000;
-            const d = new Date(snoozeUntilMs);
-            const next = alarms.slice();
-            next.push({
-                hour: d.getHours(),
-                minute: d.getMinutes(),
-                label: `${current.title || "Alarm"} (Snoozed +${mins}m)`,
-                enabled: true,
-                days: [],
-                soundId: current.soundId || "classic",
-                snoozeMin: mins,
-                deleteAfterGoesOff: true,
-                skippedDateKey: "",
-                lastTriggeredMinuteKey: "",
-                snoozeUntilMs: snoozeUntilMs
-            });
-            alarms = next;
-            alarmRevision++;
-            saveState();
-        } else if (current.type === "timer" || current.type === "pomodoro") {
-            startPresetTimer(mins * 60, `${current.title || (current.type === "pomodoro" ? "Pomodoro" : "Timer")} (+${mins}m)`);
-        }
-        _showNextQueuedAlert();
     }
 }
