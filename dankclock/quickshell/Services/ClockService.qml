@@ -887,17 +887,30 @@ Singleton {
         return alarmSounds[0];
     }
 
+    Process {
+        id: soundPlayerProc
+        running: false
+        command: []
+    }
+
     function _playSoundFile(soundId, volumePct) {
         const s = getSoundInfo(soundId || "classic");
         if (!s || !s.path)
             return;
+
+        if (soundPlayerProc.running) {
+            soundPlayerProc.running = false;
+        }
+
         const vol = typeof volumePct === "number" ? Math.max(0, Math.min(100, volumePct)) : 100;
         const pwVol = (vol / 100).toFixed(2);
         const paVol = Math.round((vol / 100) * 65536);
-        Quickshell.execDetached([
+
+        soundPlayerProc.command = [
             "sh", "-c",
-            `pw-play --volume ${pwVol} "${s.path}" 2>/dev/null || paplay --volume=${paVol} "${s.path}" 2>/dev/null || true`
-        ]);
+            `exec pw-play --volume ${pwVol} "${s.path}" 2>/dev/null || exec paplay --volume=${paVol} "${s.path}" 2>/dev/null || true`
+        ];
+        soundPlayerProc.running = true;
     }
 
     function previewAlarmSound(soundId, volumePct) {
