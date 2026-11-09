@@ -180,6 +180,7 @@ Item {
                                     days: [],
                                     soundId: "classic",
                                     snoozeMin: 10,
+                                    volume: 100,
                                     deleteAfterGoesOff: false,
                                     skippedDateKey: ""
                                 };
@@ -231,6 +232,10 @@ Item {
                             readonly property int snoozeMin: {
                                 void ClockService.alarmRevision;
                                 return alarmObj.snoozeMin || 10;
+                            }
+                            readonly property int volume: {
+                                void ClockService.alarmRevision;
+                                return typeof alarmObj.volume === "number" ? alarmObj.volume : 100;
                             }
                             readonly property bool deleteAfterGoesOff: {
                                 void ClockService.alarmRevision;
@@ -749,6 +754,48 @@ Item {
                                                 if (sel && idx >= 0 && idx < ClockService.snoozeOptions.length)
                                                     ClockService.updateAlarmSnooze(alarmCard.index, ClockService.snoozeOptions[idx]);
                                             }
+                                        }
+                                    }
+
+                                    // Alarm Volume Slider
+                                    Column {
+                                        width: parent.width
+                                        spacing: 4
+
+                                        Item {
+                                            width: parent.width
+                                            height: 18
+
+                                            StyledText {
+                                                anchors.left: parent.left
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: "Volume"
+                                                font.pixelSize: Theme.fontSizeSmall
+                                                font.weight: Font.Medium
+                                                color: Theme.surfaceVariantText
+                                            }
+
+                                            NumericText {
+                                                anchors.right: parent.right
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: `${alarmCard.volume}%`
+                                                font.pixelSize: Theme.fontSizeSmall
+                                                font.weight: Font.Bold
+                                                color: Theme.primary
+                                            }
+                                        }
+
+                                        DSlider {
+                                            width: parent.width
+                                            size: "s"
+                                            minimum: 0
+                                            maximum: 100
+                                            step: 5
+                                            unit: "%"
+                                            startIcon: alarmCard.volume === 0 ? "volume_off" : (alarmCard.volume < 50 ? "volume_down" : "volume_up")
+                                            value: alarmCard.volume
+                                            onSliderValueChanged: v => ClockService.updateAlarmVolume(alarmCard.index, v)
+                                            onSliderDragFinished: v => ClockService.previewAlarmSound(alarmCard.soundId, v)
                                         }
                                     }
 

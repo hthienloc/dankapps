@@ -887,18 +887,21 @@ Singleton {
         return alarmSounds[0];
     }
 
-    function _playSoundFile(soundId) {
+    function _playSoundFile(soundId, volumePct) {
         const s = getSoundInfo(soundId || "classic");
         if (!s || !s.path)
             return;
+        const vol = typeof volumePct === "number" ? Math.max(0, Math.min(100, volumePct)) : 100;
+        const pwVol = (vol / 100).toFixed(2);
+        const paVol = Math.round((vol / 100) * 65536);
         Quickshell.execDetached([
             "sh", "-c",
-            `pw-play "${s.path}" 2>/dev/null || paplay "${s.path}" 2>/dev/null || true`
+            `pw-play --volume ${pwVol} "${s.path}" 2>/dev/null || paplay --volume=${paVol} "${s.path}" 2>/dev/null || true`
         ]);
     }
 
-    function previewAlarmSound(soundId) {
-        _playSoundFile(soundId);
+    function previewAlarmSound(soundId, volumePct) {
+        _playSoundFile(soundId, volumePct);
     }
 
     function formatClockParts(hour24, minute) {
@@ -984,7 +987,8 @@ Singleton {
                     continue;
                 }
 
-                _triggerAlert("alarm", a.label || "Alarm", formatAlarmTime(a.hour, a.minute), i, -1, a.soundId || "classic", a.snoozeMin || 10);
+                const alarmVol = typeof a.volume === "number" ? a.volume : 100;
+                _triggerAlert("alarm", a.label || "Alarm", formatAlarmTime(a.hour, a.minute), i, -1, a.soundId || "classic", a.snoozeMin || 10, alarmVol);
                 if (!hasDays) {
                     if (a.deleteAfterGoesOff) {
                         removeIndices.push(i);
@@ -1049,6 +1053,7 @@ Singleton {
                 days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
                 soundId: "classic",
                 snoozeMin: 10,
+                volume: 100,
                 deleteAfterGoesOff: false,
                 skippedDateKey: "",
                 lastTriggeredMinuteKey: "",
@@ -1118,7 +1123,16 @@ Singleton {
         alarms[index].soundId = soundId;
         alarmRevision++;
         saveState();
-        previewAlarmSound(soundId);
+        previewAlarmSound(soundId, alarms[index].volume);
+    }
+
+    function updateAlarmVolume(index, volumePct) {
+        if (!root._stateReady || index < 0 || index >= alarms.length)
+            return;
+        const vol = Math.max(0, Math.min(100, Math.round(volumePct)));
+        alarms[index].volume = vol;
+        alarmRevision++;
+        saveState();
     }
 
     function updateAlarmSnooze(index, snoozeMin) {
@@ -1150,6 +1164,7 @@ Singleton {
             days: Array.isArray(src.days) ? src.days.slice() : [],
             soundId: src.soundId || "classic",
             snoozeMin: src.snoozeMin || 10,
+            volume: typeof src.volume === "number" ? src.volume : 100,
             deleteAfterGoesOff: Boolean(src.deleteAfterGoesOff),
             skippedDateKey: ""
         });
@@ -1483,10 +1498,10 @@ Singleton {
             String(alertObj.title || "DankClock"),
             String(alertObj.subtitle || "")
         ]);
-        _playSoundFile(alertObj.soundId || "classic");
+        _playSoundFile(alertObj.soundId || "classic", alertObj.volume);
     }
 
-    function _triggerAlert(type, title, subtitle, alarmIdx, timerId, soundId, snoozeMin) {
+    function _triggerAlert(type, title, subtitle, alarmIdx, timerId, soundId, snoozeMin, volumePct) {
         const alertObj = {
             type: type,
             title: title,
@@ -1494,7 +1509,8 @@ Singleton {
             alarmIndex: alarmIdx,
             timerId: timerId,
             soundId: soundId || "classic",
-            snoozeMin: snoozeMin || 5
+            snoozeMin: snoozeMin || 5,
+            volume: typeof volumePct === "number" ? volumePct : 100
         };
         _playAlertNotification(alertObj);
     }
