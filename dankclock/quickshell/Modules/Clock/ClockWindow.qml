@@ -405,5 +405,10 @@ FloatingWindow {
                 }
             }
         }
+
+        // Vacation Mode Configuration Sheet
+        ClockVacationSheet {
+            id: vacationSheet
+        }
     }
 }

@@ -16,6 +16,7 @@ Singleton {
     property bool citySheetOpen: false
     property bool worldClockEditMode: false
     property bool alarmEditMode: false
+    property bool vacationSheetOpen: false
     property bool timerEditMode: false
     property bool settingsOpen: false
     property int settingsTabIndex: 0
@@ -24,6 +25,26 @@ Singleton {
     property bool labelDialogOpen: false
     property int editingLabelAlarmIndex: -1
     property bool timerSetupMode: false
+
+    // Vacation Mode state
+    property var vacation: ({
+        enabled: false,
+        startDate: "",
+        endDate: ""
+    })
+    property int vacationRevision: 0
+
+    readonly property bool isVacationActive: {
+        void vacationRevision;
+        if (!vacation || !vacation.enabled)
+            return false;
+        const curKey = _todayDateKey();
+        if (vacation.startDate && curKey < vacation.startDate)
+            return false;
+        if (vacation.endDate && curKey > vacation.endDate)
+            return false;
+        return true;
+    }
 
     // Monotonic elapsed clock (ms) driven by Qt's FrameAnimation / steady timer so NTP/clock jumps never corrupt elapsed time
     property double _monoNowMs: 0
@@ -493,6 +514,14 @@ Singleton {
                     }
                     if (typeof data.pomodoroCyclesCompleted === "number")
                         root.pomodoroCyclesCompleted = data.pomodoroCyclesCompleted;
+                    if (data.vacation && typeof data.vacation === "object") {
+                        root.vacation = {
+                            enabled: Boolean(data.vacation.enabled),
+                            startDate: data.vacation.startDate || "",
+                            endDate: data.vacation.endDate || ""
+                        };
+                        root.vacationRevision++;
+                    }
                 }
             } catch (e) {
                 console.warn("Failed to load DankClock state:", e);
@@ -531,7 +560,8 @@ Singleton {
                 totalMs: t.totalMs
             })),
             pomodoroCyclesCompleted: root.pomodoroCyclesCompleted,
-            pomodoroHistory: root.pomodoroHistory
+            pomodoroHistory: root.pomodoroHistory,
+            vacation: root.vacation
         };
         saveStateProc.command = [
             "sh", "-c",
@@ -979,6 +1009,13 @@ Singleton {
         const h = d.getHours();
         const m = d.getMinutes();
 
+        // Auto-expire vacation mode once the end date has passed
+        if (vacation && vacation.enabled && vacation.endDate && todayKey > vacation.endDate) {
+            vacation.enabled = false;
+            vacationRevision++;
+            saveState();
+        }
+
         let stateModified = false;
         let removeIndices = [];
 
@@ -1003,6 +1040,12 @@ Singleton {
                 a.lastTriggeredMinuteKey = key;
                 if (hasSnoozeDeadline)
                     a.snoozeUntilMs = 0;
+
+                // If Vacation Mode is active, silence the alarm without firing alerts
+                if (isVacationActive) {
+                    stateModified = true;
+                    continue;
+                }
 
                 if (!hasSnoozeDeadline && hasDays && a.skippedDateKey === todayKey) {
                     a.skippedDateKey = "";
@@ -1261,6 +1304,45 @@ Singleton {
         saveState();
     }
 
+    function setVacationMode(enabled, startDate, endDate) {
+        if (!root._stateReady)
+            return;
+        vacation = {
+            enabled: Boolean(enabled),
+            startDate: startDate || "",
+            endDate: endDate || ""
+        };
+        vacationRevision++;
+        saveState();
+    }
+
+    function disableVacationMode() {
+        if (!root._stateReady)
+            return;
+        vacation = {
+            enabled: false,
+            startDate: "",
+            endDate: ""
+        };
+        vacationRevision++;
+        saveState();
+    }
+
+    function formatVacationRange(v) {
+        if (!v || !v.enabled)
+            return "";
+        if (!v.startDate && !v.endDate)
+            return "Active indefinitely";
+        if (v.startDate && v.endDate) {
+            if (v.startDate === v.endDate)
+                return `Until end of ${v.endDate}`;
+            return `${v.startDate} → ${v.endDate}`;
+        }
+        if (v.endDate)
+            return `Until end of ${v.endDate}`;
+        return `From ${v.startDate}`;
+    }
+
     function _getNextAlarmOccurrence(a, cur, ignoreSkip) {
         if (!a || !a.enabled)
             return null;
@@ -1355,6 +1437,9 @@ Singleton {
     // Incoming / Next Alarm
     readonly property var nextIncomingAlarm: {
         void alarmRevision;
+        void vacationRevision;
+        if (isVacationActive)
+            return null;
         const cur = root.now;
         let best = null;
         for (let i = 0; i < alarms.length; i++) {

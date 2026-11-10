@@ -196,6 +196,7 @@ Singleton {
     property color onPrimary
     property color onPrimaryContainer
     property color onSecondaryContainer
+    property color onTertiary
     property color onTertiaryContainer
     property color onError
     property color onErrorContainer
@@ -227,6 +228,11 @@ Singleton {
             target: root
             property: "onSecondaryContainer"
             value: root.currentThemeData.onSecondaryContainer || root.surfaceText
+        },
+        Binding {
+            target: root
+            property: "onTertiary"
+            value: root.currentThemeData.onTertiary || root.contrastLight
         },
         Binding {
             target: root
