@@ -60,6 +60,97 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: ClockMetrics.cardGap
 
+            // Vacation Mode Banner (when Vacation Mode is Active)
+            DCard {
+                id: vacationBanner
+                visible: ClockService.isVacationActive
+                width: parent.width
+                height: vacationInner.implicitHeight + pad * 2
+                pad: Theme.spacingL
+                tone: "tertiary"
+                clickable: true
+                restRadius: Theme.cornerRadiusXL
+                bodyRadius: ClockMetrics.cardRadius(focusTarget.pressed, focusTarget.hovered, false)
+                onClicked: ClockService.vacationSheetOpen = true
+
+                Row {
+                    id: vacationInner
+                    width: parent.width
+                    spacing: Theme.spacingM
+
+                    Rectangle {
+                        width: 48
+                        height: 48
+                        radius: Theme.cornerRadiusXL
+                        color: Theme.tertiary
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        DIcon {
+                            anchors.centerIn: parent
+                            name: "beach_access"
+                            size: Theme.iconSize
+                            color: Theme.onTertiary
+                        }
+                    }
+
+                    Column {
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 3
+                        width: Math.max(0, parent.width - 48 - Theme.spacingM - (vacationActionsRow.visible ? vacationActionsRow.width + Theme.spacingM : 0))
+
+                        Row {
+                            spacing: Theme.spacingS
+                            DBadge {
+                                text: "VACATION MODE"
+                                color: Theme.tertiary
+                                textColor: Theme.onTertiary
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                            StyledText {
+                                text: ClockService.formatVacationRange(ClockService.vacation)
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.weight: Theme.fontWeightBold
+                                color: vacationBanner.contentColor
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        StyledText {
+                            text: "All alarms are silenced during your vacation"
+                            font.pixelSize: Theme.fontSizeLarge
+                            font.weight: Theme.fontWeightBold
+                            color: vacationBanner.contentColor
+                            elide: Text.ElideRight
+                            width: parent.width
+                        }
+                    }
+
+                    Row {
+                        id: vacationActionsRow
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: Theme.spacingXS
+
+                        DButton {
+                            text: "Adjust"
+                            iconName: "edit"
+                            buttonHeight: Theme.buttonHeightXS
+                            backgroundColor: Theme.surfaceContainerHigh
+                            textColor: Theme.surfaceText
+                            onClicked: ClockService.vacationSheetOpen = true
+                        }
+
+                        DButton {
+                            text: "Turn Off"
+                            iconName: "close"
+                            buttonHeight: Theme.buttonHeightXS
+                            backgroundColor: Theme.surfaceContainerHigh
+                            textColor: Theme.surfaceText
+                            onClicked: ClockService.disableVacationMode()
+                        }
+                    }
+                }
+            }
+
             // Incoming Alarm Notice Banner (Android Clock M3E Expressive Hero)
             DCard {
                 id: incomingCard
@@ -311,9 +402,9 @@ Item {
                                     return (cardHovered || isExpanded) ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh;
                                 return (cardHovered || isExpanded) ? Theme.surfaceContainer : Theme.surfaceContainerLow;
                             }
-                            border.width: (ClockService.alarmEditMode || isExpanded) ? Theme.outlineWidthFocused : Theme.layerOutlineWidth
+                            border.width: isExpanded ? Theme.outlineWidthFocused : Theme.layerOutlineWidth
                             border.color: {
-                                if (ClockService.alarmEditMode || isExpanded)
+                                if (isExpanded)
                                     return Theme.withAlpha(Theme.primary, 0.65);
                                 if (cardHovered)
                                     return isEnabled ? Theme.primary : Theme.outline;
@@ -373,8 +464,8 @@ Item {
                             MouseArea {
                                 id: alarmCardDragArea
                                 anchors.fill: parent
-                                preventStealing: ClockService.alarmEditMode || dragIntentEstablished
-                                cursorShape: dragIntentEstablished ? Qt.ClosedHandCursor : (ClockService.alarmEditMode ? Qt.OpenHandCursor : Qt.PointingHandCursor)
+                                preventStealing: dragIntentEstablished
+                                cursorShape: dragIntentEstablished ? Qt.ClosedHandCursor : Qt.PointingHandCursor
                                 readonly property real dragThreshold: 10
                                 property point pressGridPos: Qt.point(0, 0)
                                 property bool dragIntentEstablished: false
@@ -402,8 +493,6 @@ Item {
                                 onPressed: mouse => {
                                     pressGridPos = mapToItem(alarmGrid, mouse.x, mouse.y);
                                     dragIntentEstablished = false;
-                                    if (ClockService.alarmEditMode)
-                                        beginDrag();
                                 }
 
                                 onPositionChanged: mouse => {
@@ -428,7 +517,7 @@ Item {
                                 onReleased: {
                                     const wasDrag = dragIntentEstablished;
                                     endDrag(true);
-                                    if (!wasDrag && !ClockService.alarmEditMode)
+                                    if (!wasDrag)
                                         ClockService.expandedAlarmIndex = alarmCard.isExpanded ? -1 : alarmCard.index;
                                 }
 
@@ -438,9 +527,7 @@ Item {
                             DTooltipHost {
                                 target: alarmCard
                                 hoverArea: alarmCardDragArea
-                                text: ClockService.alarmEditMode
-                                    ? "Drag to reorder alarm"
-                                    : "Hold and drag to reorder alarm • Click to customize"
+                                text: "Hold and drag to reorder alarm • Click to customize"
                             }
 
                             Column {
@@ -497,7 +584,7 @@ Item {
                                         }
 
                                         DIcon {
-                                            visible: labelMouse.containsMouse || ClockService.alarmEditMode
+                                            visible: labelMouse.containsMouse
                                             name: "edit"
                                             size: Theme.iconSizeSmall
                                             color: Theme.primary
@@ -522,7 +609,7 @@ Item {
                                         text: "Edit alarm label"
                                     }
 
-                                    // Right Meta: Skipped indicator (only when skipped) + Expand/Collapse Chevron
+                                    // Right Meta: Skipped indicator / Vacation indicator + Expand/Collapse Chevron
                                     Row {
                                         id: rightMetaRow
                                         anchors.right: parent.right
@@ -530,7 +617,15 @@ Item {
                                         spacing: 6
 
                                         DBadge {
-                                            visible: alarmCard.isSkippedNext
+                                            visible: ClockService.isVacationActive && alarmCard.isEnabled
+                                            text: "Vacation"
+                                            color: Theme.withAlpha(Theme.tertiary, 0.22)
+                                            textColor: Theme.tertiary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+
+                                        DBadge {
+                                            visible: alarmCard.isSkippedNext && !ClockService.isVacationActive
                                             text: "Skipped once"
                                             color: Theme.withAlpha(Theme.error, 0.18)
                                             textColor: Theme.error
@@ -620,22 +715,10 @@ Item {
                                         spacing: Theme.spacingXS
 
                                         DToggle {
-                                            visible: !ClockService.alarmEditMode
                                             hideText: true
                                             checked: alarmCard.isEnabled
                                             anchors.verticalCenter: parent.verticalCenter
                                             onToggled: isChecked => ClockService.toggleAlarm(alarmCard.index, isChecked)
-                                        }
-
-                                        DIconButton {
-                                            visible: ClockService.alarmEditMode
-                                            iconName: "delete_outline"
-                                            variant: "standard"
-                                            size: "s"
-                                            iconColor: Theme.error
-                                            tooltipText: "Delete alarm"
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            onClicked: ClockService.removeAlarm(alarmCard.index)
                                         }
                                     }
                                 }
@@ -998,16 +1081,25 @@ Item {
         }
     }
 
-    // Official DCommon DFab Bar anchored to bottom-right
-    ClockEditFabBar {
-        editMode: ClockService.alarmEditMode
-        hasItems: ClockService.alarms.length > 0
-        createIcon: "add_alarm"
-        createText: "New Alarm"
-        createTooltip: "Create a new alarm"
-        editTooltip: "Edit or delete alarms"
-        doneTooltip: "Finish editing alarms"
-        onCreateClicked: ClockService.openAddAlarmPicker()
-        onToggleEditClicked: ClockService.alarmEditMode = !ClockService.alarmEditMode
+    // FABs anchored to bottom-right: Vacation Mode Button + New Alarm Button
+    Row {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: Theme.spacingXL
+        spacing: Theme.spacingS
+
+        DFab {
+            iconName: "beach_access"
+            colorRole: ClockService.isVacationActive ? "tertiary" : "secondaryContainer"
+            tooltipText: ClockService.isVacationActive ? "Vacation mode is active • Click to configure" : "Turn on Vacation Mode to silence all alarms"
+            onClicked: ClockService.vacationSheetOpen = true
+        }
+
+        DFab {
+            iconName: "add"
+            colorRole: "primary"
+            tooltipText: "Create a new alarm"
+            onClicked: ClockService.openAddAlarmPicker()
+        }
     }
 }
