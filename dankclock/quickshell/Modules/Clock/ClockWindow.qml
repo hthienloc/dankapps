@@ -26,6 +26,11 @@ FloatingWindow {
         { icon: "alarm", text: "Alarms" },
         { icon: "public", text: "Clock" },
         {
+            icon: "notifications",
+            text: "Reminders",
+            badgeCount: ClockService.activeReminderCount
+        },
+        {
             icon: "hourglass_empty",
             text: "Timers",
             badgeCount: ClockService.runningTimerCount
@@ -42,7 +47,7 @@ FloatingWindow {
         }
     ]
 
-    title: `${ClockService.currentTabIndex === 5 ? "Settings" : (navDestinations[ClockService.currentTabIndex]?.text ?? "Clock")} — DankClock`
+    title: `${ClockService.currentTabIndex === 6 ? "Settings" : (navDestinations[ClockService.currentTabIndex]?.text ?? "Clock")} — DankClock`
     minimumSize: Qt.size(ClockMetrics.windowMinWidth, ClockMetrics.windowMinHeight)
     implicitWidth: ClockMetrics.windowWidth
     implicitHeight: ClockMetrics.windowHeight
@@ -99,8 +104,12 @@ FloatingWindow {
                     event.accepted = true;
                     return;
                 case Qt.Key_6:
-                case Qt.Key_Comma:
                     ClockService.currentTabIndex = 5;
+                    event.accepted = true;
+                    return;
+                case Qt.Key_7:
+                case Qt.Key_Comma:
+                    ClockService.currentTabIndex = 6;
                     event.accepted = true;
                     return;
                 case Qt.Key_Q:
@@ -114,7 +123,7 @@ FloatingWindow {
                 }
             }
 
-            if (ClockService.currentTabIndex === 2 && !ClockService.timerSetupMode) {
+            if (ClockService.currentTabIndex === 3 && !ClockService.timerSetupMode) {
                 if (event.key === Qt.Key_Space) {
                     ClockService.toggleTimer(ClockService.activeTimerIndex);
                     event.accepted = true;
@@ -122,7 +131,7 @@ FloatingWindow {
                     ClockService.resetTimer(ClockService.activeTimerIndex);
                     event.accepted = true;
                 }
-            } else if (ClockService.currentTabIndex === 3) {
+            } else if (ClockService.currentTabIndex === 4) {
                 if (event.key === Qt.Key_Space) {
                     ClockService.togglePomodoro();
                     event.accepted = true;
@@ -133,7 +142,7 @@ FloatingWindow {
                     ClockService.skipPomodoroPhase();
                     event.accepted = true;
                 }
-            } else if (ClockService.currentTabIndex === 4) {
+            } else if (ClockService.currentTabIndex === 5) {
                 if (event.key === Qt.Key_Space) {
                     ClockService.toggleStopwatch();
                     event.accepted = true;
@@ -182,7 +191,7 @@ FloatingWindow {
                     spacing: Theme.spacingS
                     labelFontSize: Theme.fontSizeMedium
                     model: window.navDestinations
-                    currentIndex: ClockService.currentTabIndex < 5 ? ClockService.currentTabIndex : -1
+                    currentIndex: ClockService.currentTabIndex < 6 ? ClockService.currentTabIndex : -1
                     onActivated: index => {
                         ClockService.currentTabIndex = index;
                         rootContent.forceActiveFocus();
@@ -201,9 +210,9 @@ FloatingWindow {
                     spacing: Theme.spacingS
                     labelFontSize: Theme.fontSizeMedium
                     model: [{ icon: "settings", text: "Settings" }]
-                    currentIndex: ClockService.currentTabIndex === 5 ? 0 : -1
+                    currentIndex: ClockService.currentTabIndex === 6 ? 0 : -1
                     onActivated: {
-                        ClockService.currentTabIndex = 5;
+                        ClockService.currentTabIndex = 6;
                         rootContent.forceActiveFocus();
                     }
                 }
@@ -238,26 +247,32 @@ FloatingWindow {
                 enabled: ClockService.stateReady
             }
 
-            TimerView {
+            ReminderView {
                 anchors.fill: parent
                 visible: ClockService.currentTabIndex === 2
                 enabled: ClockService.stateReady
             }
 
-            PomodoroView {
+            TimerView {
                 anchors.fill: parent
                 visible: ClockService.currentTabIndex === 3
                 enabled: ClockService.stateReady
             }
 
-            StopwatchView {
+            PomodoroView {
                 anchors.fill: parent
                 visible: ClockService.currentTabIndex === 4
+                enabled: ClockService.stateReady
+            }
+
+            StopwatchView {
+                anchors.fill: parent
+                visible: ClockService.currentTabIndex === 5
             }
 
             ClockSettingsModal {
                 anchors.fill: parent
-                visible: ClockService.currentTabIndex === 5
+                visible: ClockService.currentTabIndex === 6
             }
         }
 

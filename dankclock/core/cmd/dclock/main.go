@@ -67,7 +67,7 @@ func findQuickshellDir(specified string) (string, error) {
 
 func main() {
 	configDir := flag.String("c", "", "path to quickshell configuration directory")
-	tabFlag := flag.String("tab", "", "initial tab to open (clock, worldclock, alarm, alarms, timer, timers, stopwatch, pomodoro, pomo, settings)")
+	tabFlag := flag.String("tab", "", "initial tab to open (clock, worldclock, alarm, alarms, reminder, reminders, timer, timers, stopwatch, pomodoro, pomo, settings)")
 	showVersion := flag.Bool("v", false, "show version")
 
 	flag.Usage = func() {
@@ -86,10 +86,10 @@ func main() {
 	if *tabFlag != "" {
 		normalizedTab := strings.ToLower(strings.TrimSpace(*tabFlag))
 		switch normalizedTab {
-		case "clock", "worldclock", "alarm", "alarms", "timer", "timers", "stopwatch", "pomodoro", "pomo", "settings":
+		case "clock", "worldclock", "alarm", "alarms", "reminder", "reminders", "timer", "timers", "stopwatch", "pomodoro", "pomo", "settings":
 			*tabFlag = normalizedTab
 		default:
-			fmt.Fprintf(os.Stderr, "Error: unknown tab %q (supported: clock, worldclock, alarm, alarms, timer, timers, stopwatch, pomodoro, pomo, settings)\n", *tabFlag)
+			fmt.Fprintf(os.Stderr, "Error: unknown tab %q (supported: clock, worldclock, alarm, alarms, reminder, reminders, timer, timers, stopwatch, pomodoro, pomo, settings)\n", *tabFlag)
 			os.Exit(1)
 		}
 	}
