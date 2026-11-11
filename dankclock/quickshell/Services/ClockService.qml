@@ -27,6 +27,10 @@ Singleton {
     property bool timerSetupMode: false
     property bool reminderEditSheetOpen: false
     property int editingReminderIndex: -1
+    property bool reminderTimePickerOpen: false
+    property int reminderTimePickerHour: 9
+    property int reminderTimePickerMinute: 0
+    property bool reminderEditMode: false
 
     // Vacation Mode state
     property var vacation: ({
@@ -549,6 +553,7 @@ Singleton {
                                 minute: typeof r.minute === "number" ? r.minute : 0,
                                 enabled: r.enabled !== false,
                                 repeat: r.repeat || "none",
+                                important: Boolean(r.important),
                                 completedDateKey: r.completedDateKey || "",
                                 lastTriggeredMinuteKey: r.lastTriggeredMinuteKey || ""
                             };
@@ -1748,6 +1753,7 @@ Singleton {
             minute: typeof remObj.minute === "number" ? remObj.minute : 0,
             enabled: remObj.enabled !== false,
             repeat: remObj.repeat || "none",
+            important: Boolean(remObj.important),
             completedDateKey: "",
             lastTriggeredMinuteKey: ""
         });
@@ -1769,6 +1775,7 @@ Singleton {
             minute: typeof remObj.minute === "number" ? remObj.minute : cur.minute,
             enabled: remObj.enabled !== undefined ? remObj.enabled : cur.enabled,
             repeat: remObj.repeat !== undefined ? remObj.repeat : (cur.repeat || "none"),
+            important: remObj.important !== undefined ? Boolean(remObj.important) : Boolean(cur.important),
             completedDateKey: remObj.completedDateKey !== undefined ? remObj.completedDateKey : (cur.completedDateKey || ""),
             lastTriggeredMinuteKey: cur.lastTriggeredMinuteKey || ""
         };
@@ -1803,6 +1810,17 @@ Singleton {
             }
         }
         r.lastTriggeredMinuteKey = "";
+        reminders = next;
+        reminderRevision++;
+        saveState();
+    }
+
+    function toggleReminderImportant(index) {
+        if (!root._stateReady || index < 0 || index >= reminders.length)
+            return;
+        const next = reminders.slice();
+        const r = next[index];
+        r.important = !Boolean(r.important);
         reminders = next;
         reminderRevision++;
         saveState();
@@ -1957,5 +1975,130 @@ Singleton {
 
         const d = new Date(remObj.date + "T12:00:00");
         return `${Qt.formatDate(d, "MMM d, yyyy")} at ${timeStr}`;
+    }
+
+    readonly property var nextIncomingReminder: {
+        void reminderRevision;
+        void now;
+        if (!reminders || reminders.length === 0)
+            return null;
+        const cur = now || new Date();
+        const curMs = cur.getTime();
+        const curDateKey = _todayDateKey();
+        const curHM = cur.getHours() * 60 + cur.getMinutes();
+        const curDay = cur.getDay();
+
+        let bestDiff = Infinity;
+        let bestItem = null;
+        let bestIndex = -1;
+        let bestTargetDate = null;
+
+        for (let i = 0; i < reminders.length; i++) {
+            const r = reminders[i];
+            if (!r || !r.enabled)
+                continue;
+            const rep = r.repeat || "none";
+            const rHM = r.hour * 60 + r.minute;
+
+            if (rep === "none") {
+                if (r.completedDateKey === curDateKey)
+                    continue;
+                if (!r.date)
+                    continue;
+                const d = new Date(r.date + "T00:00:00");
+                d.setHours(r.hour, r.minute, 0, 0);
+                const diff = d.getTime() - curMs;
+                if (diff > 0 && diff < bestDiff) {
+                    bestDiff = diff;
+                    bestItem = r;
+                    bestIndex = i;
+                    bestTargetDate = d;
+                }
+            } else if (rep === "daily") {
+                if (r.completedDateKey === curDateKey)
+                    continue;
+                const d = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate(), r.hour, r.minute, 0, 0);
+                if (rHM <= curHM) {
+                    d.setDate(d.getDate() + 1);
+                }
+                const diff = d.getTime() - curMs;
+                if (diff > 0 && diff < bestDiff) {
+                    bestDiff = diff;
+                    bestItem = r;
+                    bestIndex = i;
+                    bestTargetDate = d;
+                }
+            } else if (rep === "weekdays") {
+                if (r.completedDateKey === curDateKey)
+                    continue;
+                for (let offset = 0; offset <= 7; offset++) {
+                    const d = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + offset, r.hour, r.minute, 0, 0);
+                    const day = d.getDay();
+                    if (day === 0 || day === 6)
+                        continue;
+                    if (offset === 0 && rHM <= curHM)
+                        continue;
+                    const diff = d.getTime() - curMs;
+                    if (diff > 0 && diff < bestDiff) {
+                        bestDiff = diff;
+                        bestItem = r;
+                        bestIndex = i;
+                        bestTargetDate = d;
+                    }
+                    break;
+                }
+            } else if (rep === "weekly") {
+                if (r.completedDateKey === curDateKey)
+                    continue;
+                const startD = r.date ? new Date(r.date + "T12:00:00") : cur;
+                const targetDay = startD.getDay();
+                let dayDiff = (targetDay - curDay + 7) % 7;
+                if (dayDiff === 0 && rHM <= curHM)
+                    dayDiff = 7;
+                const d = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + dayDiff, r.hour, r.minute, 0, 0);
+                const diff = d.getTime() - curMs;
+                if (diff > 0 && diff < bestDiff) {
+                    bestDiff = diff;
+                    bestItem = r;
+                    bestIndex = i;
+                    bestTargetDate = d;
+                }
+            }
+        }
+
+        if (!bestItem || !bestTargetDate)
+            return null;
+
+        const totalMins = Math.floor(bestDiff / 60000);
+        const h = Math.floor(totalMins / 60);
+        const m = totalMins % 60;
+        let rel = "";
+        if (h > 24) {
+            const days = Math.floor(h / 24);
+            rel = `in ${days} day${days > 1 ? "s" : ""}`;
+        } else if (h > 0 && m > 0) {
+            rel = `in ${h} hr ${m} min`;
+        } else if (h > 0) {
+            rel = `in ${h} hr`;
+        } else {
+            rel = `in ${Math.max(1, m)} min`;
+        }
+
+        const targetDateKey = _dateKey(bestTargetDate);
+        let dayRel = "Today";
+        const tom = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
+        if (targetDateKey === _dateKey(tom)) {
+            dayRel = "Tomorrow";
+        } else if (targetDateKey !== curDateKey) {
+            dayRel = Qt.formatDate(bestTargetDate, "ddd, MMM d");
+        }
+
+        return {
+            index: bestIndex,
+            reminder: bestItem,
+            relativeText: rel,
+            dayRelation: dayRel,
+            timeText: formatAlarmTime(bestItem.hour, bestItem.minute)
+        };
     }
 }

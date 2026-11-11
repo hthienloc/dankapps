@@ -438,5 +438,41 @@ FloatingWindow {
         ClockVacationSheet {
             id: vacationSheet
         }
+
+        // Reminder Creation / Editing Sheet
+        ClockReminderSheet {
+            id: reminderSheet
+        }
+
+        // Dedicated TimePicker Modal for Reminder Time
+        DTimePicker {
+            id: reminderTimePicker
+            is24Hour: SettingsData.use24HourClock
+            title: "Select Reminder Time"
+            z: 1100
+            onAccepted: (h, m) => {
+                ClockService.reminderTimePickerHour = h;
+                ClockService.reminderTimePickerMinute = m;
+                ClockService.reminderTimePickerOpen = false;
+                rootContent.forceActiveFocus();
+            }
+            onRejected: {
+                ClockService.reminderTimePickerOpen = false;
+                rootContent.forceActiveFocus();
+            }
+        }
+
+        Connections {
+            target: ClockService
+            function onReminderTimePickerOpenChanged() {
+                if (ClockService.reminderTimePickerOpen) {
+                    reminderTimePicker.hour = ClockService.reminderTimePickerHour;
+                    reminderTimePicker.minute = ClockService.reminderTimePickerMinute;
+                    reminderTimePicker.open();
+                } else if (reminderTimePicker.opened) {
+                    reminderTimePicker.close();
+                }
+            }
+        }
     }
 }
