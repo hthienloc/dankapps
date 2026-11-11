@@ -134,7 +134,7 @@ Item {
                             text: "Adjust"
                             iconName: "edit"
                             buttonHeight: Theme.buttonHeightXS
-                            backgroundColor: Theme.surfaceContainerHigh
+                            backgroundColor: Theme.surfaceContainerHighest
                             textColor: Theme.surfaceText
                             onClicked: ClockService.vacationSheetOpen = true
                         }
@@ -143,8 +143,8 @@ Item {
                             text: "Turn Off"
                             iconName: "close"
                             buttonHeight: Theme.buttonHeightXS
-                            backgroundColor: Theme.surfaceContainerHigh
-                            textColor: Theme.surfaceText
+                            backgroundColor: Theme.errorContainer
+                            textColor: Theme.onErrorContainer
                             onClicked: ClockService.disableVacationMode()
                         }
                     }
