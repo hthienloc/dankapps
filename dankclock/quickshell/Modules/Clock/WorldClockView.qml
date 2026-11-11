@@ -111,309 +111,6 @@ Item {
                 }
             }
 
-            // Lower Section: Full-width Interactive Time Zone Scrubber / Meeting Planner Card
-            // Aligned flush with both the left edge of the clock dial and the right edge of the pill grid
-            Rectangle {
-                id: scrubberCard
-                width: parent.width
-                height: scrubberCol.implicitHeight + Theme.spacingL * 2
-                radius: Theme.cornerRadiusXL
-                color: scrubberHover.hovered ? Theme.surfaceContainerHigh : Theme.surfaceContainerLow
-                border.width: root.isScrubbing ? 1.5 : 1
-                border.color: root.isScrubbing
-                    ? Theme.primary
-                    : (scrubberHover.hovered ? Theme.outline : Theme.outlineVariant)
-
-                Behavior on color {
-                    enabled: Theme.animationsEnabled
-                    ColorAnimation { duration: ClockMetrics.fadeDuration }
-                }
-                Behavior on border.color {
-                    enabled: Theme.animationsEnabled
-                    ColorAnimation { duration: ClockMetrics.fadeDuration }
-                }
-
-                HoverHandler {
-                    id: scrubberHover
-                }
-
-                Column {
-                    id: scrubberCol
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: Theme.spacingL
-                    spacing: Theme.spacingS
-
-                    // Header Row: Title + Offset Pill + Step / Reset Buttons
-                    Item {
-                        width: parent.width
-                        height: Math.max(28, scrubberLeftFlow.implicitHeight)
-
-                        Flow {
-                            id: scrubberLeftFlow
-                            anchors.left: parent.left
-                            anchors.right: scrubberStepRow.left
-                            anchors.rightMargin: Theme.spacingS
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: Theme.spacingS
-
-                            Row {
-                                height: 24
-                                spacing: Theme.spacingS
-
-                                DIcon {
-                                    name: root.isScrubbing ? "history_toggle_off" : "schedule"
-                                    size: Theme.iconSizeSmall
-                                    color: Theme.primary
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                StyledText {
-                                    text: "Time Zone Scrubber"
-                                    font.pixelSize: Theme.fontSizeMedium
-                                    font.weight: Font.DemiBold
-                                    color: Theme.surfaceText
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
-
-                            Row {
-                                height: 24
-                                spacing: Theme.spacingS
-
-                                DBadge {
-                                    text: root.scrubDeltaLabel
-                                    reserveText: "+88h 88m"
-                                    color: root.isScrubbing ? Theme.primary : Theme.withAlpha(Theme.surfaceVariant, 0.45)
-                                    textColor: root.isScrubbing ? Theme.onPrimary : Theme.surfaceVariantText
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                DButton {
-                                    visible: root.isScrubbing
-                                    text: "Reset"
-                                    iconName: "restart_alt"
-                                    buttonHeight: 24
-                                    backgroundColor: Theme.primaryContainer
-                                    textColor: Theme.onPrimaryContainer
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    onClicked: root.scrubMinutesOffset = 0
-                                }
-                            }
-                        }
-
-                        Row {
-                            id: scrubberStepRow
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: Theme.spacingXS
-
-                            DButton {
-                                text: "-1h"
-                                buttonHeight: Theme.buttonHeightXXS
-                                minimumWidth: 44
-                                backgroundColor: Theme.secondaryContainer
-                                textColor: Theme.onSecondaryContainer
-                                tooltipText: "Step back 1 hour"
-                                anchors.verticalCenter: parent.verticalCenter
-                                onClicked: root.scrubMinutesOffset = Math.max(-720, root.scrubMinutesOffset - 60)
-                            }
-
-                            DButton {
-                                text: "+1h"
-                                buttonHeight: Theme.buttonHeightXXS
-                                minimumWidth: 44
-                                backgroundColor: Theme.secondaryContainer
-                                textColor: Theme.onSecondaryContainer
-                                tooltipText: "Step forward 1 hour"
-                                anchors.verticalCenter: parent.verticalCenter
-                                onClicked: root.scrubMinutesOffset = Math.min(720, root.scrubMinutesOffset + 60)
-                            }
-                        }
-                    }
-
-                    // Dedicated Hour Scale Labels Row (Separated ABOVE the track so city badges never overlap text)
-                    Item {
-                        width: parent.width
-                        height: 16
-
-                        Repeater {
-                            model: 9
-
-                            Item {
-                                required property int index
-                                readonly property int hVal: index * 3
-                                x: (index / 8) * parent.width
-                                height: parent.height
-
-                                StyledText {
-                                    text: `${String(parent.hVal).padStart(2, "0")}:00`
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    font.weight: Font.Medium
-                                    color: (parent.hVal >= 9 && parent.hVal <= 18)
-                                        ? Theme.withAlpha(Theme.primary, 0.9)
-                                        : Theme.withAlpha(Theme.surfaceVariantText, 0.65)
-                                    x: parent.index === 0 ? 0 : (parent.index === 8 ? -width : -width / 2)
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
-                        }
-                    }
-
-                    // 24-Hour Timeline Track Bar with City Markers & Drag Scrubber
-                    Item {
-                        id: timelineTrack
-                        width: parent.width
-                        height: 36
-
-                        readonly property real localHourFrac: {
-                            const d = root.effectiveNow;
-                            return (d.getHours() + d.getMinutes() / 60) / 24;
-                        }
-
-                        // Background 24-Hour Track Pill
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            height: 28
-                            radius: 14
-                            color: Theme.withAlpha(Theme.surfaceVariant, 0.25)
-                            clip: true
-
-                            // Daylight / Working Hours Highlight Band (08:00 to 18:00)
-                            Rectangle {
-                                x: parent.width * (8 / 24)
-                                width: parent.width * (10 / 24)
-                                height: parent.height
-                                radius: 8
-                                color: Theme.withAlpha(Theme.primary, 0.16)
-                            }
-
-                            // Subtle Vertical Hour Grid Ticks inside the track
-                            Repeater {
-                                model: 24
-
-                                Rectangle {
-                                    required property int index
-                                    visible: index > 0
-                                    x: (index / 24) * parent.width
-                                    width: 1
-                                    height: index % 3 === 0 ? parent.height : 8
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    color: Theme.withAlpha(Theme.surfaceVariantText, index % 3 === 0 ? 0.22 : 0.1)
-                                }
-                            }
-                        }
-
-                        // Colored City Position Markers along the 24h axis
-                        Repeater {
-                            model: ClockService.worldClocks
-
-                            Item {
-                                id: trackCityMarker
-                                required property var modelData
-                                required property int index
-
-                                readonly property color cColor: root.getCityAccent(index)
-                                readonly property real cityHourFrac: ClockService.getCityTimeInfo(modelData, root.effectiveNow).hourFrac24
-
-                                x: Math.max(16, Math.min(timelineTrack.width - 16, cityHourFrac * timelineTrack.width))
-                                anchors.verticalCenter: parent.verticalCenter
-                                z: root.hoveredCityIndex === index ? 15 : 5
-
-                                Rectangle {
-                                    width: 28
-                                    height: 18
-                                    radius: 9
-                                    anchors.centerIn: parent
-                                    color: trackCityMarker.cColor
-                                    border.width: root.hoveredCityIndex === trackCityMarker.index ? 1.5 : 1
-                                    border.color: root.hoveredCityIndex === trackCityMarker.index ? Theme.surfaceText : Theme.surfaceContainerLow
-
-                                    StyledText {
-                                        anchors.centerIn: parent
-                                        text: ClockService.getCityCode(trackCityMarker.modelData)
-                                        font.pixelSize: 9
-                                        font.weight: Font.Bold
-                                        color: "#141618"
-                                    }
-                                }
-                            }
-                        }
-
-                        // Local Time Playhead Handle
-                        Item {
-                            id: localPlayhead
-                            x: Math.max(10, Math.min(timelineTrack.width - 10, timelineTrack.localHourFrac * timelineTrack.width))
-                            anchors.verticalCenter: parent.verticalCenter
-                            z: 20
-
-                            Rectangle {
-                                width: 3
-                                height: 34
-                                radius: 1.5
-                                anchors.centerIn: parent
-                                color: Theme.surfaceText
-                            }
-
-                            Rectangle {
-                                width: 14
-                                height: 14
-                                radius: 7
-                                anchors.centerIn: parent
-                                color: Theme.primary
-                                border.width: 2
-                                border.color: Theme.surfaceText
-                                scale: scrubArea.pressed ? 1.25 : (scrubArea.containsMouse ? 1.12 : 1.0)
-
-                                Behavior on scale {
-                                    enabled: Theme.animationsEnabled
-                                    NumberAnimation { duration: ClockMetrics.transitionDuration }
-                                }
-                            }
-                        }
-
-                        // Interactive Scrub MouseArea & Wheel Support
-                        MouseArea {
-                            id: scrubArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
-                            property real startX: 0
-                            property int startOffset: 0
-
-                            onPressed: mouse => {
-                                startX = mouse.x;
-                                startOffset = root.scrubMinutesOffset;
-                            }
-                            onPositionChanged: mouse => {
-                                if (!pressed || width <= 0)
-                                    return;
-                                const deltaX = mouse.x - startX;
-                                const rawMin = startOffset + Math.round((deltaX / width) * 1440);
-                                const snapped = Math.round(rawMin / 15) * 15;
-                                root.scrubMinutesOffset = Math.max(-720, Math.min(720, snapped));
-                            }
-                            onDoubleClicked: root.scrubMinutesOffset = 0
-                            onWheel: wheel => {
-                                if (wheel.angleDelta.y === 0)
-                                    return;
-                                const step = wheel.angleDelta.y > 0 ? 15 : -15;
-                                root.scrubMinutesOffset = Math.max(-720, Math.min(720, root.scrubMinutesOffset + step));
-                                wheel.accepted = true;
-                            }
-                        }
-
-                        DTooltipHost {
-                            target: timelineTrack
-                            hoverArea: scrubArea
-                            text: "Drag or scroll to scrub across time zones (double-click to reset)"
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -435,11 +132,13 @@ Item {
             width: dialRoot.outerRadius * 2
             height: dialRoot.outerRadius * 2
             radius: dialRoot.outerRadius
-            color: dialHover.hovered ? Theme.surfaceContainer : Theme.surfaceContainerLow
-            border.width: 2
+            color: dialScrubArea.pressed
+                ? Theme.surfaceContainerHighest
+                : (dialScrubArea.containsMouse ? Theme.surfaceContainer : Theme.surfaceContainerLow)
+            border.width: root.isScrubbing ? 2.5 : 2
             border.color: root.isScrubbing
                 ? Theme.primary
-                : (dialHover.hovered ? Theme.outline : Theme.outlineVariant)
+                : (dialScrubArea.containsMouse ? Theme.outline : Theme.outlineVariant)
 
             Behavior on color {
                 enabled: Theme.animationsEnabled
@@ -448,6 +147,66 @@ Item {
             Behavior on border.color {
                 enabled: Theme.animationsEnabled
                 ColorAnimation { duration: ClockMetrics.fadeDuration }
+            }
+
+            // Rotational Drag Scrubber on the Analog Clock Face
+            MouseArea {
+                id: dialScrubArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
+
+                property real lastAngleDeg: 0
+                property real accumulatedDegrees: 0
+
+                function getAngleDeg(mouse) {
+                    const dx = mouse.x - width / 2;
+                    const dy = mouse.y - height / 2;
+                    let deg = Math.atan2(dy, dx) * 180 / Math.PI;
+                    if (deg < 0)
+                        deg += 360;
+                    return deg;
+                }
+
+                onPressed: mouse => {
+                    lastAngleDeg = getAngleDeg(mouse);
+                    accumulatedDegrees = 0;
+                }
+
+                onPositionChanged: mouse => {
+                    if (!pressed)
+                        return;
+                    const currentAngle = getAngleDeg(mouse);
+                    let delta = currentAngle - lastAngleDeg;
+
+                    // Handle boundary crossing around 0/360 degrees
+                    if (delta > 180)
+                        delta -= 360;
+                    else if (delta < -180)
+                        delta += 360;
+
+                    lastAngleDeg = currentAngle;
+                    accumulatedDegrees += delta;
+
+                    // 360 degrees on dial corresponds to 12 hours (720 minutes), so 1 deg = 2 minutes.
+                    // Only apply step changes when >= 7.5 deg (15 minutes).
+                    const deltaMinutes = Math.round(accumulatedDegrees * 2 / 15) * 15;
+                    if (deltaMinutes !== 0) {
+                        const nextOffset = Math.max(-720, Math.min(720, root.scrubMinutesOffset + deltaMinutes));
+                        root.scrubMinutesOffset = nextOffset;
+                        accumulatedDegrees -= deltaMinutes / 2;
+                    }
+                }
+
+                onDoubleClicked: root.scrubMinutesOffset = 0
+
+                onWheel: wheel => {
+                    if (wheel.angleDelta.y === 0)
+                        return;
+                    const step = wheel.angleDelta.y > 0 ? 15 : -15;
+                    root.scrubMinutesOffset = Math.max(-720, Math.min(720, root.scrubMinutesOffset + step));
+                    wheel.accepted = true;
+                }
             }
         }
 
