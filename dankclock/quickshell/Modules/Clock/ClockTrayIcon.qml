@@ -30,7 +30,8 @@ Item {
         id: tray
         visible: false
         tooltip: "Dank Clock"
-        icon.source: Qt.resolvedUrl("../assets/dankclock-tray.svg")
+        icon.name: "com.danklinux.dankclock"
+        icon.source: Qt.resolvedUrl("../../assets/dankclock-tray.svg")
 
         onActivated: reason => {
             switch (reason) {
