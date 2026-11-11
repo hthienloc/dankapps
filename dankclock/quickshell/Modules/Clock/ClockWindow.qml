@@ -12,6 +12,16 @@ import "."
 FloatingWindow {
     id: window
 
+    signal hideRequested
+
+    function requestClose() {
+        if (SettingsData.closeBehavior === "quit") {
+            ClockService.requestQuit();
+        } else {
+            window.hideRequested();
+        }
+    }
+
     readonly property var navDestinations: [
         { icon: "alarm", text: "Alarms" },
         { icon: "public", text: "Clock" },
@@ -94,8 +104,11 @@ FloatingWindow {
                     event.accepted = true;
                     return;
                 case Qt.Key_Q:
-                case Qt.Key_W:
                     ClockService.requestQuit();
+                    event.accepted = true;
+                    return;
+                case Qt.Key_W:
+                    window.requestClose();
                     event.accepted = true;
                     return;
                 }
@@ -142,7 +155,7 @@ FloatingWindow {
             z: 10
             controls: windowControls
             title: "DankClock"
-            onCloseRequested: ClockService.requestQuit()
+            onCloseRequested: window.requestClose()
         }
 
         Item {

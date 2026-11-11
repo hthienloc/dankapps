@@ -61,6 +61,8 @@ Singleton {
     // Clock preferences
     property alias use24HourClock: adapter.use24HourClock
     property alias showSeconds: adapter.showSeconds
+    property alias closeBehavior: adapter.closeBehavior
+    property alias showTrayIcon: adapter.showTrayIcon
     property alias pomodoroFocusMinutes: adapter.pomodoroFocusMinutes
     property alias pomodoroShortBreakMinutes: adapter.pomodoroShortBreakMinutes
     property alias pomodoroLongBreakMinutes: adapter.pomodoroLongBreakMinutes
@@ -114,6 +116,8 @@ Singleton {
             property string focusRingColor: "primary"
             property bool use24HourClock: true
             property bool showSeconds: true
+            property string closeBehavior: "minimize"
+            property bool showTrayIcon: true
             property int pomodoroFocusMinutes: 25
             property int pomodoroShortBreakMinutes: 5
             property int pomodoroLongBreakMinutes: 15

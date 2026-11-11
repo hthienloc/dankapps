@@ -108,7 +108,7 @@ Item {
                                         subtitle: "Display live seconds on the local digital and analog clock"
                                         clickable: true
                                         isFirstInGroup: false
-                                        isLastInGroup: true
+                                        isLastInGroup: false
                                         onClicked: SettingsData.showSeconds = !SettingsData.showSeconds
 
                                         DToggle {
@@ -116,6 +116,48 @@ Item {
                                             checked: SettingsData.showSeconds
                                             anchors.verticalCenter: parent.verticalCenter
                                             onToggled: chk => SettingsData.showSeconds = chk
+                                        }
+                                    }
+
+                                    ClockRow {
+                                        width: parent.width
+                                        iconName: "close"
+                                        accent: "orange"
+                                        title: "When closing window"
+                                        subtitle: "Keep running in background or quit completely"
+                                        isFirstInGroup: false
+                                        isLastInGroup: false
+
+                                        DButtonGroup {
+                                            selectionMode: "single"
+                                            size: "small"
+                                            checkEnabled: false
+                                            model: ["Minimize to tray", "Quit"]
+                                            currentIndex: SettingsData.closeBehavior === "quit" ? 1 : 0
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            onSelectionChanged: (idx, sel) => {
+                                                if (sel)
+                                                    SettingsData.closeBehavior = (idx === 1 ? "quit" : "minimize");
+                                            }
+                                        }
+                                    }
+
+                                    ClockRow {
+                                        width: parent.width
+                                        iconName: "notifications_active"
+                                        accent: "purple"
+                                        title: "Show tray icon"
+                                        subtitle: "Keep status icon in the system tray when running in background"
+                                        clickable: true
+                                        isFirstInGroup: false
+                                        isLastInGroup: true
+                                        onClicked: SettingsData.showTrayIcon = !SettingsData.showTrayIcon
+
+                                        DToggle {
+                                            hideText: true
+                                            checked: SettingsData.showTrayIcon
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            onToggled: chk => SettingsData.showTrayIcon = chk
                                         }
                                     }
                                 }
