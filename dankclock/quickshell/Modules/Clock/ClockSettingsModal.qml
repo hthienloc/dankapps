@@ -402,6 +402,7 @@ Item {
                                 Repeater {
                                     model: [
                                         { icon: "menu_book", accent: "blue", title: "Docs", subtitle: "duxlabs.dev/docs", url: "https://duxlabs.dev/docs" },
+                                        { icon: "auto_awesome", accent: "orange", title: "Inspiration", subtitle: "Clock design inspired by ii-p3drovfx", url: "https://github.com/P3DROVFX/ii-p3drovfx" },
                                         { icon: "code", accent: "purple", title: "GitHub", subtitle: "github.com/hthienloc/dankapps", url: "https://github.com/hthienloc/dankapps" },
                                         { icon: "gavel", accent: "green", title: "License", subtitle: "MIT License", url: "https://github.com/hthienloc/dankapps/blob/master/LICENSE" }
                                     ]
@@ -418,7 +419,7 @@ Item {
                                         subtitle: modelData.subtitle
                                         clickable: true
                                         isFirstInGroup: index === 0
-                                        isLastInGroup: index === 2
+                                        isLastInGroup: index === 3
                                         onClicked: Qt.openUrlExternally(aboutLinkRow.modelData.url)
 
                                         DIcon {
