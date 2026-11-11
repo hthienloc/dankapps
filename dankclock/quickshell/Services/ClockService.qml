@@ -25,6 +25,8 @@ Singleton {
     property bool labelDialogOpen: false
     property int editingLabelAlarmIndex: -1
     property bool timerSetupMode: false
+    property bool reminderEditSheetOpen: false
+    property int editingReminderIndex: -1
 
     // Vacation Mode state
     property var vacation: ({
@@ -127,6 +129,30 @@ Singleton {
         { hour: 7, minute: 0, label: "Morning Alarm", enabled: true, days: ["Mon", "Tue", "Wed", "Thu", "Fri"], soundId: "classic", snoozeMin: 10, deleteAfterGoesOff: false, skippedDateKey: "" },
         { hour: 8, minute: 30, label: "Daily Standup", enabled: false, days: ["Mon", "Tue", "Wed", "Thu", "Fri"], soundId: "chime", snoozeMin: 5, deleteAfterGoesOff: false, skippedDateKey: "" }
     ]
+
+    // Reminders State
+    property int _nextReminderId: 1
+    property int reminderRevision: 0
+    property var reminders: []
+
+    readonly property int activeReminderCount: {
+        void reminderRevision;
+        let count = 0;
+        const cur = root.now || new Date();
+        const curKey = _dateKey(cur);
+        const curHM = cur.getHours() * 60 + cur.getMinutes();
+        for (let i = 0; i < reminders.length; i++) {
+            const r = reminders[i];
+            if (!r || !r.enabled)
+                continue;
+            if (r.repeat && r.repeat !== "none") {
+                count++;
+            } else if (r.date > curKey || (r.date === curKey && (r.hour * 60 + r.minute) >= curHM)) {
+                count++;
+            }
+        }
+        return count;
+    }
 
     readonly property var weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     property string _lastTriggeredMinuteKey: ""
@@ -452,22 +478,24 @@ Singleton {
             currentTabIndex = 1;
         else if (initTab === "alarm" || initTab === "alarms")
             currentTabIndex = 0;
-        else if (initTab === "timer" || initTab === "timers")
+        else if (initTab === "reminder" || initTab === "reminders")
             currentTabIndex = 2;
-        else if (initTab === "pomodoro" || initTab === "pomo")
+        else if (initTab === "timer" || initTab === "timers")
             currentTabIndex = 3;
-        else if (initTab === "stopwatch")
+        else if (initTab === "pomodoro" || initTab === "pomo")
             currentTabIndex = 4;
-        else if (initTab === "settings")
+        else if (initTab === "stopwatch")
             currentTabIndex = 5;
+        else if (initTab === "settings")
+            currentTabIndex = 6;
 
         if (Quickshell.env("DCLOCK_OPEN_SETTINGS") === "1")
-            currentTabIndex = 5;
+            currentTabIndex = 6;
     }
 
     onSettingsOpenChanged: {
         if (settingsOpen) {
-            currentTabIndex = 5;
+            currentTabIndex = 6;
             settingsOpen = false;
         }
     }
@@ -508,6 +536,26 @@ Singleton {
                         });
                         root._nextTimerId = maxId;
                     }
+                    if (Array.isArray(data.reminders)) {
+                        let maxRemId = 1;
+                        root.reminders = data.reminders.map(r => {
+                            if (r.id >= maxRemId)
+                                maxRemId = r.id + 1;
+                            return {
+                                id: r.id || maxRemId++,
+                                title: r.title || "Reminder",
+                                date: r.date || "",
+                                hour: typeof r.hour === "number" ? r.hour : 9,
+                                minute: typeof r.minute === "number" ? r.minute : 0,
+                                enabled: r.enabled !== false,
+                                repeat: r.repeat || "none",
+                                completedDateKey: r.completedDateKey || "",
+                                lastTriggeredMinuteKey: r.lastTriggeredMinuteKey || ""
+                            };
+                        });
+                        root._nextReminderId = maxRemId;
+                        root.reminderRevision++;
+                    }
                     if (Array.isArray(data.pomodoroHistory)) {
                         root.pomodoroHistory = data.pomodoroHistory;
                         root.pomodoroStatsRevision++;
@@ -528,6 +576,7 @@ Singleton {
             }
             root._stateReady = true;
             root._checkAlarms(root.now);
+            root._checkReminders(root.now);
             if (root._pendingSave)
                 root._writeStateNow();
             else if (root._quitRequested)
@@ -536,6 +585,7 @@ Singleton {
         onLoadFailed: {
             root._stateReady = true;
             root._checkAlarms(root.now);
+            root._checkReminders(root.now);
             if (root._pendingSave)
                 root._writeStateNow();
             else if (root._quitRequested)
@@ -554,6 +604,7 @@ Singleton {
         const payload = {
             worldClocks: root.worldClocks,
             alarms: root.alarms,
+            reminders: root.reminders,
             timers: root.timers.map(t => ({
                 id: t.id,
                 label: t.label,
@@ -637,8 +688,10 @@ Singleton {
         triggeredOnStart: true
         onTriggered: {
             root.now = new Date();
-            if (root._stateReady)
+            if (root._stateReady) {
                 root._checkAlarms(root.now);
+                root._checkReminders(root.now);
+            }
         }
     }
 
@@ -1626,20 +1679,31 @@ Singleton {
     }
 
     // Sound & Notification via dms notify
+    function _playSystemNotificationSound() {
+        Quickshell.execDetached([
+            "sh", "-c",
+            "canberra-gtk-play -i message 2>/dev/null || pw-play /usr/share/sounds/freedesktop/stereo/message.oga 2>/dev/null || paplay /usr/share/sounds/freedesktop/stereo/message.oga 2>/dev/null || true"
+        ]);
+    }
+
     function _playAlertNotification(alertObj) {
         if (!alertObj)
             return;
-        const iconName = alertObj.type === "alarm" ? "alarm" : (alertObj.type === "pomodoro" ? "psychology" : "hourglass_empty");
+        const iconName = alertObj.type === "alarm" ? "alarm" : (alertObj.type === "reminder" ? "notifications" : (alertObj.type === "pomodoro" ? "psychology" : "hourglass_empty"));
         Quickshell.execDetached([
             "dms", "notify",
             "-a", "DankClock",
             "-n", "com.danklinux.dankclock",
             "-i", iconName,
-            "-u", "critical",
+            "-u", alertObj.type === "reminder" ? "normal" : "critical",
             String(alertObj.title || "DankClock"),
             String(alertObj.subtitle || "")
         ]);
-        _playSoundFile(alertObj.soundId || "classic", alertObj.volume);
+        if (alertObj.type === "reminder") {
+            _playSystemNotificationSound();
+        } else {
+            _playSoundFile(alertObj.soundId || "classic", alertObj.volume);
+        }
     }
 
     function _triggerAlert(type, title, subtitle, alarmIdx, timerId, soundId, snoozeMin, volumePct) {
@@ -1654,5 +1718,244 @@ Singleton {
             volume: typeof volumePct === "number" ? volumePct : 100
         };
         _playAlertNotification(alertObj);
+    }
+
+    // Reminder Management
+    function openAddReminderSheet() {
+        if (!root._stateReady)
+            return;
+        editingReminderIndex = -1;
+        reminderEditSheetOpen = true;
+    }
+
+    function openEditReminderSheet(index) {
+        if (!root._stateReady || index < 0 || index >= reminders.length)
+            return;
+        editingReminderIndex = index;
+        reminderEditSheetOpen = true;
+    }
+
+    function addReminder(remObj) {
+        if (!root._stateReady || !remObj)
+            return;
+        const next = reminders.slice();
+        const newId = root._nextReminderId++;
+        next.push({
+            id: newId,
+            title: remObj.title || "Reminder",
+            date: remObj.date || _todayDateKey(),
+            hour: typeof remObj.hour === "number" ? remObj.hour : 9,
+            minute: typeof remObj.minute === "number" ? remObj.minute : 0,
+            enabled: remObj.enabled !== false,
+            repeat: remObj.repeat || "none",
+            completedDateKey: "",
+            lastTriggeredMinuteKey: ""
+        });
+        reminders = next;
+        reminderRevision++;
+        saveState();
+    }
+
+    function updateReminder(index, remObj) {
+        if (!root._stateReady || index < 0 || index >= reminders.length || !remObj)
+            return;
+        const next = reminders.slice();
+        const cur = next[index];
+        next[index] = {
+            id: cur.id || root._nextReminderId++,
+            title: remObj.title !== undefined ? remObj.title : cur.title,
+            date: remObj.date !== undefined ? remObj.date : cur.date,
+            hour: typeof remObj.hour === "number" ? remObj.hour : cur.hour,
+            minute: typeof remObj.minute === "number" ? remObj.minute : cur.minute,
+            enabled: remObj.enabled !== undefined ? remObj.enabled : cur.enabled,
+            repeat: remObj.repeat !== undefined ? remObj.repeat : (cur.repeat || "none"),
+            completedDateKey: remObj.completedDateKey !== undefined ? remObj.completedDateKey : (cur.completedDateKey || ""),
+            lastTriggeredMinuteKey: cur.lastTriggeredMinuteKey || ""
+        };
+        reminders = next;
+        reminderRevision++;
+        saveState();
+    }
+
+    function toggleReminder(index, completed) {
+        if (!root._stateReady || index < 0 || index >= reminders.length)
+            return;
+        const next = reminders.slice();
+        const r = next[index];
+        const rep = r.repeat || "none";
+        const todayKey = _todayDateKey();
+
+        if (rep === "none") {
+            // One-time: toggling completed disables or re-enables it
+            r.enabled = !completed;
+            if (!completed) {
+                // Unchecked: re-enable and clear completion
+                r.completedDateKey = "";
+            } else {
+                r.completedDateKey = todayKey;
+            }
+        } else {
+            // Recurring: checking off marks today's occurrence completed without disabling future occurrences
+            if (completed) {
+                r.completedDateKey = todayKey;
+            } else {
+                r.completedDateKey = "";
+            }
+        }
+        r.lastTriggeredMinuteKey = "";
+        reminders = next;
+        reminderRevision++;
+        saveState();
+    }
+
+    function removeReminder(index) {
+        if (!root._stateReady || index < 0 || index >= reminders.length)
+            return;
+        const next = reminders.slice();
+        next.splice(index, 1);
+        reminders = next;
+        if (editingReminderIndex === index) {
+            editingReminderIndex = -1;
+            reminderEditSheetOpen = false;
+        } else if (editingReminderIndex > index) {
+            editingReminderIndex--;
+        }
+        reminderRevision++;
+        saveState();
+    }
+
+    function _checkReminders(d) {
+        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}-${d.getMinutes()}`;
+        const todayKey = _dateKey(d);
+        const h = d.getHours();
+        const m = d.getMinutes();
+        const jsDay = d.getDay(); // 0=Sun .. 6=Sat
+
+        let stateModified = false;
+
+        for (let i = 0; i < reminders.length; i++) {
+            const r = reminders[i];
+            if (!r || !r.enabled)
+                continue;
+
+            const rep = r.repeat || "none";
+
+            // If occurrence for today was already marked completed by user, skip it
+            if (r.completedDateKey === todayKey)
+                continue;
+
+            // Enforce start date: recurring reminders cannot trigger before their configured start date
+            if (r.date && todayKey < r.date)
+                continue;
+
+            // Minute match is always mandatory
+            if (r.minute !== m)
+                continue;
+
+            // Hour match: every2h checks 2-hour parity; others check exact hour
+            if (rep === "every2h") {
+                if (Math.abs(h - r.hour) % 2 !== 0)
+                    continue;
+            } else {
+                if (r.hour !== h)
+                    continue;
+            }
+
+            if (r.lastTriggeredMinuteKey === key)
+                continue;
+
+            let shouldTrigger = false;
+
+            if (rep === "none") {
+                if (r.date === todayKey)
+                    shouldTrigger = true;
+            } else if (rep === "daily") {
+                shouldTrigger = true;
+            } else if (rep === "weekdays") {
+                if (jsDay >= 1 && jsDay <= 5)
+                    shouldTrigger = true;
+            } else if (rep === "weekly") {
+                if (r.date) {
+                    const rDate = new Date(r.date + "T12:00:00");
+                    if (rDate.getDay() === jsDay)
+                        shouldTrigger = true;
+                } else {
+                    shouldTrigger = true;
+                }
+            } else if (rep === "every2h") {
+                shouldTrigger = true;
+            } else if (rep === "monthly") {
+                if (r.date) {
+                    const rDate = new Date(r.date + "T12:00:00");
+                    if (rDate.getDate() === d.getDate())
+                        shouldTrigger = true;
+                } else {
+                    shouldTrigger = true;
+                }
+            }
+
+            if (shouldTrigger) {
+                r.lastTriggeredMinuteKey = key;
+                stateModified = true;
+
+                // Format time string for subtitle
+                const timeStr = formatAlarmTime(r.hour, r.minute);
+                _playAlertNotification({
+                    type: "reminder",
+                    title: r.title || "Reminder",
+                    subtitle: `${timeStr}`
+                });
+
+                // Do not auto-disable reminder here: it remains active so it appears in Overdue
+                // until user explicitly completes it in ReminderView.
+            }
+        }
+
+        if (stateModified) {
+            reminderRevision++;
+            saveState();
+        }
+    }
+
+    function formatReminderSchedule(remObj) {
+        if (!remObj)
+            return "";
+        const rep = remObj.repeat || "none";
+        const timeStr = formatAlarmTime(remObj.hour, remObj.minute);
+        if (rep === "daily")
+            return `Daily at ${timeStr}`;
+        if (rep === "weekdays")
+            return `Weekdays at ${timeStr}`;
+        if (rep === "weekly") {
+            if (remObj.date) {
+                const d = new Date(remObj.date + "T12:00:00");
+                const dayName = Qt.formatDate(d, "dddd");
+                return `Weekly on ${dayName} at ${timeStr}`;
+            }
+            return `Weekly at ${timeStr}`;
+        }
+        if (rep === "every2h")
+            return `Every 2 hours at minute :${String(remObj.minute).padStart(2, "0")}`;
+        if (rep === "monthly") {
+            if (remObj.date) {
+                const d = new Date(remObj.date + "T12:00:00");
+                return `Monthly on day ${d.getDate()} at ${timeStr}`;
+            }
+            return `Monthly at ${timeStr}`;
+        }
+
+        // One-time
+        if (!remObj.date)
+            return `At ${timeStr}`;
+        const curKey = _todayDateKey();
+        if (remObj.date === curKey)
+            return `Today at ${timeStr}`;
+        const cur = root.now || new Date();
+        const tomorrow = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
+        if (remObj.date === _dateKey(tomorrow))
+            return `Tomorrow at ${timeStr}`;
+
+        const d = new Date(remObj.date + "T12:00:00");
+        return `${Qt.formatDate(d, "MMM d, yyyy")} at ${timeStr}`;
     }
 }
