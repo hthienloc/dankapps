@@ -549,6 +549,7 @@ Singleton {
                                 minute: typeof r.minute === "number" ? r.minute : 0,
                                 enabled: r.enabled !== false,
                                 repeat: r.repeat || "none",
+                                completedDateKey: r.completedDateKey || "",
                                 lastTriggeredMinuteKey: r.lastTriggeredMinuteKey || ""
                             };
                         });
@@ -1747,6 +1748,7 @@ Singleton {
             minute: typeof remObj.minute === "number" ? remObj.minute : 0,
             enabled: remObj.enabled !== false,
             repeat: remObj.repeat || "none",
+            completedDateKey: "",
             lastTriggeredMinuteKey: ""
         });
         reminders = next;
@@ -1767,6 +1769,7 @@ Singleton {
             minute: typeof remObj.minute === "number" ? remObj.minute : cur.minute,
             enabled: remObj.enabled !== undefined ? remObj.enabled : cur.enabled,
             repeat: remObj.repeat !== undefined ? remObj.repeat : (cur.repeat || "none"),
+            completedDateKey: remObj.completedDateKey !== undefined ? remObj.completedDateKey : (cur.completedDateKey || ""),
             lastTriggeredMinuteKey: cur.lastTriggeredMinuteKey || ""
         };
         reminders = next;
@@ -1774,12 +1777,32 @@ Singleton {
         saveState();
     }
 
-    function toggleReminder(index, enabled) {
+    function toggleReminder(index, completed) {
         if (!root._stateReady || index < 0 || index >= reminders.length)
             return;
         const next = reminders.slice();
-        next[index].enabled = enabled;
-        next[index].lastTriggeredMinuteKey = "";
+        const r = next[index];
+        const rep = r.repeat || "none";
+        const todayKey = _todayDateKey();
+
+        if (rep === "none") {
+            // One-time: toggling completed disables or re-enables it
+            r.enabled = !completed;
+            if (!completed) {
+                // Unchecked: re-enable and clear completion
+                r.completedDateKey = "";
+            } else {
+                r.completedDateKey = todayKey;
+            }
+        } else {
+            // Recurring: checking off marks today's occurrence completed without disabling future occurrences
+            if (completed) {
+                r.completedDateKey = todayKey;
+            } else {
+                r.completedDateKey = "";
+            }
+        }
+        r.lastTriggeredMinuteKey = "";
         reminders = next;
         reminderRevision++;
         saveState();
@@ -1815,12 +1838,32 @@ Singleton {
             if (!r || !r.enabled)
                 continue;
 
-            if (r.hour !== h || r.minute !== m)
+            const rep = r.repeat || "none";
+
+            // If occurrence for today was already marked completed by user, skip it
+            if (r.completedDateKey === todayKey)
                 continue;
+
+            // Enforce start date: recurring reminders cannot trigger before their configured start date
+            if (r.date && todayKey < r.date)
+                continue;
+
+            // Minute match is always mandatory
+            if (r.minute !== m)
+                continue;
+
+            // Hour match: every2h checks 2-hour parity; others check exact hour
+            if (rep === "every2h") {
+                if (Math.abs(h - r.hour) % 2 !== 0)
+                    continue;
+            } else {
+                if (r.hour !== h)
+                    continue;
+            }
+
             if (r.lastTriggeredMinuteKey === key)
                 continue;
 
-            const rep = r.repeat || "none";
             let shouldTrigger = false;
 
             if (rep === "none") {
@@ -1832,7 +1875,6 @@ Singleton {
                 if (jsDay >= 1 && jsDay <= 5)
                     shouldTrigger = true;
             } else if (rep === "weekly") {
-                // Same day of week as reminder date
                 if (r.date) {
                     const rDate = new Date(r.date + "T12:00:00");
                     if (rDate.getDay() === jsDay)
@@ -1841,11 +1883,8 @@ Singleton {
                     shouldTrigger = true;
                 }
             } else if (rep === "every2h") {
-                // Trigger every 2 hours at the scheduled minute (e.g. 08:00, 10:00, 12:00...)
-                if (h % 2 === r.hour % 2)
-                    shouldTrigger = true;
+                shouldTrigger = true;
             } else if (rep === "monthly") {
-                // Same day of month as reminder date
                 if (r.date) {
                     const rDate = new Date(r.date + "T12:00:00");
                     if (rDate.getDate() === d.getDate())
@@ -1867,10 +1906,8 @@ Singleton {
                     subtitle: `${timeStr}`
                 });
 
-                if (rep === "none") {
-                    // One-time reminder auto-disables after going off
-                    r.enabled = false;
-                }
+                // Do not auto-disable reminder here: it remains active so it appears in Overdue
+                // until user explicitly completes it in ReminderView.
             }
         }
 

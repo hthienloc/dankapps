@@ -53,7 +53,7 @@ Item {
         return `In ${m}m`;
     }
 
-    // Overdue items: enabled, one-time, past today or earlier today
+    // Overdue items: enabled, one-time, past today or earlier today (and not marked completed)
     readonly property var overdueReminders: {
         void ClockService.reminderRevision;
         if (!remindersList) return [];
@@ -62,7 +62,7 @@ Item {
         const curHM = cur.getHours() * 60 + cur.getMinutes();
         for (let i = 0; i < remindersList.length; i++) {
             const r = remindersList[i];
-            if (!r || !r.enabled)
+            if (!r || !r.enabled || r.completedDateKey === todayKey)
                 continue;
             const rep = r.repeat || "none";
             if (rep === "none" && r.date) {
@@ -74,7 +74,7 @@ Item {
         return res;
     }
 
-    // Today items: enabled, matching today or repeating daily/every2h or weekly on today's weekday
+    // Today items: enabled, matching today or repeating (daily, every2h, weekdays, weekly, monthly)
     readonly property var todayReminders: {
         void ClockService.reminderRevision;
         if (!remindersList) return [];
@@ -82,10 +82,17 @@ Item {
         const cur = ClockService.now || new Date();
         const curHM = cur.getHours() * 60 + cur.getMinutes();
         const jsDay = cur.getDay();
+        const dayOfMonth = cur.getDate();
+
         for (let i = 0; i < remindersList.length; i++) {
             const r = remindersList[i];
-            if (!r || !r.enabled)
+            if (!r || !r.enabled || r.completedDateKey === todayKey)
                 continue;
+
+            // Enforce start date: do not show recurring reminders before start date
+            if (r.date && todayKey < r.date)
+                continue;
+
             const rep = r.repeat || "none";
             if (rep === "none") {
                 if (r.date === todayKey && (r.hour * 60 + r.minute) >= curHM) {
@@ -93,9 +100,17 @@ Item {
                 }
             } else if (rep === "daily" || rep === "every2h") {
                 res.push({ index: i, item: r });
+            } else if (rep === "weekdays") {
+                if (jsDay >= 1 && jsDay <= 5)
+                    res.push({ index: i, item: r });
             } else if (rep === "weekly") {
                 const rDate = r.date ? new Date(r.date + "T12:00:00") : cur;
                 if (rDate.getDay() === jsDay) {
+                    res.push({ index: i, item: r });
+                }
+            } else if (rep === "monthly") {
+                const rDate = r.date ? new Date(r.date + "T12:00:00") : cur;
+                if (rDate.getDate() === dayOfMonth) {
                     res.push({ index: i, item: r });
                 }
             }
@@ -112,16 +127,33 @@ Item {
         const tom = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
         const tomKey = _formatDate(tom);
         const tomJsDay = tom.getDay();
+        const tomDayOfMonth = tom.getDate();
+
         for (let i = 0; i < remindersList.length; i++) {
             const r = remindersList[i];
             if (!r || !r.enabled)
                 continue;
+
+            // Enforce start date for recurring items
+            if (r.date && tomKey < r.date)
+                continue;
+
             const rep = r.repeat || "none";
             if (rep === "none" && r.date === tomKey) {
                 res.push({ index: i, item: r });
+            } else if (rep === "daily" || rep === "every2h") {
+                res.push({ index: i, item: r });
+            } else if (rep === "weekdays") {
+                if (tomJsDay >= 1 && tomJsDay <= 5)
+                    res.push({ index: i, item: r });
             } else if (rep === "weekly") {
                 const rDate = r.date ? new Date(r.date + "T12:00:00") : cur;
                 if (rDate.getDay() === tomJsDay) {
+                    res.push({ index: i, item: r });
+                }
+            } else if (rep === "monthly") {
+                const rDate = r.date ? new Date(r.date + "T12:00:00") : cur;
+                if (rDate.getDate() === tomDayOfMonth) {
                     res.push({ index: i, item: r });
                 }
             }
@@ -129,14 +161,15 @@ Item {
         return res;
     }
 
-    // Done items: disabled or finished
+    // Done items: disabled one-time items, or items with completedDateKey matching today
     readonly property var doneReminders: {
         void ClockService.reminderRevision;
         if (!remindersList) return [];
         const res = [];
         for (let i = 0; i < remindersList.length; i++) {
             const r = remindersList[i];
-            if (r && !r.enabled) {
+            if (!r) continue;
+            if (!r.enabled || r.completedDateKey === todayKey) {
                 res.push({ index: i, item: r });
             }
         }
@@ -498,7 +531,7 @@ Item {
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: ClockService.toggleReminder(overdueCard.remIndex, false)
+                                        onClicked: ClockService.toggleReminder(overdueCard.remIndex, true)
                                     }
                                 }
 
@@ -617,7 +650,7 @@ Item {
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: ClockService.toggleReminder(todayCard.remIndex, false)
+                                        onClicked: ClockService.toggleReminder(todayCard.remIndex, true)
                                     }
                                 }
 
@@ -765,7 +798,7 @@ Item {
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: ClockService.toggleReminder(tomCard.remIndex, false)
+                                        onClicked: ClockService.toggleReminder(tomCard.remIndex, true)
                                     }
                                 }
 
@@ -886,7 +919,7 @@ Item {
                                 MouseArea {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
-                                    onClicked: ClockService.toggleReminder(doneCard.remIndex, true)
+                                    onClicked: ClockService.toggleReminder(doneCard.remIndex, false)
                                 }
                             }
 
