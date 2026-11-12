@@ -991,14 +991,31 @@ Singleton {
         command: []
     }
 
+    Process {
+        id: notifySoundProc
+        running: false
+        command: []
+    }
+
+    function stopSound() {
+        if (soundPlayerProc.running) {
+            soundPlayerProc.running = false;
+        }
+        if (notifySoundProc.running) {
+            notifySoundProc.running = false;
+        }
+        Quickshell.execDetached([
+            "sh", "-c",
+            "pkill -x pw-play 2>/dev/null || pkill -x canberra-gtk-play 2>/dev/null || pkill -x paplay 2>/dev/null || true"
+        ]);
+    }
+
     function _playSoundFile(soundId, volumePct) {
         const s = getSoundInfo(soundId || "classic");
         if (!s || !s.path)
             return;
 
-        if (soundPlayerProc.running) {
-            soundPlayerProc.running = false;
-        }
+        stopSound();
 
         const vol = typeof volumePct === "number" ? Math.max(0, Math.min(100, volumePct)) : 100;
         const pwVol = (vol / 100).toFixed(2);
@@ -1685,10 +1702,12 @@ Singleton {
 
     // Sound & Notification via dms notify
     function _playSystemNotificationSound() {
-        Quickshell.execDetached([
+        stopSound();
+        notifySoundProc.command = [
             "sh", "-c",
-            "canberra-gtk-play -i message 2>/dev/null || pw-play /usr/share/sounds/freedesktop/stereo/message.oga 2>/dev/null || paplay /usr/share/sounds/freedesktop/stereo/message.oga 2>/dev/null || true"
-        ]);
+            "exec canberra-gtk-play -i message 2>/dev/null || exec pw-play /usr/share/sounds/freedesktop/stereo/message.oga 2>/dev/null || exec paplay /usr/share/sounds/freedesktop/stereo/message.oga 2>/dev/null || true"
+        ];
+        notifySoundProc.running = true;
     }
 
     function _playAlertNotification(alertObj) {
@@ -1717,16 +1736,43 @@ Singleton {
             }
             _playSystemNotificationSound();
         } else {
-            Quickshell.execDetached([
-                "dms", "notify",
-                "-a", "DankClock",
-                "-n", "com.danklinux.dankclock",
-                "-i", iconName,
-                "-u", "critical",
-                String(alertObj.title || "DankClock"),
-                String(alertObj.subtitle || "")
-            ]);
+            const proc = alertNotifyComponent.createObject(root, {
+                command: [
+                    "dms", "notify",
+                    "-a", "DankClock",
+                    "-n", "com.danklinux.dankclock",
+                    "-i", iconName,
+                    "-u", "critical",
+                    "-A", "dismiss=Dismiss",
+                    String(alertObj.title || "DankClock"),
+                    String(alertObj.subtitle || "")
+                ]
+            });
+            if (proc) {
+                proc.running = true;
+            }
             _playSoundFile(alertObj.soundId || "classic", alertObj.volume);
+        }
+    }
+
+    Component {
+        id: alertNotifyComponent
+        Process {
+            id: ap
+            running: false
+            stdout: SplitParser {
+                splitMarker: "\n"
+                onRead: data => {
+                    const action = data.trim();
+                    if (action === "dismiss") {
+                        root.stopSound();
+                    }
+                }
+            }
+            onExited: {
+                root.stopSound();
+                ap.destroy();
+            }
         }
     }
 
@@ -1740,12 +1786,16 @@ Singleton {
                 splitMarker: "\n"
                 onRead: data => {
                     const action = data.trim();
-                    if (action === "done" && p.reminderIndex >= 0) {
-                        root.toggleReminder(p.reminderIndex, true);
+                    if (action === "done") {
+                        root.stopSound();
+                        if (p.reminderIndex >= 0) {
+                            root.toggleReminder(p.reminderIndex, true);
+                        }
                     }
                 }
             }
             onExited: {
+                root.stopSound();
                 p.destroy();
             }
         }
@@ -1863,6 +1913,9 @@ Singleton {
     function toggleReminder(index, completed) {
         if (!root._stateReady || index < 0 || index >= reminders.length)
             return;
+        if (completed) {
+            stopSound();
+        }
         const next = reminders.slice();
         const r = next[index];
         const rep = r.repeat || "none";
