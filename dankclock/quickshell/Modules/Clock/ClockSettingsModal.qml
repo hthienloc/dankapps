@@ -24,7 +24,7 @@ Item {
 
             DButtonGroup {
                 id: settingsTabs
-                width: Math.min(360, parent.width - Theme.spacingL * 2)
+                width: Math.min(480, parent.width - Theme.spacingL * 2)
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: Theme.spacingS
@@ -34,6 +34,7 @@ Item {
                 size: "small"
                 model: [
                     { icon: "tune", text: "Preferences" },
+                    { icon: "developer_mode", text: "Developer" },
                     { icon: "info", text: "About" }
                 ]
                 currentIndex: ClockService.settingsTabIndex
@@ -347,10 +348,175 @@ Item {
                         }
                     }
 
-                    // Tab 1: About (Official DMS App style)
+                    // Tab 1: Developer / Debug Triggers
                     DFlickable {
                         anchors.fill: parent
                         visible: ClockService.settingsTabIndex === 1
+                        clip: true
+                        contentWidth: width
+                        contentHeight: devCol.height + ClockMetrics.pagePaddingV
+
+                        Column {
+                            id: devCol
+                            topPadding: Theme.spacingXS
+                            width: Math.min(ClockMetrics.contentMaxWidth, parent.width - Theme.spacingL * 2)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            spacing: ClockMetrics.cardGap
+
+                            Column {
+                                width: parent.width
+                                spacing: 0
+
+                                ClockSectionLabel {
+                                    width: parent.width
+                                    text: "Notification & Alert Triggers"
+                                }
+
+                                ClockGroup {
+                                    width: parent.width
+
+                                    ClockRow {
+                                        width: parent.width
+                                        iconName: "notifications"
+                                        accent: "purple"
+                                        title: "Trigger Reminder Notification"
+                                        subtitle: "Sends notification with 'Mark as Done' action button"
+                                        isFirstInGroup: true
+                                        isLastInGroup: false
+
+                                        DButton {
+                                            text: "Trigger"
+                                            iconName: "notifications_active"
+                                            buttonHeight: Theme.buttonHeightXS
+                                            backgroundColor: Theme.surfaceContainerHighest
+                                            textColor: Theme.primary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            onClicked: ClockService.triggerTestReminderNotification()
+                                        }
+                                    }
+
+                                    ClockRow {
+                                        width: parent.width
+                                        iconName: "alarm"
+                                        accent: "orange"
+                                        title: "Trigger Alarm Notification"
+                                        subtitle: "Simulates an alarm ringing with sound and alert banner"
+                                        isFirstInGroup: false
+                                        isLastInGroup: false
+
+                                        DButton {
+                                            text: "Trigger"
+                                            iconName: "notifications_active"
+                                            buttonHeight: Theme.buttonHeightXS
+                                            backgroundColor: Theme.surfaceContainerHighest
+                                            textColor: Theme.primary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            onClicked: ClockService.triggerTestAlarmNotification()
+                                        }
+                                    }
+
+                                    ClockRow {
+                                        width: parent.width
+                                        iconName: "hourglass_empty"
+                                        accent: "blue"
+                                        title: "Trigger Timer Notification"
+                                        subtitle: "Simulates countdown timer expiration"
+                                        isFirstInGroup: false
+                                        isLastInGroup: false
+
+                                        DButton {
+                                            text: "Trigger"
+                                            iconName: "notifications_active"
+                                            buttonHeight: Theme.buttonHeightXS
+                                            backgroundColor: Theme.surfaceContainerHighest
+                                            textColor: Theme.primary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            onClicked: ClockService.triggerTestTimerNotification()
+                                        }
+                                    }
+
+                                    ClockRow {
+                                        width: parent.width
+                                        iconName: "psychology"
+                                        accent: "green"
+                                        title: "Trigger Pomodoro Notification"
+                                        subtitle: "Simulates Pomodoro phase transition notification"
+                                        isFirstInGroup: false
+                                        isLastInGroup: true
+
+                                        DButton {
+                                            text: "Trigger"
+                                            iconName: "notifications_active"
+                                            buttonHeight: Theme.buttonHeightXS
+                                            backgroundColor: Theme.surfaceContainerHighest
+                                            textColor: Theme.primary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            onClicked: ClockService.triggerTestPomodoroNotification()
+                                        }
+                                    }
+                                }
+                            }
+
+                            Column {
+                                width: parent.width
+                                spacing: 0
+
+                                ClockSectionLabel {
+                                    width: parent.width
+                                    text: "System State Actions"
+                                }
+
+                                ClockGroup {
+                                    width: parent.width
+
+                                    ClockRow {
+                                        width: parent.width
+                                        iconName: "save"
+                                        accent: "blue"
+                                        title: "Force Save State"
+                                        subtitle: "Flushes current in-memory clock state to ~/.config/dankclock/state.json"
+                                        isFirstInGroup: true
+                                        isLastInGroup: false
+
+                                        DButton {
+                                            text: "Save Now"
+                                            iconName: "save"
+                                            buttonHeight: Theme.buttonHeightXS
+                                            backgroundColor: Theme.surfaceContainerHighest
+                                            textColor: Theme.primary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            onClicked: ClockService.saveState()
+                                        }
+                                    }
+
+                                    ClockRow {
+                                        width: parent.width
+                                        iconName: "volume_up"
+                                        accent: "purple"
+                                        title: "Play Notification Chime"
+                                        subtitle: "Plays system message/alert sound via canberra/pw-play"
+                                        isFirstInGroup: false
+                                        isLastInGroup: true
+
+                                        DButton {
+                                            text: "Play"
+                                            iconName: "volume_up"
+                                            buttonHeight: Theme.buttonHeightXS
+                                            backgroundColor: Theme.surfaceContainerHighest
+                                            textColor: Theme.primary
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            onClicked: ClockService._playSystemNotificationSound()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Tab 2: About (Official DMS App style)
+                    DFlickable {
+                        anchors.fill: parent
+                        visible: ClockService.settingsTabIndex === 2
                         clip: true
                         contentWidth: width
                         contentHeight: aboutCol.height + ClockMetrics.pagePaddingV

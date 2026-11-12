@@ -1766,6 +1766,40 @@ Singleton {
         _playAlertNotification(alertObj);
     }
 
+    // Developer / Debug Trigger Helpers
+    function triggerTestAlarmNotification() {
+        _triggerAlert("alarm", "Alarm (Test)", "7:00 AM • Morning Alarm", 0, -1, "classic", 5, 100);
+    }
+
+    function triggerTestReminderNotification() {
+        let targetIdx = -1;
+        let title = "Water Reminder (Test)";
+        for (let i = 0; i < reminders.length; i++) {
+            if (reminders[i] && reminders[i].enabled) {
+                targetIdx = i;
+                title = reminders[i].title || title;
+                break;
+            }
+        }
+        if (targetIdx < 0 && reminders.length > 0) {
+            targetIdx = 0;
+            title = reminders[0].title || title;
+        }
+        _playAlertNotification({
+            type: "reminder",
+            title: title,
+            subtitle: "Scheduled for today • Tap to mark as done",
+            reminderIndex: targetIdx
+        });
+    }
+
+    function triggerTestTimerNotification() {
+        _triggerAlert("timer", "Timer (Test)", "5m 00s countdown finished", -1, 1, "classic", 5, 100);
+    }
+
+    function triggerTestPomodoroNotification() {
+        _triggerAlert("pomodoro", "Focus Session Complete", "Time for a 5-minute break", -1, -1, "gentle", 5, 100);
+    }
 
     // Reminder Management
     function openAddReminderSheet() {
