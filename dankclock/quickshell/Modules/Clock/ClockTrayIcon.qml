@@ -11,13 +11,13 @@ Item {
     function showWindow() {
         if (!root.shell)
             return;
-        root.shell.showAndFocus();
+        root.shell.handleWindowAction("show", "");
     }
 
     function toggleWindow() {
         if (!root.shell)
             return;
-        root.shell.toggleWindow();
+        root.shell.handleWindowAction("toggle", "");
     }
 
     Component.onCompleted: {

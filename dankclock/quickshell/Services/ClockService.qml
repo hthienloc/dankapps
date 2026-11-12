@@ -40,6 +40,8 @@ Singleton {
     })
     property int vacationRevision: 0
 
+    signal windowActionRequested(string action, string view)
+
     readonly property bool isVacationActive: {
         void vacationRevision;
         if (!vacation || !vacation.enabled)

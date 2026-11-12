@@ -14,6 +14,7 @@ import qs.DCommon.Common as DC
 
 ShellRoot {
     id: root
+    property var pendingTab: -1
 
     Connections {
         target: Quickshell
@@ -61,20 +62,46 @@ ShellRoot {
         focusRetry.restart();
     }
 
-    function toggleWindow() {
-        const t = windowLoader.active ? ownToplevel() : null;
-        if (t && !t.minimized) {
-            windowLoader.active = false;
+    function applyPending() {
+        if (!windowLoader.item)
             return;
+        if (root.pendingTab >= 0) {
+            ClockService.currentTabIndex = root.pendingTab;
+            root.pendingTab = -1;
         }
-        showAndFocus();
+        focusToplevel();
+    }
+
+    function handleWindowAction(action, view) {
+        view = view || "";
+        switch (action) {
+        case "show":
+            root.pendingTab = (view !== "" ? parseInt(view) : -1);
+            showAndFocus();
+            break;
+        case "hide":
+            windowLoader.active = false;
+            break;
+        case "toggle":
+            {
+                const t = windowLoader.active ? ownToplevel() : null;
+                if (t && !t.minimized) {
+                    windowLoader.active = false;
+                    return;
+                }
+                root.pendingTab = (view !== "" ? parseInt(view) : -1);
+                showAndFocus();
+                break;
+            }
+        }
+        applyPending();
     }
 
     Timer {
         id: focusRetry
         interval: 150
         repeat: false
-        onTriggered: root.focusToplevel()
+        onTriggered: root.applyPending()
     }
 
     Loader {
@@ -90,6 +117,20 @@ ShellRoot {
 
         ClockWindow {
             onHideRequested: windowLoader.active = false
+        }
+    }
+
+    Connections {
+        target: windowLoader
+        function onItemChanged() {
+            root.applyPending();
+        }
+    }
+
+    Connections {
+        target: ClockService
+        function onWindowActionRequested(action, view) {
+            root.handleWindowAction(action, view);
         }
     }
 }
