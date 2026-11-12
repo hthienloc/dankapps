@@ -1015,7 +1015,9 @@ Singleton {
         if (!s || !s.path)
             return;
 
-        stopSound();
+        if (soundPlayerProc.running) {
+            soundPlayerProc.running = false;
+        }
 
         const vol = typeof volumePct === "number" ? Math.max(0, Math.min(100, volumePct)) : 100;
         const pwVol = (vol / 100).toFixed(2);
