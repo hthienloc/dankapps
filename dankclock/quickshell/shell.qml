@@ -11,6 +11,7 @@ import qs.Common
 import qs.Services
 import qs.Modules.Clock
 import qs.DCommon.Common as DC
+import "Services/IpcService.qml" as IpcService
 
 ShellRoot {
     id: root
@@ -129,6 +130,13 @@ ShellRoot {
 
     Connections {
         target: ClockService
+        function onWindowActionRequested(action, view) {
+            root.handleWindowAction(action, view);
+        }
+    }
+
+    Connections {
+        target: IpcService
         function onWindowActionRequested(action, view) {
             root.handleWindowAction(action, view);
         }

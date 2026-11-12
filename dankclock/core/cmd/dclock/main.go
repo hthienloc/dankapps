@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 
 	"github.com/duxlabs-dev/dux-clock/core/internal/qtbaseembed"
@@ -30,17 +29,6 @@ var shellApp = shellapp.New(shellapp.Config{
 func uiEnv(string) []string {
 	return nil
 }
-
-func bootBackend(ctx context.Context) (shellapp.Backend, error) {
-	// DankClock has no daemon services yet: the UI process is self-contained.
-	// Return a no-op backend so shellapp can still supervise the UI.
-	return noopBackend{}, nil
-}
-
-type noopBackend struct{}
-
-func (noopBackend) SocketPath() string { return "" }
-func (noopBackend) Close()             {}
 
 type embeddedShell struct{}
 
