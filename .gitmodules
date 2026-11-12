@@ -1,0 +1,3 @@
+[submodule "dankclock/dux-qt-base"]
+	path = dankclock/dux-qt-base
+	url = https://github.com/duxlabs-dev/dux-qt-base.git
