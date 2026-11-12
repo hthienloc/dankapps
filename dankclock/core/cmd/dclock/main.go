@@ -78,6 +78,14 @@ func main() {
 
 	flag.Parse()
 
+	// Single-instance guard: refuse to start a second instance. When another
+	// DankClock is already running (visible or hidden in the system tray),
+	// exit quietly and point the user at the tray icon instead of opening a
+	// duplicate window.
+	if !singleInstanceGuard() {
+		os.Exit(0)
+	}
+
 	if *showVersion {
 		fmt.Printf("dclock version %s (built %s, commit %s)\n", Version, BuildTime, Commit)
 		return
@@ -120,7 +128,9 @@ func main() {
 		env = append(env, "DCLOCK_MONO_FONT="+fontCfg.Mono)
 	}
 
-	cmd := exec.Command("quickshell", "-p", qsDir)
+	// --no-duplicate: belt-and-braces guard so quickshell itself also exits if
+	// another instance of this config is already running.
+	cmd := exec.Command("quickshell", "-n", "-p", qsDir)
 	cmd.Env = env
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -174,4 +184,27 @@ func main() {
 			return
 		}
 	}
+}
+
+
+func singleInstanceGuard() bool {
+	runtimeDir := os.Getenv("XDG_RUNTIME_DIR")
+	if runtimeDir == "" {
+		runtimeDir = "/tmp"
+	}
+	lockPath := filepath.Join(runtimeDir, "dankclock.lock")
+
+	lockFile, err := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		// Cannot create lock file: fall back to allowing the instance.
+		return true
+	}
+	defer lockFile.Close()
+
+	// LOCK_NB: fail immediately if another process already holds the lock.
+	if err := syscall.Flock(int(lockFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+		fmt.Fprintf(os.Stderr, "DankClock is already running — click the system tray icon to open it.\n")
+		return false
+	}
+	return true
 }
