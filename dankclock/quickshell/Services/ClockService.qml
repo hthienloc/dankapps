@@ -126,7 +126,7 @@ Singleton {
         { id: "classic", name: "Classic Bell", icon: "notifications_active", path: "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga" },
         { id: "chime", name: "Bright Chime", icon: "music_note", path: "/usr/share/sounds/freedesktop/stereo/complete.oga" },
         { id: "gentle", name: "Gentle Pulse", icon: "waves", path: "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga" },
-        { id: "silent", name: "Silent (Visual Only)", icon: "notifications_off", path: "" }
+        { id: "silent", name: "Silent", icon: "notifications_off", path: "" }
     ]
     readonly property var snoozeOptions: [5, 10, 15, 30]
     property var alarms: [

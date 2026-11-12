@@ -182,7 +182,7 @@ Item {
 
                         DIcon {
                             anchors.centerIn: parent
-                            name: "notifications_active"
+                            name: (ClockService.nextIncomingAlarm && ClockService.nextIncomingAlarm.alarm.soundId === "silent") ? "notifications_off" : "notifications_active"
                             size: Theme.iconSize
                             color: Theme.onPrimary
                         }
@@ -609,12 +609,20 @@ Item {
                                         text: "Edit alarm label"
                                     }
 
-                                    // Right Meta: Skipped indicator / Vacation indicator + Expand/Collapse Chevron
+                                    // Right Meta: Silent indicator / Skipped indicator / Vacation indicator + Expand/Collapse Chevron
                                     Row {
                                         id: rightMetaRow
                                         anchors.right: parent.right
                                         anchors.verticalCenter: parent.verticalCenter
                                         spacing: 6
+
+                                        DIcon {
+                                            visible: alarmCard.soundId === "silent"
+                                            name: "notifications_off"
+                                            size: 16
+                                            color: alarmCard.isEnabled ? Theme.surfaceVariantText : Theme.withAlpha(Theme.surfaceVariantText, 0.5)
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
 
                                         DBadge {
                                             visible: ClockService.isVacationActive && alarmCard.isEnabled
