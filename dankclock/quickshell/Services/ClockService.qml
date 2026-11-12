@@ -1695,19 +1695,59 @@ Singleton {
         if (!alertObj)
             return;
         const iconName = alertObj.type === "alarm" ? "alarm" : (alertObj.type === "reminder" ? "notifications" : (alertObj.type === "pomodoro" ? "psychology" : "hourglass_empty"));
-        Quickshell.execDetached([
-            "dms", "notify",
-            "-a", "DankClock",
-            "-n", "com.danklinux.dankclock",
-            "-i", iconName,
-            "-u", alertObj.type === "reminder" ? "normal" : "critical",
-            String(alertObj.title || "DankClock"),
-            String(alertObj.subtitle || "")
-        ]);
         if (alertObj.type === "reminder") {
+            const remIdx = typeof alertObj.reminderIndex === "number" ? alertObj.reminderIndex : -1;
+            const remTitle = String(alertObj.title || "Reminder");
+            const remSub = String(alertObj.subtitle || "");
+            const proc = reminderNotifyComponent.createObject(root, {
+                reminderIndex: remIdx,
+                command: [
+                    "dms", "notify",
+                    "-a", "DankClock",
+                    "-n", "com.danklinux.dankclock",
+                    "-i", iconName,
+                    "-u", "normal",
+                    "-A", "done=Mark as Done",
+                    remTitle,
+                    remSub
+                ]
+            });
+            if (proc) {
+                proc.running = true;
+            }
             _playSystemNotificationSound();
         } else {
+            Quickshell.execDetached([
+                "dms", "notify",
+                "-a", "DankClock",
+                "-n", "com.danklinux.dankclock",
+                "-i", iconName,
+                "-u", "critical",
+                String(alertObj.title || "DankClock"),
+                String(alertObj.subtitle || "")
+            ]);
             _playSoundFile(alertObj.soundId || "classic", alertObj.volume);
+        }
+    }
+
+    Component {
+        id: reminderNotifyComponent
+        Process {
+            id: p
+            property int reminderIndex: -1
+            running: false
+            stdout: SplitParser {
+                splitMarker: "\n"
+                onRead: data => {
+                    const action = data.trim();
+                    if (action === "done" && p.reminderIndex >= 0) {
+                        root.toggleReminder(p.reminderIndex, true);
+                    }
+                }
+            }
+            onExited: {
+                p.destroy();
+            }
         }
     }
 
@@ -1717,6 +1757,7 @@ Singleton {
             title: title,
             subtitle: subtitle,
             alarmIndex: alarmIdx,
+            reminderIndex: type === "reminder" && typeof alarmIdx === "number" ? alarmIdx : -1,
             timerId: timerId,
             soundId: soundId || "classic",
             snoozeMin: snoozeMin || 5,
@@ -1724,6 +1765,7 @@ Singleton {
         };
         _playAlertNotification(alertObj);
     }
+
 
     // Reminder Management
     function openAddReminderSheet() {
@@ -1921,7 +1963,8 @@ Singleton {
                 _playAlertNotification({
                     type: "reminder",
                     title: r.title || "Reminder",
-                    subtitle: `${timeStr}`
+                    subtitle: `${timeStr}`,
+                    reminderIndex: i
                 });
 
                 // Do not auto-disable reminder here: it remains active so it appears in Overdue
