@@ -2,3 +2,6 @@ core/bin/
 *.swp
 *~
 .DS_Store
+core/bin/*
+internal/shellembed/dist/
+internal/qtbaseembed/lib/
