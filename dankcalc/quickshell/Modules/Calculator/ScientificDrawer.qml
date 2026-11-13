@@ -9,6 +9,7 @@ Item {
     id: root
 
     property bool expanded: false
+    property bool landscape: false
 
     clip: true
     opacity: expanded ? 1.0 : 0.0
@@ -23,12 +24,12 @@ Item {
     GridLayout {
         id: gridLayout
         anchors.fill: parent
-        anchors.leftMargin: Math.max(Theme.spacingM, root.width * 0.04)
-        anchors.rightMargin: Math.max(Theme.spacingM, root.width * 0.04)
-        anchors.bottomMargin: Theme.spacingXS
-        columns: 4
-        columnSpacing: Math.max(6, Math.min(14, root.width * 0.02))
-        rowSpacing: Math.max(6, Math.min(14, root.height * 0.02))
+        anchors.leftMargin: root.landscape ? Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04)) : Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04))
+        anchors.rightMargin: root.landscape ? Theme.spacingXS : Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04))
+        anchors.bottomMargin: root.landscape ? Math.min(Theme.spacingM, Math.max(Theme.spacingS, root.height * 0.03)) : Theme.spacingXS
+        columns: root.landscape ? 3 : 4
+        columnSpacing: Math.max(6, Math.min(12, root.width * 0.02))
+        rowSpacing: Math.max(6, Math.min(12, root.height * 0.02))
 
         // Row 1
         CalculatorButton {

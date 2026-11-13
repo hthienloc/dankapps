@@ -17,12 +17,15 @@ Singleton {
     property string expression: ""
     property string liveResult: "0"
     property bool justEvaluated: false
-    property bool isRad: SettingsData.angleUnitRad
+    readonly property bool isRad: SettingsData.angleUnitRad
     property bool isInv: false
     property var history: []
     property bool historyOpen: false
     property bool menuOpen: false
     property bool categoryMenuOpen: false
+    property bool settingsOpen: false
+
+    onIsRadChanged: updateLiveEval()
 
     // Converter State
     property string converterCategory: "length"
@@ -36,15 +39,14 @@ Singleton {
         currentMode = mode;
         menuOpen = false;
         categoryMenuOpen = false;
+        settingsOpen = false;
         if (mode === "converter") {
             updateConverterConversion();
         }
     }
 
     function toggleRad() {
-        isRad = !isRad;
-        SettingsData.angleUnitRad = isRad;
-        updateLiveEval();
+        SettingsData.angleUnitRad = !SettingsData.angleUnitRad;
     }
 
     function toggleInv() {

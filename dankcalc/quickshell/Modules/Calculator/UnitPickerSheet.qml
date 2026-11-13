@@ -59,7 +59,7 @@ Item {
         x: Math.max(Theme.spacingM, Math.min(targetPos.x, root.width - width - Theme.spacingM))
         y: Math.max(Theme.spacingS, Math.min(targetPos.y, root.height - height - Theme.spacingS))
         width: Math.min(root.width - Theme.spacingM * 2, 260)
-        height: Math.min(unitList.contentHeight + Theme.spacingS * 2, 280)
+        height: Math.min(unitList.contentHeight + Theme.spacingS * 2, Math.min(280, root.height - Theme.spacingM * 2))
         radius: Theme.cornerRadiusSmall
         color: Theme.surfaceContainer
         border.color: M3E.stroke(Theme.outlineVariant, M3E.strokePopup)

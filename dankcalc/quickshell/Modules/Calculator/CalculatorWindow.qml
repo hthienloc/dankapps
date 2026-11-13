@@ -11,13 +11,16 @@ import "UnitConverterLogic.js" as ConvLogic
 FloatingWindow {
     id: window
 
-    title: CalculatorService.currentMode === "converter" ? "Unit Converter — DankCalc" : "Calculator — DankCalc"
-    minimumSize: Qt.size(300, 420)
+    title: CalculatorService.settingsOpen
+        ? "Settings — DankCalc"
+        : (CalculatorService.currentMode === "converter" ? "Unit Converter — DankCalc" : "Calculator — DankCalc")
+    minimumSize: Qt.size(300, 360)
     implicitWidth: 380
     implicitHeight: CalculatorService.currentMode === "converter" ? 560 : (scientificOpen ? 640 : 520)
     color: Theme.surfaceContainerLowest
     visible: true
 
+    readonly property bool isLandscape: window.width >= 540 && window.width > window.height * 1.05
     property bool scientificOpen: SettingsData.scientificExpanded
 
     onScientificOpenChanged: {
@@ -45,12 +48,19 @@ FloatingWindow {
             function onConverterPickerTargetChanged() {
                 if (CalculatorService.converterPickerTarget === "") rootContent.forceActiveFocus();
             }
+            function onSettingsOpenChanged() {
+                if (!CalculatorService.settingsOpen) rootContent.forceActiveFocus();
+            }
         }
 
         // Keyboard navigation and math input
         Keys.onPressed: event => {
             if (event.modifiers & Qt.ControlModifier) {
                 switch (event.key) {
+                case Qt.Key_Comma:
+                    CalculatorService.settingsOpen = !CalculatorService.settingsOpen;
+                    event.accepted = true;
+                    return;
                 case Qt.Key_C:
                     if (CalculatorService.currentMode === "converter") {
                         CalculatorService.copyConverterResult();
@@ -112,7 +122,9 @@ FloatingWindow {
                     event.accepted = true;
                     return;
                 case Qt.Key_Escape:
-                    if (CalculatorService.converterPickerTarget !== "") {
+                    if (CalculatorService.settingsOpen) {
+                        CalculatorService.settingsOpen = false;
+                    } else if (CalculatorService.converterPickerTarget !== "") {
                         CalculatorService.converterPickerTarget = "";
                     } else if (CalculatorService.categoryMenuOpen) {
                         CalculatorService.categoryMenuOpen = false;
@@ -124,6 +136,14 @@ FloatingWindow {
                     event.accepted = true;
                     return;
                 }
+            }
+
+            if (CalculatorService.settingsOpen) {
+                if (event.key === Qt.Key_Escape) {
+                    CalculatorService.settingsOpen = false;
+                    event.accepted = true;
+                }
+                return;
             }
 
             // Standard Calculator keyboard input
@@ -242,7 +262,9 @@ FloatingWindow {
                         id: header
                         anchors.fill: parent
                         controls: windowControls
-                        title: CalculatorService.currentMode === "converter" ? "Unit Converter" : "Calculator"
+                        title: CalculatorService.settingsOpen
+                            ? "Settings"
+                            : (CalculatorService.currentMode === "converter" ? "Unit Converter" : "Calculator")
                         onCloseRequested: Qt.quit()
                     }
                 }
@@ -251,6 +273,7 @@ FloatingWindow {
                 Item {
                     Layout.fillWidth: true
                     implicitHeight: Style.buttonHeightS
+                    visible: !CalculatorService.settingsOpen
 
                     RowLayout {
                         anchors.fill: parent
@@ -371,18 +394,21 @@ FloatingWindow {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     spacing: 0
-                    visible: CalculatorService.currentMode === "calculator"
+                    visible: !CalculatorService.settingsOpen && CalculatorService.currentMode === "calculator"
 
                     // Display Area
                     CalculatorDisplay {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: Math.max(54, Math.min(120, parent.height * 0.16))
+                        Layout.preferredHeight: window.isLandscape
+                            ? Math.max(64, Math.min(110, parent.height * 0.24))
+                            : Math.max(54, Math.min(120, parent.height * 0.16))
                     }
 
-                    // Scientific Drawer Toggle Row
+                    // Scientific Drawer Toggle Row (Portrait only)
                     Item {
                         Layout.fillWidth: true
                         implicitHeight: Style.iconSize
+                        visible: !window.isLandscape
 
                         Rectangle {
                             anchors.centerIn: parent
@@ -417,21 +443,34 @@ FloatingWindow {
                         }
                     }
 
-                    // Scientific Keypad Drawer
-                    ScientificDrawer {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: window.scientificOpen
-                        Layout.preferredHeight: window.scientificOpen ? 3 : 0
-                        visible: window.scientificOpen
-                        expanded: window.scientificOpen
-                    }
-
-                    // Main Keypad
-                    CalculatorKeypad {
+                    // Keypads Area (Stacked in Portrait, Side-by-side in Landscape)
+                    GridLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.preferredHeight: 5
-                        scientificOpen: window.scientificOpen
+                        columns: window.isLandscape ? 2 : 1
+                        columnSpacing: Theme.spacingS
+                        rowSpacing: 0
+
+                        // Scientific Keypad Drawer
+                        ScientificDrawer {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: window.isLandscape || window.scientificOpen
+                            Layout.preferredWidth: window.isLandscape ? 3 : -1
+                            Layout.preferredHeight: window.isLandscape ? -1 : (window.scientificOpen ? 3 : 0)
+                            visible: window.isLandscape || window.scientificOpen
+                            expanded: window.isLandscape || window.scientificOpen
+                            landscape: window.isLandscape
+                        }
+
+                        // Main Keypad
+                        CalculatorKeypad {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.preferredWidth: window.isLandscape ? 4 : -1
+                            Layout.preferredHeight: window.isLandscape ? -1 : 5
+                            scientificOpen: window.scientificOpen
+                            landscape: window.isLandscape
+                        }
                     }
                 }
 
@@ -439,7 +478,14 @@ FloatingWindow {
                 ConverterView {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    visible: CalculatorService.currentMode === "converter"
+                    visible: !CalculatorService.settingsOpen && CalculatorService.currentMode === "converter"
+                }
+
+                // Settings Page
+                SettingsView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    visible: CalculatorService.settingsOpen
                 }
             }
         }

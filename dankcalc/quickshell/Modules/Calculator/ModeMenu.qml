@@ -157,6 +157,51 @@ Rectangle {
                     }
                 }
             }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: Theme.outlineVariant
+                opacity: 0.35
+            }
+
+            // Settings Option
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: Style.menuItemHeight
+                radius: Theme.cornerRadiusSmall
+                color: settingsHover.containsMouse ? Theme.surfaceContainerHighest : "transparent"
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: Theme.spacingS
+                    spacing: Theme.spacingS
+
+                    DIcon {
+                        name: "settings"
+                        size: Style.chipIconSize
+                        color: Theme.surfaceText
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: "Settings"
+                        font.pixelSize: Theme.fontSizeMedium
+                        color: Theme.surfaceText
+                    }
+                }
+
+                MouseArea {
+                    id: settingsHover
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        CalculatorService.menuOpen = false;
+                        CalculatorService.settingsOpen = true;
+                    }
+                }
+            }
         }
     }
 }

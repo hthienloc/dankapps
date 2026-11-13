@@ -24,10 +24,10 @@ Item {
     Layout.minimumWidth: 28
     Layout.minimumHeight: 24
 
-    readonly property real singleCharFontSize: Math.max(22, Math.min(36, Math.min(width * 0.45, height * 0.50)))
+    readonly property real singleCharFontSize: Math.max(16, Math.min(36, Math.min(width * 0.45, height * 0.50)))
     readonly property real multiCharFontSize: text.length <= 2
-        ? Math.max(16, Math.min(26, Math.min(width * 0.32, height * 0.42)))
-        : Math.max(13, Math.min(22, Math.min(width * 0.24, height * 0.38)))
+        ? Math.max(14, Math.min(26, Math.min(width * 0.32, height * 0.42)))
+        : Math.max(12, Math.min(22, Math.min(width * 0.24, height * 0.38)))
 
     readonly property real effectiveFontSize: fontSize > 0 ? fontSize : (text.length <= 1 ? singleCharFontSize : multiCharFontSize)
     readonly property real effectiveIconSize: Math.max(20, Math.min(34, Math.min(width * 0.36, height * 0.50)))

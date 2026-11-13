@@ -9,105 +9,118 @@ import "UnitConverterLogic.js" as ConvLogic
 Item {
     id: root
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.leftMargin: Math.max(Theme.spacingM, root.width * 0.04)
-        anchors.rightMargin: Math.max(Theme.spacingM, root.width * 0.04)
-        anchors.bottomMargin: Math.max(Theme.spacingM, root.height * 0.03)
-        spacing: Theme.spacingM
+    readonly property bool isLandscape: width >= 540 && width > height * 1.05
 
-        // ── VALUE & UNIT CONVERSION DISPLAY AREA ─────────────────────────────
-        Item {
+    GridLayout {
+        anchors.fill: parent
+        anchors.leftMargin: Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04))
+        anchors.rightMargin: Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04))
+        anchors.bottomMargin: Math.min(Theme.spacingM, Math.max(Theme.spacingS, root.height * 0.03))
+        columns: root.isLandscape ? 2 : 1
+        columnSpacing: Theme.spacingL
+        rowSpacing: Theme.spacingM
+
+        // ── LEFT / TOP PANE: DISPLAY + UNIT SELECTORS ───────────────────────
+        ColumnLayout {
+            id: leftPane
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumHeight: 120
+            Layout.preferredWidth: root.isLandscape ? 1 : -1
+            spacing: Theme.spacingM
 
-            ColumnLayout {
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.verticalCenterOffset: -Theme.spacingXS
-                spacing: Theme.spacingM
+            // ── VALUE & UNIT CONVERSION DISPLAY AREA ─────────────────────────
+            Item {
+                id: displayArea
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.minimumHeight: root.isLandscape ? 90 : 120
 
-                // "From" Value & Unit (Secondary / Input)
                 ColumnLayout {
-                    Layout.alignment: Qt.AlignRight
-                    spacing: 2
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.verticalCenterOffset: -Theme.spacingXS
+                    spacing: Theme.spacingM
 
-                    StyledText {
-                        Layout.alignment: Qt.AlignRight
-                        text: CalculatorService.converterFromValue
-                        font.pixelSize: Math.max(24, Math.min(38, root.width * 0.09))
-                        font.weight: Font.Normal
-                        color: Theme.surfaceText
-                        horizontalAlignment: Text.AlignRight
-                        elide: Text.ElideLeft
-                    }
-
-                    StyledText {
-                        Layout.alignment: Qt.AlignRight
-                        text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterFromUnit)
-                        font.pixelSize: Theme.fontSizeMedium
-                        font.weight: Font.Medium
-                        color: Theme.surfaceVariantText
-                        horizontalAlignment: Text.AlignRight
-                    }
-                }
-
-                // "To" Value & Unit (Primary / Result - Click to copy)
-                Item {
-                    id: toValueRow
-                    Layout.alignment: Qt.AlignRight
-                    implicitWidth: toValCol.implicitWidth
-                    implicitHeight: toValCol.implicitHeight
-
-                    MouseArea {
-                        id: toCardMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        acceptedButtons: Qt.LeftButton
-                        onClicked: CalculatorService.copyConverterResult()
-                    }
-
+                    // "From" Value & Unit (Secondary / Input)
                     ColumnLayout {
-                        id: toValCol
-                        anchors.right: parent.right
+                        Layout.alignment: Qt.AlignRight
                         spacing: 2
 
                         StyledText {
                             Layout.alignment: Qt.AlignRight
-                            text: CalculatorService.converterToValue
-                            font.pixelSize: Math.max(32, Math.min(54, root.width * 0.13))
-                            font.weight: Font.Bold
-                            color: toCardMouse.containsMouse ? Theme.primary : Theme.surfaceText
+                            text: CalculatorService.converterFromValue
+                            font.pixelSize: Math.max(22, Math.min(36, displayArea.width * 0.09))
+                            font.weight: Font.Normal
+                            color: Theme.surfaceText
                             horizontalAlignment: Text.AlignRight
                             elide: Text.ElideLeft
-
-                            Behavior on color {
-                                DColorAnim {
-                                    duration: M3E.effectsFastMs
-                                    easing.bezierCurve: M3E.curveFastEffects
-                                }
-                            }
                         }
 
                         StyledText {
                             Layout.alignment: Qt.AlignRight
-                            text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterToUnit)
-                            font.pixelSize: Theme.fontSizeLarge
-                            font.weight: Font.SemiBold
-                            color: Theme.primary
+                            text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterFromUnit)
+                            font.pixelSize: Theme.fontSizeMedium
+                            font.weight: Font.Medium
+                            color: Theme.surfaceVariantText
                             horizontalAlignment: Text.AlignRight
+                        }
+                    }
+
+                    // "To" Value & Unit (Primary / Result - Click to copy)
+                    Item {
+                        id: toValueRow
+                        Layout.alignment: Qt.AlignRight
+                        implicitWidth: toValCol.implicitWidth
+                        implicitHeight: toValCol.implicitHeight
+
+                        MouseArea {
+                            id: toCardMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            acceptedButtons: Qt.LeftButton
+                            onClicked: CalculatorService.copyConverterResult()
+                        }
+
+                        ColumnLayout {
+                            id: toValCol
+                            anchors.right: parent.right
+                            spacing: 2
+
+                            StyledText {
+                                Layout.alignment: Qt.AlignRight
+                                text: CalculatorService.converterToValue
+                                font.pixelSize: Math.max(28, Math.min(50, displayArea.width * 0.12))
+                                font.weight: Font.Bold
+                                color: toCardMouse.containsMouse ? Theme.primary : Theme.surfaceText
+                                horizontalAlignment: Text.AlignRight
+                                elide: Text.ElideLeft
+
+                                Behavior on color {
+                                    DColorAnim {
+                                        duration: M3E.effectsFastMs
+                                        easing.bezierCurve: M3E.curveFastEffects
+                                    }
+                                }
+                            }
+
+                            StyledText {
+                                Layout.alignment: Qt.AlignRight
+                                text: ConvLogic.getUnitName(CalculatorService.converterCategory, CalculatorService.converterToUnit)
+                                font.pixelSize: Theme.fontSizeLarge
+                                font.weight: Font.SemiBold
+                                color: Theme.primary
+                                horizontalAlignment: Text.AlignRight
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // ── PILL UNIT SELECTOR & SWAP BUTTON ─────────────────────────────────
-        Item {
-            Layout.fillWidth: true
-            implicitHeight: Style.buttonHeightS
+            // ── PILL UNIT SELECTOR & SWAP BUTTON ─────────────────────────────
+            Item {
+                Layout.fillWidth: true
+                implicitHeight: Style.buttonHeightS
 
             RowLayout {
                 anchors.fill: parent
@@ -241,19 +254,22 @@ Item {
                     }
                 }
             }
+            }
         }
 
         // ── 3-COLUMN CONVERTER KEYPAD ───────────────────────────────────────
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.max(220, root.height * 0.52)
+            Layout.fillHeight: root.isLandscape
+            Layout.preferredWidth: root.isLandscape ? 1 : -1
+            Layout.preferredHeight: root.isLandscape ? -1 : Math.max(220, root.height * 0.52)
 
             GridLayout {
                 id: converterGrid
                 anchors.fill: parent
                 columns: 3
-                columnSpacing: Math.max(8, Math.min(16, root.width * 0.025))
-                rowSpacing: Math.max(8, Math.min(16, root.height * 0.025))
+                columnSpacing: Math.max(8, Math.min(14, converterGrid.width * 0.025))
+                rowSpacing: Math.max(8, Math.min(14, converterGrid.height * 0.025))
 
                 // Row 1: AC, ±, ⌫
                 CalculatorButton {

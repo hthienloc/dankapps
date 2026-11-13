@@ -9,16 +9,17 @@ Item {
     id: root
 
     property bool scientificOpen: false
+    property bool landscape: false
 
     GridLayout {
         id: gridLayout
         anchors.fill: parent
-        anchors.leftMargin: Math.max(Theme.spacingM, root.width * 0.04)
-        anchors.rightMargin: Math.max(Theme.spacingM, root.width * 0.04)
-        anchors.bottomMargin: Math.max(Theme.spacingM, root.height * 0.03)
+        anchors.leftMargin: root.landscape ? Theme.spacingXS : Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04))
+        anchors.rightMargin: Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04))
+        anchors.bottomMargin: Math.min(Theme.spacingM, Math.max(Theme.spacingS, root.height * 0.03))
         columns: 4
-        columnSpacing: Math.max(6, Math.min(14, root.width * 0.02))
-        rowSpacing: Math.max(6, Math.min(14, root.height * 0.02))
+        columnSpacing: Math.max(6, Math.min(12, root.width * 0.02))
+        rowSpacing: Math.max(6, Math.min(12, root.height * 0.02))
 
         // Row 1
         CalculatorButton {

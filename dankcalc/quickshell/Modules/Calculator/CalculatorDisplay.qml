@@ -42,8 +42,8 @@ Item {
     ColumnLayout {
         z: 1
         anchors.fill: parent
-        anchors.leftMargin: Math.max(Theme.spacingM, root.width * 0.04)
-        anchors.rightMargin: Math.max(Theme.spacingM, root.width * 0.04)
+        anchors.leftMargin: Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04))
+        anchors.rightMargin: Math.min(Theme.spacingL, Math.max(Theme.spacingM, root.width * 0.04))
         spacing: Theme.spacingXXS
 
         // Top line: Expression
