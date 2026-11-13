@@ -317,75 +317,12 @@ Item {
                         Repeater {
                             model: root.overdueReminders
 
-                            delegate: ClockRow {
-                                id: overdueRow
-                                required property var modelData
-                                required property int index
-                                readonly property int remIdx: modelData.index
-                                readonly property var rem: modelData.item
-
-                                width: parent.width
-                                clickable: true
-                                iconName: "error_outline"
-                                accent: "orange"
-                                title: overdueRow.rem.title || "Reminder"
-                                subtitle: overdueRow.rem.date === root.todayKey ? "Earlier today" : `Scheduled: ${ClockService.formatReminderSchedule(overdueRow.rem)}`
-                                subtitleColor: Theme.error
-                                isFirstInGroup: index === 0
-                                isLastInGroup: index === root.overdueReminders.length - 1
-                                onClicked: ClockService.openEditReminderSheet(overdueRow.remIdx)
-
-                                leading: Rectangle {
-                                    id: overdueCheck
-                                    width: 24
-                                    height: 24
-                                    radius: 12
-                                    border.width: 1.5
-                                    border.color: overdueCheckHover.hovered ? Theme.primary : Theme.outlineMedium
-                                    color: overdueCheckHover.hovered ? Theme.withAlpha(Theme.primary, 0.15) : "transparent"
-                                    anchors.verticalCenter: parent.verticalCenter
-
-                                    Behavior on color {
-                                        enabled: Theme.animationsEnabled
-                                        ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                    }
-                                    Behavior on border.color {
-                                        enabled: Theme.animationsEnabled
-                                        ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                    }
-
-                                    HoverHandler {
-                                        id: overdueCheckHover
-                                        cursorShape: Qt.PointingHandCursor
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: ClockService.toggleReminder(overdueRow.remIdx, true)
-                                    }
-                                }
-
-                                trailing: Row {
-                                    spacing: Theme.spacingS
-                                    anchors.verticalCenter: parent.verticalCenter
-
-                                    DIcon {
-                                        visible: Boolean(overdueRow.rem.important)
-                                        name: "star"
-                                        size: Theme.iconSizeSmall
-                                        color: "#FFA726"
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-
-                                    NumericText {
-                                        text: root._formatTimeDisp(overdueRow.rem.hour, overdueRow.rem.minute)
-                                        font.pixelSize: Theme.fontSizeMedium
-                                        font.weight: Font.Bold
-                                        color: Theme.error
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
+                            delegate: ClockReminderRow {
+                                modelData: modelData
+                                index: index
+                                listCount: root.overdueReminders.length
+                                isDoneGroup: false
+                                onClicked: ClockService.openEditReminderSheet(remIdx)
                             }
                         }
                     }
@@ -408,74 +345,12 @@ Item {
                         Repeater {
                             model: root.todayReminders
 
-                            delegate: ClockRow {
-                                id: todayRow
-                                required property var modelData
-                                required property int index
-                                readonly property int remIdx: modelData.index
-                                readonly property var rem: modelData.item
-
-                                width: parent.width
-                                clickable: true
-                                iconName: "today"
-                                accent: "blue"
-                                title: todayRow.rem.title || "Reminder"
-                                subtitle: ClockService.formatReminderSchedule(todayRow.rem)
-                                isFirstInGroup: index === 0
-                                isLastInGroup: index === root.todayReminders.length - 1
-                                onClicked: ClockService.openEditReminderSheet(todayRow.remIdx)
-
-                                leading: Rectangle {
-                                    id: todayCheck
-                                    width: 24
-                                    height: 24
-                                    radius: 12
-                                    border.width: 1.5
-                                    border.color: todayCheckHover.hovered ? Theme.primary : Theme.outlineMedium
-                                    color: todayCheckHover.hovered ? Theme.withAlpha(Theme.primary, 0.15) : "transparent"
-                                    anchors.verticalCenter: parent.verticalCenter
-
-                                    Behavior on color {
-                                        enabled: Theme.animationsEnabled
-                                        ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                    }
-                                    Behavior on border.color {
-                                        enabled: Theme.animationsEnabled
-                                        ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                    }
-
-                                    HoverHandler {
-                                        id: todayCheckHover
-                                        cursorShape: Qt.PointingHandCursor
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: ClockService.toggleReminder(todayRow.remIdx, true)
-                                    }
-                                }
-
-                                trailing: Row {
-                                    spacing: Theme.spacingS
-                                    anchors.verticalCenter: parent.verticalCenter
-
-                                    DIcon {
-                                        visible: Boolean(todayRow.rem.important)
-                                        name: "star"
-                                        size: Theme.iconSizeSmall
-                                        color: "#FFA726"
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-
-                                    NumericText {
-                                        text: root._formatTimeDisp(todayRow.rem.hour, todayRow.rem.minute)
-                                        font.pixelSize: Theme.fontSizeMedium
-                                        font.weight: Font.Bold
-                                        color: Theme.primary
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
+                            delegate: ClockReminderRow {
+                                modelData: modelData
+                                index: index
+                                listCount: root.todayReminders.length
+                                isDoneGroup: false
+                                onClicked: ClockService.openEditReminderSheet(remIdx)
                             }
                         }
                     }
@@ -498,74 +373,12 @@ Item {
                         Repeater {
                             model: root.upcomingFutureReminders
 
-                            delegate: ClockRow {
-                                id: futureRow
-                                required property var modelData
-                                required property int index
-                                readonly property int remIdx: modelData.index
-                                readonly property var rem: modelData.item
-
-                                width: parent.width
-                                clickable: true
-                                iconName: "event"
-                                accent: "purple"
-                                title: futureRow.rem.title || "Reminder"
-                                subtitle: ClockService.formatReminderSchedule(futureRow.rem)
-                                isFirstInGroup: index === 0
-                                isLastInGroup: index === root.upcomingFutureReminders.length - 1
-                                onClicked: ClockService.openEditReminderSheet(futureRow.remIdx)
-
-                                leading: Rectangle {
-                                    id: futureCheck
-                                    width: 24
-                                    height: 24
-                                    radius: 12
-                                    border.width: 1.5
-                                    border.color: futureCheckHover.hovered ? Theme.primary : Theme.outlineMedium
-                                    color: futureCheckHover.hovered ? Theme.withAlpha(Theme.primary, 0.15) : "transparent"
-                                    anchors.verticalCenter: parent.verticalCenter
-
-                                    Behavior on color {
-                                        enabled: Theme.animationsEnabled
-                                        ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                    }
-                                    Behavior on border.color {
-                                        enabled: Theme.animationsEnabled
-                                        ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                    }
-
-                                    HoverHandler {
-                                        id: futureCheckHover
-                                        cursorShape: Qt.PointingHandCursor
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: ClockService.toggleReminder(futureRow.remIdx, true)
-                                    }
-                                }
-
-                                trailing: Row {
-                                    spacing: Theme.spacingS
-                                    anchors.verticalCenter: parent.verticalCenter
-
-                                    DIcon {
-                                        visible: Boolean(futureRow.rem.important)
-                                        name: "star"
-                                        size: Theme.iconSizeSmall
-                                        color: "#FFA726"
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-
-                                    NumericText {
-                                        text: root._formatTimeDisp(futureRow.rem.hour, futureRow.rem.minute)
-                                        font.pixelSize: Theme.fontSizeMedium
-                                        font.weight: Font.Bold
-                                        color: Theme.surfaceText
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
+                            delegate: ClockReminderRow {
+                                modelData: modelData
+                                index: index
+                                listCount: root.upcomingFutureReminders.length
+                                isDoneGroup: false
+                                onClicked: ClockService.openEditReminderSheet(remIdx)
                             }
                         }
                     }
@@ -600,74 +413,12 @@ Item {
                     Repeater {
                         model: root.doneReminders
 
-                        delegate: ClockRow {
-                            id: doneRow
-                            required property var modelData
-                            required property int index
-                            readonly property int remIdx: modelData.index
-                            readonly property var rem: modelData.item
-
-                            width: parent.width
-                            clickable: true
-                            iconName: "check_circle"
-                            accent: "green"
-                            title: doneRow.rem.title || "Reminder"
-                            subtitle: `Completed • ${ClockService.formatReminderSchedule(doneRow.rem)}`
-                            isFirstInGroup: index === 0
-                            isLastInGroup: index === root.doneReminders.length - 1
-                            onClicked: ClockService.openEditReminderSheet(doneRow.remIdx)
-
-                            leading: Rectangle {
-                                id: doneCheck
-                                width: 24
-                                height: 24
-                                radius: 12
-                                color: doneCheckHover.hovered ? Theme.withAlpha(Theme.primary, 0.8) : Theme.primary
-                                anchors.verticalCenter: parent.verticalCenter
-
-                                Behavior on color {
-                                    enabled: Theme.animationsEnabled
-                                    ColorAnimation { duration: ClockMetrics.fadeDuration }
-                                }
-
-                                DIcon {
-                                    anchors.centerIn: parent
-                                    name: "check"
-                                    size: 14
-                                    color: Theme.onPrimary
-                                }
-
-                                HoverHandler {
-                                    id: doneCheckHover
-                                    cursorShape: Qt.PointingHandCursor
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: ClockService.toggleReminder(doneRow.remIdx, false)
-                                }
-                            }
-
-                            trailing: Row {
-                                spacing: Theme.spacingS
-                                anchors.verticalCenter: parent.verticalCenter
-
-                                DIcon {
-                                    visible: Boolean(doneRow.rem.important)
-                                    name: "star"
-                                    size: Theme.iconSizeSmall
-                                    color: "#FFA726"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-
-                                NumericText {
-                                    text: root._formatTimeDisp(doneRow.rem.hour, doneRow.rem.minute)
-                                    font.pixelSize: Theme.fontSizeMedium
-                                    color: Theme.surfaceVariantText
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
+                        delegate: ClockReminderRow {
+                            modelData: modelData
+                            index: index
+                            listCount: root.doneReminders.length
+                            isDoneGroup: true
+                            onClicked: ClockService.openEditReminderSheet(remIdx)
                         }
                     }
                 }

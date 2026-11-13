@@ -11,6 +11,15 @@ QTBASE_EMBED_DIR = internal/qtbaseembed/lib
 SHELL_DIR=../quickshell
 EMBED_DIR = internal/shellembed/dist
 
+BASE_VERSION=$(or $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//'),0.1.0)
+COMMIT_COUNT=$(shell git rev-list --count HEAD 2>/dev/null || echo "0")
+COMMIT_HASH=$(shell git rev-parse --short=8 HEAD 2>/dev/null || echo "unknown")
+VERSION?=$(BASE_VERSION)+git$(COMMIT_COUNT).$(COMMIT_HASH)
+BUILD_TIME?=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
+COMMIT?=$(COMMIT_HASH)
+
+BUILD_LDFLAGS=-ldflags='-s -w -X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.Commit=$(COMMIT)'
+
 ifeq ($(QTBASE),0)
 QTBASE_DEP =
 QTBASE_TAG =
@@ -37,8 +46,8 @@ clean-qtbase:
 
 sync-shell:
 	@test -f $(SHELL_DIR)/shell.qml || { echo "quickshell missing at $(SHELL_DIR)"; exit 1; }
-	@rm -rf $(EMBED_DIR)
 	@mkdir -p $(EMBED_DIR)
+	@find $(EMBED_DIR) -mindepth 1 ! -name .placeholder -delete
 	@tar -C $(SHELL_DIR) --exclude=.qmlls.ini -chf - . | tar -C $(EMBED_DIR) -xf -
 	@rm -rf $(EMBED_DIR)/scripts $(EMBED_DIR)/tests $(EMBED_DIR)/.claude
 	@rm -f $(EMBED_DIR)/translations/extract_translations.py
@@ -46,7 +55,7 @@ sync-shell:
 build: sync-shell $(QTBASE_DEP)
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BUILD_DIR)
-	CGO_ENABLED=0 $(GO) build -tags 'withshell $(QTBASE_TAG)' -o $(BUILD_DIR)/$(BINARY_NAME) ./$(SOURCE_DIR)
+	CGO_ENABLED=0 $(GO) build -tags 'withshell $(QTBASE_TAG)' $(BUILD_LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./$(SOURCE_DIR)
 	@echo "Build complete: $(BUILD_DIR)/$(BINARY_NAME)"
 
 dev: $(QTBASE_DEP)
@@ -54,7 +63,9 @@ dev: $(QTBASE_DEP)
 	CGO_ENABLED=0 $(GO) build -tags '$(QTBASE_TAG)' -o $(BUILD_DIR)/$(BINARY_NAME) ./$(SOURCE_DIR)
 
 clean:
-	@rm -rf $(BUILD_DIR) $(EMBED_DIR) $(QTBASE_EMBED_DIR)
+	@rm -rf $(BUILD_DIR)
+	@test ! -d $(EMBED_DIR) || find $(EMBED_DIR) -mindepth 1 ! -name .placeholder -delete
+	@test ! -d $(QTBASE_EMBED_DIR) || find $(QTBASE_EMBED_DIR) -mindepth 1 ! -name .placeholder -delete
 
 test:
 	CGO_ENABLED=0 $(GO) test ./...

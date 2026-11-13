@@ -1,7 +1,9 @@
 core/bin/
+core/build/
 *.swp
 *~
 .DS_Store
 core/bin/*
-internal/shellembed/dist/
-internal/qtbaseembed/lib/
+core/internal/shellembed/dist/
+core/internal/qtbaseembed/lib/
+!core/internal/shellembed/dist/.placeholder

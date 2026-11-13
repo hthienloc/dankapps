@@ -5,8 +5,13 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "dclock",
-	Short: "DankClock - Standalone Material 3 Clock, Alarm, Timer & Stopwatch",
+	Use:     "dclock",
+	Short:   "DankClock - Standalone Material 3 Clock, Alarm, Timer & Stopwatch",
+	Args:    cobra.NoArgs,
+	PreRunE: shellApp.ResolveConfig,
+	RunE: func(_ *cobra.Command, _ []string) error {
+		return shellApp.CallOrLaunch("ui.show", nil)
+	},
 }
 
 var showCmd = &cobra.Command{
@@ -36,6 +41,8 @@ var daemonCmd = &cobra.Command{
 }
 
 func init() {
+	rootCmd.PersistentFlags().StringVarP(shellApp.CustomConfigVar(), "config", "c", "", "Path to a UI config dir (containing shell.qml) to use instead of the embedded UI (env: DANKCLOCK_SHELL_DIR)")
+
 	rootCmd.AddCommand(showCmd)
 	rootCmd.AddCommand(toggleCmd)
 	rootCmd.AddCommand(daemonCmd)

@@ -24,7 +24,7 @@ dev:
 	@$(MAKE) -C $(CORE_DIR) dev
 
 run: dev
-	@$(BUILD_DIR)/$(BINARY_NAME) -c $(CURDIR)/$(SHELL_DIR) $(ARGS)
+	@DANKCLOCK_SHELL_DIR=$(SHELL_DIR) $(BUILD_DIR)/$(BINARY_NAME) run --qs-child $(ARGS)
 
 clean:
 	@$(MAKE) -C $(CORE_DIR) clean
@@ -42,8 +42,6 @@ install: build
 	@install -D -m 755 $(BUILD_DIR)/$(BINARY_NAME) $(DESTDIR)$(INSTALL_DIR)/$(BINARY_NAME)
 	@install -D -m 644 distro/$(ICON_NAME).desktop $(DESTDIR)$(APPLICATIONS_DIR)/$(ICON_NAME).desktop
 	@install -D -m 644 assets/$(ICON_NAME).svg $(DESTDIR)$(ICON_DIR)/$(ICON_NAME).svg
-	@mkdir -p $(DESTDIR)$(QUICKSHELL_DIR)
-	@rsync -aL --delete $(SHELL_DIR)/ $(DESTDIR)$(QUICKSHELL_DIR)/
 
 uninstall:
 	@rm -f $(DESTDIR)$(INSTALL_DIR)/$(BINARY_NAME)
